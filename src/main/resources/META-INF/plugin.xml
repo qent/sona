@@ -1,0 +1,55 @@
+<idea-plugin>
+    <id>io.qent.sona</id>
+    <name>Sona</name>
+    <vendor>qent</vendor>
+
+    <dependencies>
+        <module name="intellij.libraries.skiko"></module>
+        <module name="intellij.libraries.compose.foundation.desktop"></module>
+        <module name="intellij.platform.jewel.foundation"></module>
+        <module name="intellij.platform.jewel.ui"></module>
+        <module name="intellij.platform.jewel.ideLafBridge"></module>
+    </dependencies>
+
+    <resource-bundle>messages.ComposeTemplate</resource-bundle>
+
+    <actions>
+        <action id="CreateNewChatAction"
+                class="io.qent.sona.actions.CreateNewChatAction"
+                text="Create"
+                description="Create new chat"
+                icon="AllIcons.General.Add"/>
+
+        <action id="OpenHistoryAction"
+                class="io.qent.sona.actions.OpenHistoryAction"
+                text="History"
+                description="Open history"
+                icon="AllIcons.General.History"/>
+
+        <action id="OpenRolesAction"
+                class="io.qent.sona.actions.OpenRolesAction"
+                text="Role"
+                description="Edit system message"
+                icon="AllIcons.General.User"/>
+    </actions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow
+                id="Sona"
+                factoryClass="io.qent.sona.PluginToolWindowFactory"
+                icon="/icons/harp.svg"
+                secondary="false"
+                anchor="right"/>
+
+        <applicationService serviceImplementation="io.qent.sona.repositories.PluginSettingsRepository"/>
+        <applicationService serviceImplementation="io.qent.sona.repositories.PluginChatRepository"/>
+        <applicationService serviceImplementation="io.qent.sona.repositories.PluginRolesRepository"/>
+        <applicationService serviceImplementation="io.qent.sona.services.ThemeService"/>
+
+        <applicationConfigurable
+                id="SonaChatSettings"
+                displayName="Sona"
+                instance="io.qent.sona.settings.PluginSettingsConfigurable"
+                parentId="tools"/>
+    </extensions>
+</idea-plugin>
