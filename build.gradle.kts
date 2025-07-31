@@ -32,12 +32,17 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.opentest4j)
 
+    implementation(project(":logic"))
+    implementation(libs.coroutines.core)
+    implementation(libs.langchain4j.core)
+    implementation(libs.langchain4j.kotlin)
+    implementation(libs.langchain4j.anthropic)
+
     intellijPlatform {
         create(providers.gradleProperty("platformType"), providers.gradleProperty("platformVersion"))
 
         // Compose support dependencies
         bundledModules(
-            "intellij.libraries.skiko",
             "intellij.libraries.compose.foundation.desktop",
             "intellij.platform.jewel.foundation",
             "intellij.platform.jewel.ui",
