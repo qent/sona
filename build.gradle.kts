@@ -42,7 +42,8 @@ dependencies {
         create(providers.gradleProperty("platformType"), providers.gradleProperty("platformVersion"))
 
         // Compose support dependencies
-        bundledModules(
+        bundledModules(            
+            "intellij.libraries.skiko",
             "intellij.libraries.compose.foundation.desktop",
             "intellij.platform.jewel.foundation",
             "intellij.platform.jewel.ui",
