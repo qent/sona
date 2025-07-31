@@ -1,0 +1,63 @@
+# GitHub Actions workflow for creating nightly plugin builds.
+# The workflow runs on a daily schedule and produces a plugin archive
+# only if there were changes in the main branch during the last day.
+
+name: Nightly Build
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  build-nightly:
+    name: Build nightly plugin
+    runs-on: ubuntu-latest
+    steps:
+      # Check out the current repository to access the plugin sources
+      - name: Fetch Sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Determine if there were commits to main in the last 24 hours
+      - name: Check for changes
+        id: changes
+        run: |
+          if git log --since="1 day ago" --oneline | grep -q .; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      # Set up Java for running Gradle tasks
+      - name: Setup Java
+        if: steps.changes.outputs.changed == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 21
+
+      # Setup Gradle
+      - name: Setup Gradle
+        if: steps.changes.outputs.changed == 'true'
+        uses: gradle/actions/setup-gradle@v4
+
+      # Build the plugin archive
+      - name: Build Plugin
+        if: steps.changes.outputs.changed == 'true'
+        run: ./gradlew buildPlugin
+
+      # Get current date for artifact naming
+      - name: Get date
+        if: steps.changes.outputs.changed == 'true'
+        id: date
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+      # Upload the built plugin as an artifact
+      - name: Upload plugin artifact
+        if: steps.changes.outputs.changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-nightly-${{ steps.date.outputs.date }}
+          path: build/distributions/*.zip
