@@ -1,0 +1,19 @@
+<idea-plugin>
+    <id>org.jetbrains.plugins.compose.template</id>
+    <name>Compose Template Example</name>
+    <vendor>JetBrains</vendor>
+
+    <dependencies>
+        <module name="intellij.libraries.skiko"></module>
+        <module name="intellij.libraries.compose.foundation.desktop"></module>
+        <module name="intellij.platform.jewel.foundation"></module>
+        <module name="intellij.platform.jewel.ui"></module>
+        <module name="intellij.platform.jewel.ideLafBridge"></module>
+    </dependencies>
+
+    <resource-bundle>messages.ComposeTemplate</resource-bundle>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow factoryClass="org.jetbrains.plugins.template.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
+    </extensions>
+</idea-plugin>
