@@ -14,6 +14,8 @@
     <resource-bundle>messages.ComposeTemplate</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.d0lfin.sona.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
+        <toolWindow factoryClass="com.github.d0lfin.sona.toolWindow.ChatToolWindowFactory" id="Chat"/>
+        <applicationService serviceImplementation="com.github.d0lfin.sona.settings.ChatSettingsRepositoryImpl"/>
+        <applicationConfigurable instance="com.github.d0lfin.sona.settings.ChatSettingsConfigurable" parentId="tools" id="SonaChatSettings" displayName="Sona Chat"/>
     </extensions>
 </idea-plugin>
