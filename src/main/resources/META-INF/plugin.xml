@@ -22,6 +22,7 @@
                 anchor="right"/>
 
         <applicationService serviceImplementation="io.qent.sona.settings.PluginSettingsRepository"/>
+        <applicationService serviceImplementation="io.qent.sona.chat.PluginChatRepository"/>
 
         <applicationConfigurable
                 id="SonaChatSettings"
