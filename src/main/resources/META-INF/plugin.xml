@@ -1,0 +1,32 @@
+<idea-plugin>
+    <id>io.qent.sona</id>
+    <name>Sona</name>
+    <vendor>qent</vendor>
+
+    <dependencies>
+        <module name="intellij.libraries.skiko"></module>
+        <module name="intellij.libraries.compose.foundation.desktop"></module>
+        <module name="intellij.platform.jewel.foundation"></module>
+        <module name="intellij.platform.jewel.ui"></module>
+        <module name="intellij.platform.jewel.ideLafBridge"></module>
+    </dependencies>
+
+    <resource-bundle>messages.ComposeTemplate</resource-bundle>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow
+                id="Sona"
+                factoryClass="io.qent.sona.PluginToolWindowFactory"
+                icon="/icons/harp.svg"
+                secondary="false"
+                anchor="right"/>
+
+        <applicationService serviceImplementation="io.qent.sona.settings.PluginSettingsRepository"/>
+
+        <applicationConfigurable
+                id="SonaChatSettings"
+                displayName="Sona"
+                instance="io.qent.sona.settings.PluginSettingsConfigurable"
+                parentId="tools"/>
+    </extensions>
+</idea-plugin>
