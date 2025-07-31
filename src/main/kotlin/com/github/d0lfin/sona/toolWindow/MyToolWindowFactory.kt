@@ -1,4 +1,4 @@
-package org.jetbrains.plugins.template.toolWindow
+package com.github.d0lfin.sona.toolWindow
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.getValue
@@ -16,8 +16,8 @@ import com.intellij.ui.content.ContentFactory
 import org.jetbrains.jewel.bridge.JewelComposePanel
 import org.jetbrains.jewel.ui.component.DefaultButton
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.plugins.template.ComposeTemplateBundle
-import org.jetbrains.plugins.template.services.MyProjectService
+import com.github.d0lfin.sona.ComposeTemplateBundle
+import com.github.d0lfin.sona.services.MyProjectService
 
 class MyToolWindowFactory : ToolWindowFactory, DumbAware {
 

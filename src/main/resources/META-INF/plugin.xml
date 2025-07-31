@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>org.jetbrains.plugins.compose.template</id>
     <name>Compose Template Example</name>
-    <vendor>JetBrains</vendor>
+    <vendor>d0lfin</vendor>
 
     <dependencies>
         <module name="intellij.libraries.skiko"></module>
@@ -14,6 +14,6 @@
     <resource-bundle>messages.ComposeTemplate</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="org.jetbrains.plugins.template.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
+        <toolWindow factoryClass="com.github.d0lfin.sona.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
     </extensions>
 </idea-plugin>

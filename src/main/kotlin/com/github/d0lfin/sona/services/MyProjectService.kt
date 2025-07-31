@@ -1,4 +1,4 @@
-package org.jetbrains.plugins.template.services
+package com.github.d0lfin.sona.services
 
 import com.intellij.openapi.components.Service
 
