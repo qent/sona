@@ -10,6 +10,7 @@ import io.qent.sona.core.ChatRepositoryMessage
 import dev.langchain4j.data.message.ChatMessage
 import dev.langchain4j.data.message.ChatMessageDeserializer
 import dev.langchain4j.data.message.ChatMessageSerializer
+import dev.langchain4j.data.message.SystemMessage
 import java.util.UUID
 
 @Service
@@ -78,7 +79,9 @@ class PluginChatRepository : ChatRepository, PersistentStateComponent<PluginChat
 
     override suspend fun listChats(): List<ChatSummary> {
         return state.chats.sortedByDescending { it.createdAt }.map { chat ->
-            val firstMsg = chat.messages.firstOrNull()?.let { ChatMessageDeserializer.messageFromJson(it.json) }
+            val firstMsg = chat.messages.asSequence().map {
+                ChatMessageDeserializer.messageFromJson(it.json)
+            }.firstOrNull { it !is SystemMessage }
             val first = firstMsg?.toString() ?: ""
             ChatSummary(chat.id, first.take(100), chat.createdAt)
         }

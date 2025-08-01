@@ -8,32 +8,32 @@ sealed class State {
     abstract val onOpenRoles: () -> Unit
 
     data class ChatState(
-        val messages: List<ChatMessage> = emptyList(),
-        val outputTokens: Int = 0,
-        val inputTokens: Int = 0,
-        val isSending: Boolean = false,
-        val onSendMessage: (String) -> Unit = {},
-        override val onNewChat: () -> Unit = {},
-        override val onOpenHistory: () -> Unit = {},
-        override val onOpenRoles: () -> Unit = {},
+        val messages: List<ChatMessage>,
+        val outputTokens: Int,
+        val inputTokens: Int,
+        val isSending: Boolean,
+        val onSendMessage: (String) -> Unit,
+        override val onNewChat: () -> Unit,
+        override val onOpenHistory: () -> Unit,
+        override val onOpenRoles: () -> Unit,
     ) : State()
 
     data class ChatListState(
-        val chats: List<ChatSummary> = emptyList(),
-        val onOpenChat: (String) -> Unit = {},
-        val onDeleteChat: (String) -> Unit = {},
-        override val onNewChat: () -> Unit = {},
-        override val onOpenRoles: () -> Unit = {},
+        val chats: List<ChatSummary>,
+        val onOpenChat: (String) -> Unit,
+        val onDeleteChat: (String) -> Unit,
+        override val onNewChat: () -> Unit,
+        override val onOpenRoles: () -> Unit,
     ) : State() {
         override val onOpenHistory = { }
     }
 
     data class RolesState(
-        val text: String = "",
-        val onSave: (String) -> Unit = {},
-        override val onNewChat: () -> Unit = {},
+        val text: String,
+        val onSave: (String) -> Unit,
+        override val onNewChat: () -> Unit,
+        override val onOpenHistory: () -> Unit,
     ) : State() {
-        override val onOpenHistory = { }
         override val onOpenRoles = { }
     }
 }

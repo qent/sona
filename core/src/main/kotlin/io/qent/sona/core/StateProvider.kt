@@ -1,7 +1,6 @@
 package io.qent.sona.core
 
 import dev.langchain4j.model.chat.ChatModel
-import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.data.message.ChatMessageType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,9 +17,11 @@ class StateProvider(
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 ) {
 
-    private val chatFlow = ChatFlow(settingsRepository, chatRepository, modelFactory, tools)
+    private val chatFlow = ChatFlow(settingsRepository, rolesRepository, chatRepository, modelFactory, tools)
 
-    private val _state = MutableStateFlow<State>(State.ChatState())
+    private val _state = MutableStateFlow<State>(State.ChatState(
+        emptyList(), 0, 0, false, {}, {}, {}, {}
+    ))
     val state: StateFlow<State> = _state.asStateFlow()
 
     init {
@@ -67,8 +68,9 @@ class StateProvider(
 
     private fun createRolesState(text: String) = State.RolesState(
         text = text,
-        onSave = { t -> scope.launch { saveRoles(t) } },
+        onSave = { roleText -> scope.launch { saveRoles(roleText) } },
         onNewChat = { scope.launch { newChat() } },
+        onOpenHistory = { scope.launch { showHistory() } }
     )
 
     private suspend fun showHistory() {
@@ -81,21 +83,11 @@ class StateProvider(
         _state.value = createRolesState(text)
     }
 
-    private suspend fun newChat() {
-        val id = chatRepository.createChat()
-        val system = rolesRepository.load()
-        chatRepository.addMessage(id, SystemMessage.from(system), "")
-        chatFlow.loadChat(id)
-    }
+    private suspend fun newChat()  = chatFlow.loadChat(chatRepository.createChat())
 
-    private suspend fun openChat(id: String) {
-        chatFlow.loadChat(id)
-    }
+    private suspend fun openChat(id: String) = chatFlow.loadChat(id)
 
-    private suspend fun saveRoles(text: String) {
-        rolesRepository.save(text)
-        openChat(chatFlow.chatId)
-    }
+    private suspend fun saveRoles(text: String) = rolesRepository.save(text)
 
     private suspend fun deleteChat(id: String) {
         chatRepository.deleteChat(id)
@@ -106,7 +98,5 @@ class StateProvider(
         }
     }
 
-    private suspend fun send(text: String) {
-        chatFlow.send(text)
-    }
+    private suspend fun send(text: String) = chatFlow.send(text)
 }

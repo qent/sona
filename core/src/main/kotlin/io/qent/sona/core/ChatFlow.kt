@@ -2,6 +2,7 @@ package io.qent.sona.core
 
 import dev.langchain4j.agent.tool.ToolSpecifications
 import dev.langchain4j.data.message.AiMessage
+import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.data.message.ToolExecutionResultMessage
 import dev.langchain4j.data.message.UserMessage
 import dev.langchain4j.kotlin.model.chat.request.ChatRequestBuilder
@@ -20,6 +21,7 @@ data class Chat(
 
 class ChatFlow(
     private val settingsRepository: SettingsRepository,
+    private val rolesRepository: RolesRepository,
     private val chatRepository: ChatRepository,
     private val modelFactory: suspend (Settings) -> ChatModel,
     tools: Tools,
@@ -28,9 +30,7 @@ class ChatFlow(
     private val tools = ToolsInfoDecorator(tools)
 
     private val innerStateFlow = MutableStateFlow(Chat("", TokenUsage(0, 0)))
-
-    val chatId: String
-        get() = innerStateFlow.value.chatId
+    private val currentState get() = innerStateFlow.value
 
     suspend fun loadChat(chatId: String) {
         var outputTokens = 0
@@ -51,10 +51,16 @@ class ChatFlow(
     }
 
     public suspend fun send(text: String) = try {
-        val chatId = innerStateFlow.value.chatId
+        val chatId = currentState.chatId
         val settings = settingsRepository.load()
         val userMessage = ChatRepositoryMessage(chatId, UserMessage.from(text), settings.model)
-        val messages = innerStateFlow.value.messages + userMessage
+
+        val messages = if (currentState.messages.isEmpty()) {
+            val systemMessage = ChatRepositoryMessage(chatId, SystemMessage.from(rolesRepository.load()), settings.model)
+            listOf(systemMessage, userMessage)
+        } else {
+            currentState.messages + userMessage
+        }
         innerStateFlow.value = innerStateFlow.value.copy(
             requestInProgress = true,
             messages = messages

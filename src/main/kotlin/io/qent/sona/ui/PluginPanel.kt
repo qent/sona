@@ -1,13 +1,6 @@
 package io.qent.sona.ui
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -15,23 +8,21 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.unit.dp
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import io.qent.sona.core.State.ChatState
-import io.qent.sona.core.State.ChatListState
-import io.qent.sona.core.State.RolesState
+import dev.langchain4j.data.message.AiMessage
+import dev.langchain4j.data.message.ChatMessage
+import dev.langchain4j.data.message.UserMessage
 import io.qent.sona.PluginStateFlow
-import java.text.SimpleDateFormat
-import java.util.Date
+import io.qent.sona.core.State.*
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.TextArea
 import org.jetbrains.jewel.ui.component.TextField
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
 fun Ui(project: Project) {
@@ -64,9 +55,17 @@ private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
     val scroll = rememberScrollState()
     Column(modifier.fillMaxWidth().verticalScroll(scroll).padding(8.dp)) {
         state.messages.forEach { msg ->
-            Text(msg.toString())
+            Message(msg)
             Spacer(Modifier.Companion.height(4.dp))
         }
+    }
+}
+
+@Composable
+private fun Message(message: ChatMessage) {
+    when (message) {
+        is UserMessage -> Text(message.singleText())
+        is AiMessage -> MarkdownText(message.text())
     }
 }
 
@@ -124,7 +123,10 @@ private fun ChatListScreen(state: ChatListState) {
 private fun RolesScreen(state: RolesState) {
     val textState = rememberTextFieldState(state.text)
     Column(Modifier.fillMaxSize().padding(8.dp)) {
-        TextField(textState, Modifier.weight(1f).fillMaxWidth())
+        TextArea(
+            textState,
+            Modifier.weight(1f).fillMaxWidth()
+        )
         Spacer(Modifier.height(8.dp))
         ActionButton(onClick = { state.onSave(textState.text.toString()) }, modifier = Modifier.fillMaxWidth()) {
             Text("Save")
