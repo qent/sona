@@ -29,7 +29,14 @@ sealed class State {
     }
 
     data class RolesState(
+        val roles: List<String>,
+        val currentIndex: Int,
+        val creating: Boolean,
         val text: String,
+        val onSelectRole: (Int) -> Unit,
+        val onStartCreateRole: () -> Unit,
+        val onAddRole: (String, String) -> Unit,
+        val onDeleteRole: () -> Unit,
         val onSave: (String) -> Unit,
         override val onNewChat: () -> Unit,
         override val onOpenHistory: () -> Unit,

@@ -70,7 +70,8 @@ class ChatFlow(
         val userMessage = ChatRepositoryMessage(chatId, UserMessage.from(text), settings.model)
 
         val baseMessages = if (currentState.messages.isEmpty()) {
-            val systemMessage = ChatRepositoryMessage(chatId, SystemMessage.from(rolesRepository.load()), settings.model)
+            val roleText = rolesRepository.load().let { it.roles[it.active].text }
+            val systemMessage = ChatRepositoryMessage(chatId, SystemMessage.from(roleText), settings.model)
             listOf(systemMessage, userMessage)
         } else {
             currentState.messages + userMessage

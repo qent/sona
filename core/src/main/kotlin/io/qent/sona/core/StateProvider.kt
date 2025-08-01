@@ -7,6 +7,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import io.qent.sona.core.Role
+import io.qent.sona.core.Roles
 
 
 class StateProvider(
@@ -22,6 +24,9 @@ class StateProvider(
 
     private val _state = MutableSharedFlow<State>()
     val state: Flow<State> = _state
+
+    private var roles: Roles = Roles()
+    private var creatingRole = false
 
     init {
         scope.launch {
@@ -70,12 +75,22 @@ class StateProvider(
         onOpenRoles = { scope.launch { showRoles() } },
     )
 
-    private fun createRolesState(text: String) = State.RolesState(
-        text = text,
-        onSave = { roleText -> scope.launch { saveRoles(roleText) } },
-        onNewChat = { scope.launch { newChat() } },
-        onOpenHistory = { scope.launch { showHistory() } }
-    )
+    private fun createRolesState(): State.RolesState {
+        val text = if (creatingRole) "" else roles.roles[roles.active].text
+        return State.RolesState(
+            roles = roles.roles.map { it.name },
+            currentIndex = roles.active,
+            creating = creatingRole,
+            text = text,
+            onSelectRole = { idx -> scope.launch { selectRole(idx) } },
+            onStartCreateRole = { scope.launch { startCreateRole() } },
+            onAddRole = { name, t -> scope.launch { addRole(name, t) } },
+            onDeleteRole = { scope.launch { deleteRole() } },
+            onSave = { t -> scope.launch { saveRole(t) } },
+            onNewChat = { scope.launch { newChat() } },
+            onOpenHistory = { scope.launch { showHistory() } }
+        )
+    }
 
     private suspend fun showHistory() {
         val chats = chatRepository.listChats()
@@ -83,15 +98,53 @@ class StateProvider(
     }
 
     private suspend fun showRoles() {
-        val text = rolesRepository.load()
-        _state.emit(createRolesState(text))
+        roles = rolesRepository.load()
+        creatingRole = false
+        _state.emit(createRolesState())
     }
 
     private suspend fun newChat() = chatFlow.loadChat(chatRepository.createChat())
 
     private suspend fun openChat(id: String) = chatFlow.loadChat(id)
 
-    private suspend fun saveRoles(text: String) = rolesRepository.save(text)
+    private suspend fun saveRole(text: String) {
+        val list = roles.roles.toMutableList()
+        list[roles.active] = list[roles.active].copy(text = text)
+        roles = roles.copy(roles = list)
+        rolesRepository.save(roles)
+        _state.emit(createRolesState())
+    }
+
+    private suspend fun selectRole(idx: Int) {
+        roles = roles.copy(active = idx)
+        rolesRepository.save(roles)
+        _state.emit(createRolesState())
+    }
+
+    private suspend fun startCreateRole() {
+        creatingRole = true
+        _state.emit(createRolesState())
+    }
+
+    private suspend fun addRole(name: String, text: String) {
+        roles = Roles(
+            active = roles.roles.size,
+            roles = roles.roles + Role(name, text)
+        )
+        creatingRole = false
+        rolesRepository.save(roles)
+        _state.emit(createRolesState())
+    }
+
+    private suspend fun deleteRole() {
+        if (roles.roles.size <= 1) return
+        val list = roles.roles.toMutableList()
+        list.removeAt(roles.active)
+        val newActive = roles.active.coerceAtMost(list.lastIndex)
+        roles = Roles(active = newActive, roles = list)
+        rolesRepository.save(roles)
+        _state.emit(createRolesState())
+    }
 
     private suspend fun deleteChat(id: String) {
         chatRepository.deleteChat(id)

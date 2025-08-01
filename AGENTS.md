@@ -5,6 +5,9 @@
 - Use Compose for all UI components.
 - Settings are stored using a repository interface in the logic module with an IntelliJ implementation in the UI module.
 - Chat history is persisted via a repository implementation (`PluginChatRepository`) that stores chats across IDE sessions.
+- System prompts (roles) are stored in `RolesRepository` and can be managed from
+  the Roles screen. Each role has a name and text and the last role cannot be
+  deleted.
 - Run `./gradlew build` before committing any changes.
 - After completing a task, make sure `AGENTS.md` and `README.md` reflect the latest behavior.
 
