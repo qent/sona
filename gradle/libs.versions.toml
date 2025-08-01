@@ -6,7 +6,7 @@ intelliJPlatform = "2.7.0"
 kotlin = "2.1.20"
 kover = "0.9.1"
 qodana = "2024.3.4"
-langchain4j_core = "1.0.0"
+langchain4j_core = "1.2.0"
 langchain4j_kotlin = "1.0.0-beta5"
 langchain4j_anthropic = "1.0.0-beta5"
 
