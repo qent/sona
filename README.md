@@ -1,5 +1,7 @@
 # sona
 
+[![Build](https://github.com/qent/sona/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/qent/sona/actions/workflows/build.yml)
+
 Chat with Anthropic models directly from a side panel in your IDE. The chat
 history is persisted in IDE storage so it survives restarts. Configure API
 token, endpoint and model in the settings.
