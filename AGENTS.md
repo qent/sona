@@ -11,6 +11,11 @@
 - Run `./gradlew build` before committing any changes.
 - After completing a task, make sure `AGENTS.md` and `README.md` reflect the latest behavior.
 
+## Styling
+
+Use `SonaTheme` from `ui/Theme.kt` for all colors and markdown typography. Colors are available via `SonaTheme.colors` and markdown styling via `SonaTheme.markdownColors` and `SonaTheme.markdownTypography`. New composables should rely on these values instead of hard coded colors to keep the look consistent.
+`ThemeService` listens to IDE Look&Feel changes and exposes a `StateFlow<Boolean>` to indicate if the IDE is in dark mode. Wrap top level `JewelComposePanel` contents in `SonaTheme(dark)` using this value so the plugin adapts when the IDE theme changes.
+
 ## Current structure
 
 - **core module** – contains `ChatFlow` and `StateProvider`. `ChatFlow` is a

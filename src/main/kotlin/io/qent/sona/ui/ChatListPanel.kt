@@ -1,3 +1,4 @@
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,9 +9,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.qent.sona.core.State.ChatListState
+import io.qent.sona.ui.SonaTheme
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
 import java.text.SimpleDateFormat
@@ -19,7 +23,12 @@ import java.util.Date
 @Composable
 fun ChatListPanel(state: ChatListState) {
     val listState = rememberLazyListState()
-    Column(Modifier.fillMaxSize().padding(8.dp)) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(SonaTheme.colors.Background)
+            .padding(8.dp)
+    ) {
         LazyColumn(
             state = listState,
             modifier = Modifier
@@ -31,16 +40,18 @@ fun ChatListPanel(state: ChatListState) {
                 Row(
                     Modifier
                         .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(SonaTheme.colors.AiBubble)
                         .clickable(onClick = { state.onOpenChat(chat.id) })
-                        .padding(vertical = 6.dp, horizontal = 4.dp),
+                        .padding(vertical = 6.dp, horizontal = 8.dp),
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
                 ) {
                     Column(
                         Modifier.weight(1f)
                     ) {
-                        Text(chat.firstMessage, maxLines = 1)
+                        Text(chat.firstMessage, maxLines = 1, color = SonaTheme.colors.AiText)
                         val date = SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date(chat.createdAt))
-                        Text(date, fontSize = 12.sp)
+                        Text(date, fontSize = 12.sp, color = SonaTheme.colors.Placeholder)
                     }
                     ActionButton(
                         onClick = {

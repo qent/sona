@@ -11,126 +11,177 @@ import androidx.compose.ui.unit.sp
 import com.mikepenz.markdown.model.DefaultMarkdownColors
 import com.mikepenz.markdown.model.DefaultMarkdownTypography
 
-val MarkdownTextColor = Color(0xFFA9B7C6)
-val MarkdownCodeForegroundColor = Color(0xFFBBB529)
-val MarkdownInlineCodeForegroundColor = Color(0xFFFFC66D)
-val MarkdownLinkColor = Color(0xFF589DF6)
-val MarkdownCodeBackgroundColor = Color(0xFF2B2B2B)
-val MarkdownInlineCodeBackgroundColor = Color(0xFF3C3F41)
-val MarkdownQuoteColor = Color(0xFF629755)
-val MarkdownDividerColor = Color(0xFF3C3F41)
-val MarkdownTableBackgroundColor = Color(0xFF2B2B2B)
-val MarkdownTableTextColor = Color(0xFFA9B7C6)
-val MarkdownLinkHoveredColor = Color(0xFF40C4FF)
-val MarkdownLinkFocusedColor = Color(0xFF9876AA)
-val MarkdownLinkPressedColor = Color(0xFF40C4FF)
+val MarkdownDarkTextColor = Color(0xFFA9B7C6)
+val MarkdownDarkCodeForegroundColor = Color(0xFFBBB529)
+val MarkdownDarkInlineCodeForegroundColor = Color(0xFFFFC66D)
+val MarkdownDarkLinkColor = Color(0xFF589DF6)
+val MarkdownDarkCodeBackgroundColor = Color(0xFF2B2B2B)
+val MarkdownDarkInlineCodeBackgroundColor = Color(0xFF3C3F41)
+val MarkdownDarkQuoteColor = Color(0xFF629755)
+val MarkdownDarkDividerColor = Color(0xFF3C3F41)
+val MarkdownDarkTableBackgroundColor = Color(0xFF2B2B2B)
+val MarkdownDarkTableTextColor = Color(0xFFA9B7C6)
+val MarkdownDarkLinkHoveredColor = Color(0xFF40C4FF)
+val MarkdownDarkLinkFocusedColor = Color(0xFF9876AA)
+val MarkdownDarkLinkPressedColor = Color(0xFF40C4FF)
+
+val MarkdownLightTextColor = Color(0xFF000000)
+val MarkdownLightCodeForegroundColor = Color(0xFF6A8759)
+val MarkdownLightInlineCodeForegroundColor = Color(0xFF6A8759)
+val MarkdownLightLinkColor = Color(0xFF0066CC)
+val MarkdownLightCodeBackgroundColor = Color(0xFFE6E6E6)
+val MarkdownLightInlineCodeBackgroundColor = Color(0xFFDADADA)
+val MarkdownLightQuoteColor = Color(0xFF6A8759)
+val MarkdownLightDividerColor = Color(0xFFDADADA)
+val MarkdownLightTableBackgroundColor = Color(0xFFE6E6E6)
+val MarkdownLightTableTextColor = Color(0xFF000000)
+val MarkdownLightLinkHoveredColor = Color(0xFF005BB5)
+val MarkdownLightLinkFocusedColor = Color(0xFF663399)
+val MarkdownLightLinkPressedColor = Color(0xFF005BB5)
 
 object Typography {
     val Dark = DefaultMarkdownTypography(
         h1 = TextStyle(
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
-            color = MarkdownTextColor
+            color = MarkdownDarkTextColor
         ),
         h2 = TextStyle(
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = MarkdownTextColor
+            color = MarkdownDarkTextColor
         ),
         h3 = TextStyle(
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = MarkdownTextColor
+            color = MarkdownDarkTextColor
         ),
         h4 = TextStyle(
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            color = MarkdownTextColor
+            color = MarkdownDarkTextColor
         ),
         h5 = TextStyle(
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
-            color = MarkdownTextColor
+            color = MarkdownDarkTextColor
         ),
         h6 = TextStyle(
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
-            color = MarkdownTextColor
+            color = MarkdownDarkTextColor
         ),
         text = TextStyle(
             fontSize = 14.sp,
-            color = MarkdownTextColor
+            color = MarkdownDarkTextColor
         ),
         code = TextStyle(
             fontSize = 14.sp,
             fontFamily = FontFamily.Monospace,
-            color = MarkdownCodeForegroundColor,
-            background = MarkdownCodeBackgroundColor
+            color = MarkdownDarkCodeForegroundColor,
+            background = MarkdownDarkCodeBackgroundColor
         ),
         inlineCode = TextStyle(
             fontSize = 14.sp,
             fontFamily = FontFamily.Monospace,
-            color = MarkdownInlineCodeForegroundColor,
-            background = MarkdownInlineCodeBackgroundColor
+            color = MarkdownDarkInlineCodeForegroundColor,
+            background = MarkdownDarkInlineCodeBackgroundColor
         ),
         quote = TextStyle(
             fontSize = 14.sp,
-            color = MarkdownQuoteColor,
+            color = MarkdownDarkQuoteColor,
             fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
         ),
         paragraph = TextStyle(
             fontSize = 14.sp,
-            color = MarkdownTextColor
+            color = MarkdownDarkTextColor
         ),
         ordered = TextStyle(
             fontSize = 14.sp,
-            color = MarkdownTextColor
+            color = MarkdownDarkTextColor
         ),
         bullet = TextStyle(
             fontSize = 14.sp,
-            color = MarkdownTextColor
+            color = MarkdownDarkTextColor
         ),
         list = TextStyle(
             fontSize = 14.sp,
-            color = MarkdownTextColor
+            color = MarkdownDarkTextColor
         ),
         link = TextStyle(
             fontSize = 14.sp,
-            color = MarkdownLinkColor,
+            color = MarkdownDarkLinkColor,
             textDecoration = TextDecoration.Underline
         ),
         textLink = TextLinkStyles(
             style = SpanStyle(
-                color = MarkdownLinkColor,
+                color = MarkdownDarkLinkColor,
                 textDecoration = TextDecoration.Underline
             ),
             hoveredStyle = SpanStyle(
-                color = MarkdownLinkHoveredColor
+                color = MarkdownDarkLinkHoveredColor
             ),
             focusedStyle = SpanStyle(
-                color = MarkdownLinkFocusedColor
+                color = MarkdownDarkLinkFocusedColor
             ),
             pressedStyle = SpanStyle(
-                color = MarkdownLinkPressedColor
+                color = MarkdownDarkLinkPressedColor
             )
         ),
         table = TextStyle(
             fontSize = 14.sp,
-            color = MarkdownTableTextColor
+            color = MarkdownDarkTableTextColor
         ),
+    )
+
+    val Light = DefaultMarkdownTypography(
+        h1 = TextStyle(fontSize = 28.sp, fontWeight = FontWeight.Bold, color = MarkdownLightTextColor),
+        h2 = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MarkdownLightTextColor),
+        h3 = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MarkdownLightTextColor),
+        h4 = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MarkdownLightTextColor),
+        h5 = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = MarkdownLightTextColor),
+        h6 = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MarkdownLightTextColor),
+        text = TextStyle(fontSize = 14.sp, color = MarkdownLightTextColor),
+        code = TextStyle(fontSize = 14.sp, fontFamily = FontFamily.Monospace, color = MarkdownLightCodeForegroundColor, background = MarkdownLightCodeBackgroundColor),
+        inlineCode = TextStyle(fontSize = 14.sp, fontFamily = FontFamily.Monospace, color = MarkdownLightInlineCodeForegroundColor, background = MarkdownLightInlineCodeBackgroundColor),
+        quote = TextStyle(fontSize = 14.sp, color = MarkdownLightQuoteColor, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic),
+        paragraph = TextStyle(fontSize = 14.sp, color = MarkdownLightTextColor),
+        ordered = TextStyle(fontSize = 14.sp, color = MarkdownLightTextColor),
+        bullet = TextStyle(fontSize = 14.sp, color = MarkdownLightTextColor),
+        list = TextStyle(fontSize = 14.sp, color = MarkdownLightTextColor),
+        link = TextStyle(fontSize = 14.sp, color = MarkdownLightLinkColor, textDecoration = TextDecoration.Underline),
+        textLink = TextLinkStyles(
+            style = SpanStyle(color = MarkdownLightLinkColor, textDecoration = TextDecoration.Underline),
+            hoveredStyle = SpanStyle(color = MarkdownLightLinkHoveredColor),
+            focusedStyle = SpanStyle(color = MarkdownLightLinkFocusedColor),
+            pressedStyle = SpanStyle(color = MarkdownLightLinkPressedColor)
+        ),
+        table = TextStyle(fontSize = 14.sp, color = MarkdownLightTableTextColor),
     )
 }
 
-object Colors {
+object MarkdownColors {
     val Dark = DefaultMarkdownColors(
-        text = MarkdownTextColor,
-        codeText = MarkdownCodeForegroundColor,
-        inlineCodeText = MarkdownInlineCodeForegroundColor,
-        linkText = MarkdownLinkColor,
-        codeBackground = MarkdownCodeBackgroundColor,
-        inlineCodeBackground = MarkdownInlineCodeBackgroundColor,
-        dividerColor = MarkdownDividerColor,
-        tableText = MarkdownTableTextColor,
-        tableBackground = MarkdownTableBackgroundColor,
+        text = MarkdownDarkTextColor,
+        codeText = MarkdownDarkCodeForegroundColor,
+        inlineCodeText = MarkdownDarkInlineCodeForegroundColor,
+        linkText = MarkdownDarkLinkColor,
+        codeBackground = MarkdownDarkCodeBackgroundColor,
+        inlineCodeBackground = MarkdownDarkInlineCodeBackgroundColor,
+        dividerColor = MarkdownDarkDividerColor,
+        tableText = MarkdownDarkTableTextColor,
+        tableBackground = MarkdownDarkTableBackgroundColor,
+    )
+
+    val Light = DefaultMarkdownColors(
+        text = MarkdownLightTextColor,
+        codeText = MarkdownLightCodeForegroundColor,
+        inlineCodeText = MarkdownLightInlineCodeForegroundColor,
+        linkText = MarkdownLightLinkColor,
+        codeBackground = MarkdownLightCodeBackgroundColor,
+        inlineCodeBackground = MarkdownLightInlineCodeBackgroundColor,
+        dividerColor = MarkdownLightDividerColor,
+        tableText = MarkdownLightTableTextColor,
+        tableBackground = MarkdownLightTableBackgroundColor,
     )
 }
