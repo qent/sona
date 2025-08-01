@@ -6,11 +6,14 @@ import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.data.message.ToolExecutionResultMessage
 import dev.langchain4j.data.message.UserMessage
 import dev.langchain4j.kotlin.model.chat.request.ChatRequestBuilder
-import dev.langchain4j.model.chat.ChatModel
+import dev.langchain4j.model.chat.StreamingChatModel
 import dev.langchain4j.model.output.TokenUsage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 data class Chat(
     val chatId: String,
@@ -23,7 +26,7 @@ class ChatFlow(
     private val settingsRepository: SettingsRepository,
     private val rolesRepository: RolesRepository,
     private val chatRepository: ChatRepository,
-    private val modelFactory: suspend (Settings) -> ChatModel,
+    private val modelFactory: suspend (Settings) -> StreamingChatModel,
     tools: Tools,
 ): Flow<Chat> {
 
@@ -55,46 +58,34 @@ class ChatFlow(
         val settings = settingsRepository.load()
         val userMessage = ChatRepositoryMessage(chatId, UserMessage.from(text), settings.model)
 
-        val messages = if (currentState.messages.isEmpty()) {
+        val baseMessages = if (currentState.messages.isEmpty()) {
             val systemMessage = ChatRepositoryMessage(chatId, SystemMessage.from(rolesRepository.load()), settings.model)
             listOf(systemMessage, userMessage)
         } else {
             currentState.messages + userMessage
         }
+        // add placeholder AI message which will be updated during streaming
+        val placeholder = ChatRepositoryMessage(chatId, AiMessage.from(""), settings.model)
         innerStateFlow.value = innerStateFlow.value.copy(
             requestInProgress = true,
-            messages = messages
+            messages = baseMessages + placeholder
         )
 
         val model = modelFactory(settings)
-        val chatRequestBuilder = ChatRequestBuilder(messages.map { it.message }.toMutableList())
+
+        var chatRequestBuilder = ChatRequestBuilder(baseMessages.map { it.message }.toMutableList())
         chatRequestBuilder.parameters(configurer = {
             toolSpecifications = ToolSpecifications.toolSpecificationsFrom(tools)
         })
 
-        var response = model.chat(chatRequestBuilder.build())
-        val lastDialogTokenUsage = calculateLastTokenUsage(response.tokenUsage())
-        val responseChatMessage = ChatRepositoryMessage(
-            chatId,
-            response.aiMessage(),
-            settings.model,
-            inputTokens = lastDialogTokenUsage.inputTokenCount(),
-            outputTokens = lastDialogTokenUsage.outputTokenCount()
-        )
-        innerStateFlow.value = innerStateFlow.value.copy(
-            messages = innerStateFlow.value.messages + responseChatMessage,
-            tokenUsage = response.tokenUsage()
-        )
-
+        var response = streamChat(model, chatRequestBuilder.build(), chatId, settings)
         var responseMessage = response.aiMessage()
+
         while (responseMessage.hasToolExecutionRequests()) {
             for (toolRequest in responseMessage.toolExecutionRequests()) {
                 val toolName = toolRequest.name()
                 val toolResponse = when (toolName) {
-                    "getFocusedFileText" -> {
-                        ToolExecutionResultMessage(toolRequest.id(), toolName, tools.getFocusedFileText())
-                    }
-
+                    "getFocusedFileText" -> ToolExecutionResultMessage(toolRequest.id(), toolName, tools.getFocusedFileText())
                     else -> throw IllegalArgumentException()
                 }
                 val toolResponseMessage = ChatRepositoryMessage(chatId, toolResponse, settings.model)
@@ -103,23 +94,17 @@ class ChatFlow(
                 )
             }
 
-            response = model.chat(innerStateFlow.value.messages.map { it.message })
-            responseMessage = response.aiMessage()
+            chatRequestBuilder = ChatRequestBuilder(innerStateFlow.value.messages.map { it.message }.toMutableList())
+            chatRequestBuilder.parameters(configurer = {
+                toolSpecifications = ToolSpecifications.toolSpecificationsFrom(tools)
+            })
 
-            val lastDialogTokenUsage = calculateLastTokenUsage(response.tokenUsage())
-            val responseChatMessage = ChatRepositoryMessage(
-                chatId,
-                response.aiMessage(),
-                settings.model,
-                inputTokens = lastDialogTokenUsage.inputTokenCount(),
-                outputTokens = lastDialogTokenUsage.outputTokenCount()
-            )
-            innerStateFlow.value = innerStateFlow.value.copy(
-                messages = innerStateFlow.value.messages + responseChatMessage,
-                tokenUsage = response.tokenUsage(),
-                requestInProgress = false
-            )
+            response = streamChat(model, chatRequestBuilder.build(), chatId, settings)
+            responseMessage = response.aiMessage()
         }
+
+        innerStateFlow.value = innerStateFlow.value.copy(requestInProgress = false)
+
     } catch (e: Exception) {
         val errorMessage = ChatRepositoryMessage(
             innerStateFlow.value.chatId,
@@ -139,7 +124,53 @@ class ChatFlow(
     private fun calculateLastTokenUsage(tokenUsage: TokenUsage): TokenUsage {
         return TokenUsage(
             tokenUsage.inputTokenCount() - innerStateFlow.value.tokenUsage.inputTokenCount(),
-            tokenUsage.outputTokenCount() - innerStateFlow.value.tokenUsage.outputTokenCount()
+            tokenUsage.outputTokenCount() - innerStateFlow.value.tokenUsage.outputTokenCount(),
         )
+    }
+
+    private suspend fun streamChat(
+        model: StreamingChatModel,
+        request: dev.langchain4j.model.chat.request.ChatRequest,
+        chatId: String,
+        settings: Settings
+    ): dev.langchain4j.model.chat.response.ChatResponse {
+        val builder = StringBuilder()
+        return kotlinx.coroutines.suspendCancellableCoroutine { cont ->
+            model.chat(request, object : dev.langchain4j.model.chat.response.StreamingChatResponseHandler {
+                override fun onPartialResponse(partialResponse: String) {
+                    builder.append(partialResponse)
+                    val msgs = innerStateFlow.value.messages.toMutableList()
+                    val lastIndex = msgs.lastIndex
+                    if (lastIndex >= 0) {
+                        msgs[lastIndex] = msgs[lastIndex].copy(message = AiMessage.from(builder.toString()))
+                        innerStateFlow.value = innerStateFlow.value.copy(messages = msgs)
+                    }
+                }
+
+                override fun onCompleteResponse(chatResponse: dev.langchain4j.model.chat.response.ChatResponse) {
+                    val lastUsage = calculateLastTokenUsage(chatResponse.tokenUsage())
+                    val msgs = innerStateFlow.value.messages.toMutableList()
+                    val lastIndex = msgs.lastIndex
+                    if (lastIndex >= 0) {
+                        msgs[lastIndex] = ChatRepositoryMessage(
+                            chatId,
+                            chatResponse.aiMessage(),
+                            settings.model,
+                            inputTokens = lastUsage.inputTokenCount(),
+                            outputTokens = lastUsage.outputTokenCount()
+                        )
+                        innerStateFlow.value = innerStateFlow.value.copy(
+                            messages = msgs,
+                            tokenUsage = chatResponse.tokenUsage()
+                        )
+                    }
+                    cont.resume(chatResponse)
+                }
+
+                override fun onError(t: Throwable) {
+                    cont.resumeWithException(t)
+                }
+            })
+        }
     }
 }

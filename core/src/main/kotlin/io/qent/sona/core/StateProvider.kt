@@ -1,6 +1,6 @@
 package io.qent.sona.core
 
-import dev.langchain4j.model.chat.ChatModel
+import dev.langchain4j.model.chat.StreamingChatModel
 import dev.langchain4j.data.message.ChatMessageType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -12,7 +12,7 @@ class StateProvider(
     settingsRepository: SettingsRepository,
     private val chatRepository: ChatRepository,
     private val rolesRepository: RolesRepository,
-    modelFactory: suspend (Settings) -> ChatModel,
+    modelFactory: suspend (Settings) -> StreamingChatModel,
     tools: Tools,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 ) {
@@ -47,7 +47,11 @@ class StateProvider(
             )
         }.launchIn(scope)
 
-        chatFlow.map { it.messages.lastOrNull() }.filterNotNull().distinctUntilChanged().onEach { message ->
+        chatFlow.filter { !it.requestInProgress }
+            .map { it.messages.lastOrNull() }
+            .filterNotNull()
+            .distinctUntilChanged()
+            .onEach { message ->
             chatRepository.addMessage(
                 message.chatId,
                 message.message,
@@ -55,7 +59,8 @@ class StateProvider(
                 message.inputTokens,
                 message.outputTokens
             )
-        }.launchIn(scope)
+            }
+            .launchIn(scope)
     }
 
     private fun createListState(chats: List<ChatSummary>) = State.ChatListState(

@@ -4,7 +4,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
-import dev.langchain4j.model.anthropic.AnthropicChatModel
+import dev.langchain4j.model.anthropic.AnthropicStreamingChatModel
 import io.qent.sona.core.State
 import io.qent.sona.core.StateProvider
 import io.qent.sona.core.Tools
@@ -32,7 +32,7 @@ class PluginStateFlow(private val project: Project) : StateFlow<State> {
         chatRepository,
         rolesRepository,
         modelFactory = { settings ->
-            AnthropicChatModel.builder()
+            AnthropicStreamingChatModel.builder()
                 .apiKey(settings.apiKey)
                 .baseUrl(settings.apiEndpoint)
                 .modelName(settings.model)
