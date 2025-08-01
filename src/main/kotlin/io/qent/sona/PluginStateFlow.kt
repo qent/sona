@@ -10,6 +10,7 @@ import io.qent.sona.core.StateProvider
 import io.qent.sona.core.Tools
 import io.qent.sona.repositories.PluginChatRepository
 import io.qent.sona.repositories.PluginSettingsRepository
+import io.qent.sona.repositories.PluginRolesRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.FlowCollector
@@ -20,9 +21,13 @@ class PluginStateFlow(private val project: Project) : StateFlow<State> {
 
     private val settingsRepository = service<PluginSettingsRepository>()
     private val chatRepository = service<PluginChatRepository>()
+    private val rolesRepository = service<PluginRolesRepository>()
     private val scope = CoroutineScope(Dispatchers.Default)
     private val stateProvider = StateProvider(
-        settingsRepository, chatRepository, modelFactory = { settings ->
+        settingsRepository,
+        chatRepository,
+        rolesRepository,
+        modelFactory = { settings ->
         AnthropicChatModel.builder()
             .apiKey(settings.apiKey)
             .baseUrl(settings.apiEndpoint)

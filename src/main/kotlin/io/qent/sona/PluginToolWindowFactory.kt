@@ -20,7 +20,8 @@ class PluginToolWindowFactory : ToolWindowFactory, DumbAware {
 
         toolWindow.setTitleActions(listOf(
             ActionManager.getInstance().getAction("CreateNewChatAction"),
-            ActionManager.getInstance().getAction("OpenHistoryAction")
+            ActionManager.getInstance().getAction("OpenHistoryAction"),
+            ActionManager.getInstance().getAction("OpenRolesAction")
         ))
     }
 }

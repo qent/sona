@@ -25,6 +25,12 @@
                 text="History"
                 description="Open history"
                 icon="AllIcons.General.History"/>
+
+        <action id="OpenRolesAction"
+                class="io.qent.sona.actions.OpenRolesAction"
+                text="Role"
+                description="Edit system message"
+                icon="AllIcons.General.User"/>
     </actions>
 
     <extensions defaultExtensionNs="com.intellij">
@@ -37,6 +43,7 @@
 
         <applicationService serviceImplementation="io.qent.sona.repositories.PluginSettingsRepository"/>
         <applicationService serviceImplementation="io.qent.sona.repositories.PluginChatRepository"/>
+        <applicationService serviceImplementation="io.qent.sona.repositories.PluginRolesRepository"/>
 
         <applicationConfigurable
                 id="SonaChatSettings"

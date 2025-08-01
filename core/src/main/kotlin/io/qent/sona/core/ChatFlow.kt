@@ -29,6 +29,9 @@ class ChatFlow(
 
     private val innerStateFlow = MutableStateFlow(Chat("", TokenUsage(0, 0)))
 
+    val chatId: String
+        get() = innerStateFlow.value.chatId
+
     suspend fun loadChat(chatId: String) {
         var outputTokens = 0
         var inputTokens = 0
