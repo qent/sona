@@ -20,7 +20,7 @@ class PluginChatRepository : ChatRepository, PersistentStateComponent<PluginChat
 
     data class StoredMessage(
         var json: String = "",
-        var model: String,
+        var model: String = "",
         var inputTokens: Int = 0,
         var outputTokens: Int = 0,
         var timestamp: Long = 0L,
