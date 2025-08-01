@@ -12,6 +12,11 @@ Chat with an Anthropic language model right inside your IDE. The chat history is
 ## Installation
 Use the IDE plugin manager or download the plugin from releases.
 
+## Roles
+The plugin supports multiple system roles. Open the roles screen from the tool
+window actions to switch between roles or create new ones. Each role has its own
+prompt text. Roles can be added, selected and removed (except the last role).
+
 ## Architecture Overview
 
 The project is split into two modules:
