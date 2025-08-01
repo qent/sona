@@ -25,6 +25,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import io.qent.sona.core.State.ChatState
 import io.qent.sona.core.State.ChatListState
+import io.qent.sona.core.State.RolesState
 import io.qent.sona.PluginStateFlow
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -38,6 +39,7 @@ fun Ui(project: Project) {
     when (val s = state.value) {
         is ChatState -> ChatScreen(s)
         is ChatListState -> ChatListScreen(s)
+        is RolesState -> RolesScreen(s)
     }
 }
 
@@ -115,6 +117,17 @@ private fun ChatListScreen(state: ChatListState) {
                 Spacer(Modifier.width(8.dp))
                 ActionButton(onClick = { state.onDeleteChat(chat.id) }) { Text("\uD83D\uDDD1") }
             }
+        }
+    }
+}
+@Composable
+private fun RolesScreen(state: RolesState) {
+    val textState = rememberTextFieldState(state.text)
+    Column(Modifier.fillMaxSize().padding(8.dp)) {
+        TextField(textState, Modifier.weight(1f).fillMaxWidth())
+        Spacer(Modifier.height(8.dp))
+        ActionButton(onClick = { state.onSave(textState.text.toString()) }, modifier = Modifier.fillMaxWidth()) {
+            Text("Save")
         }
     }
 }
