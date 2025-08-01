@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.clearText
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,6 +22,13 @@ fun RolesPanel(state: RolesState) {
     val textState = rememberTextFieldState(state.text)
     var menuExpanded by remember { mutableStateOf(false) }
     val nameState = rememberTextFieldState()
+
+    LaunchedEffect(state.currentIndex) {
+        if (textState.text != state.text) {
+            textState.setTextAndPlaceCursorAtEnd(state.text)
+        }
+    }
+
     Column(
         Modifier
             .fillMaxSize()

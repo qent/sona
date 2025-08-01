@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -188,6 +189,7 @@ private fun Input(state: ChatState) {
                                 false
                             }
                         },
+                    cursorBrush = SolidColor(Color.White),
                     textStyle = TextStyle(
                         color = SonaTheme.colors.UserText,
                         fontSize = 14.sp
@@ -206,7 +208,7 @@ private fun Input(state: ChatState) {
                 enabled = text.value.isNotBlank() && !state.isSending,
                 modifier = Modifier.height(40.dp)
             ) {
-                Text("Отправить")
+                Text("➤")
             }
         }
     }
