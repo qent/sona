@@ -63,6 +63,12 @@ Chat history is persisted via `PluginChatRepository`, which uses IntelliJ's
 The UI is written entirely with Compose (via Jewel Compose) in accordance
 with the development guidelines.
 
+### Styling
+
+UI components should be wrapped in `SonaTheme`, which supplies color palettes
+and markdown typography. `ThemeService` tracks IDE theme changes so the plugin
+automatically switches between light and dark palettes.
+
 ### Flow usage
 
 All state propagation relies on Kotlin `Flow`/`StateFlow`:

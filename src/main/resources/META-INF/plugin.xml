@@ -44,6 +44,7 @@
         <applicationService serviceImplementation="io.qent.sona.repositories.PluginSettingsRepository"/>
         <applicationService serviceImplementation="io.qent.sona.repositories.PluginChatRepository"/>
         <applicationService serviceImplementation="io.qent.sona.repositories.PluginRolesRepository"/>
+        <applicationService serviceImplementation="io.qent.sona.services.ThemeService"/>
 
         <applicationConfigurable
                 id="SonaChatSettings"

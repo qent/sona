@@ -1,12 +1,16 @@
 package io.qent.sona.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import io.qent.sona.core.State.RolesState
+import io.qent.sona.ui.SonaTheme
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextArea
@@ -17,7 +21,12 @@ fun RolesPanel(state: RolesState) {
     val textState = rememberTextFieldState(state.text)
     var menuExpanded by remember { mutableStateOf(false) }
     val nameState = rememberTextFieldState()
-    Column(Modifier.fillMaxSize().padding(8.dp)) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(SonaTheme.colors.Background)
+            .padding(8.dp)
+    ) {
         Row(Modifier.fillMaxWidth()) {
             if (state.creating) {
                 TextField(nameState, Modifier.weight(1f))
@@ -52,7 +61,11 @@ fun RolesPanel(state: RolesState) {
         Spacer(Modifier.height(8.dp))
         TextArea(
             textState,
-            Modifier.weight(1f).fillMaxWidth()
+            Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background(SonaTheme.colors.InputBackground)
         )
         Spacer(Modifier.height(8.dp))
         if (!state.creating) {

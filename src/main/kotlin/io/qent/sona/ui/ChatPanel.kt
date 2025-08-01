@@ -33,25 +33,14 @@ import io.qent.sona.core.State.ChatState
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
 
-object ChatColors {
-    val Background = Color(0xFF20232A)
-    val UserBubble = Color(0xFF3366FF)
-    val AiBubble = Color(0xFF292D36)
-    val UserText = Color.White
-    val AiText = Color(0xFFD3D8DF)
-    val InputBackground = Color(0xFF22262A)
-    val Placeholder = Color(0xFF7A818A)
-    val BubbleShadow = Color(0x22000000)
-    val BorderFocused = Color(0xFF3B72FF)
-    val BorderDefault = Color(0xFF373B42)
-}
+import io.qent.sona.ui.SonaTheme
 
 @Composable
 fun ChatPanel(state: ChatState) {
     Column(
         Modifier
             .fillMaxSize()
-            .background(ChatColors.Background)
+            .background(SonaTheme.colors.Background)
     ) {
         Header(state)
         Box(
@@ -109,8 +98,8 @@ private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
 @Composable
 fun MessageBubble(message: Any, isUser: Boolean) {
     var hovered by remember { mutableStateOf(false) }
-    val background = if (isUser) ChatColors.UserBubble else ChatColors.AiBubble
-    val textColor = if (isUser) ChatColors.UserText else ChatColors.AiText
+    val background = if (isUser) SonaTheme.colors.UserBubble else SonaTheme.colors.AiBubble
+    val textColor = if (isUser) SonaTheme.colors.UserText else SonaTheme.colors.AiText
     Box(
         Modifier
             .pointerInput(Unit) {
@@ -127,8 +116,8 @@ fun MessageBubble(message: Any, isUser: Boolean) {
             val mdState = rememberMarkdownState(message.text(), immediate = true)
             Markdown(
                 mdState,
-                colors = Colors.Dark,
-                typography = Typography.Dark,
+                colors = SonaTheme.markdownColors,
+                typography = SonaTheme.markdownTypography,
             )
         } else if (message is UserMessage) {
             Text(
@@ -143,12 +132,12 @@ fun MessageBubble(message: Any, isUser: Boolean) {
 @Composable
 fun AiAvatar() {
     Box(
-        Modifier
+        modifier = Modifier
             .size(28.dp)
-            .background(Color(0xFF8E98A9), shape = CircleShape),
+            .background(SonaTheme.colors.AvatarBackground, shape = CircleShape),
         contentAlignment = Alignment.Center
     ) {
-        Text("🤖", fontSize = 16.sp)
+        Text("\uD83E\uDD16", fontSize = 16.sp)
     }
 }
 
@@ -159,17 +148,17 @@ private fun Input(state: ChatState) {
     Box(
         Modifier
             .fillMaxWidth()
-            .background(ChatColors.InputBackground)
+            .background(SonaTheme.colors.InputBackground)
             .padding(12.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 Modifier
                     .weight(1f)
-                    .background(ChatColors.Background, RoundedCornerShape(12.dp))
+                    .background(SonaTheme.colors.Background, RoundedCornerShape(12.dp))
                     .border(
                         1.dp,
-                        if (isFocused) ChatColors.BorderFocused else ChatColors.BorderDefault,
+                        if (isFocused) SonaTheme.colors.BorderFocused else SonaTheme.colors.BorderDefault,
                         RoundedCornerShape(12.dp)
                     )
                     .padding(horizontal = 12.dp, vertical = 8.dp)
@@ -177,7 +166,7 @@ private fun Input(state: ChatState) {
                 if (text.value.isEmpty()) {
                     Text(
                         "Напишите сообщение...",
-                        color = ChatColors.Placeholder,
+                        color = SonaTheme.colors.Placeholder,
                         fontSize = 14.sp
                     )
                 }
@@ -200,7 +189,7 @@ private fun Input(state: ChatState) {
                             }
                         },
                     textStyle = TextStyle(
-                        color = Color.White,
+                        color = SonaTheme.colors.UserText,
                         fontSize = 14.sp
                     ),
                     singleLine = true,

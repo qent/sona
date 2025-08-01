@@ -3,6 +3,8 @@ package io.qent.sona.settings
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.intellij.openapi.options.Configurable
@@ -10,6 +12,8 @@ import com.intellij.openapi.components.service
 import io.qent.sona.repositories.PluginSettingsRepository
 import javax.swing.JComponent
 import org.jetbrains.jewel.bridge.JewelComposePanel
+import io.qent.sona.ui.SonaTheme
+import io.qent.sona.services.ThemeService
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 
@@ -23,6 +27,8 @@ class PluginSettingsConfigurable : Configurable {
 
     override fun createComponent(): JComponent {
         return JewelComposePanel {
+            val themeService = service<ThemeService>()
+            val dark by themeService.isDark.collectAsState()
             val apiKey = rememberTextFieldState(currentApiKey)
             val apiEndpoint = rememberTextFieldState(currentApiEndpoint)
             val model = rememberTextFieldState(currentModel)
@@ -31,7 +37,8 @@ class PluginSettingsConfigurable : Configurable {
             LaunchedEffect(apiEndpoint.text) { currentApiEndpoint = apiEndpoint.text.toString() }
             LaunchedEffect(model.text) { currentModel = model.text.toString() }
 
-            Column(Modifier.width(600.dp).padding(16.dp)) {
+            SonaTheme(dark = dark) {
+            Column(modifier = Modifier.width(600.dp).padding(16.dp)) {
                 Text("API Key")
                 TextField(
                     apiKey,
@@ -44,6 +51,7 @@ class PluginSettingsConfigurable : Configurable {
                 Text("Model")
                 TextField(model, Modifier.fillMaxWidth())
                 Spacer(Modifier.height(16.dp))
+            }
             }
         }
     }
