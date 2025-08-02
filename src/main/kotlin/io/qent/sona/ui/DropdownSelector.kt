@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,14 +14,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
@@ -48,8 +48,7 @@ fun DropdownSelector(
 ) {
     var expanded by remember { mutableStateOf(false) }
     var buttonPosition by remember { mutableStateOf(Offset.Zero) }
-    var buttonSize by remember { mutableStateOf(IntSize.Zero) }
-    var containerPosition by remember { mutableStateOf(Offset.Zero) }
+    var buttonSize by remember { mutableStateOf(androidx.compose.ui.unit.IntSize.Zero) }
 
     val currentItems by rememberUpdatedState(items)
     val filtered = remember(currentItems, selectedIndex) {
@@ -59,7 +58,7 @@ fun DropdownSelector(
     }
 
     Box(
-        modifier = modifier.onGloballyPositioned { containerPosition = it.positionInRoot() }
+        modifier = modifier.onGloballyPositioned { }
     ) {
         ActionButton(
             onClick = { expanded = !expanded },
@@ -68,53 +67,52 @@ fun DropdownSelector(
                 buttonSize = it.size
             }
         ) {
-            Text(items[selectedIndex])
+            Text(items.getOrElse(selectedIndex, { "" }))
         }
 
         if (expanded && filtered.isNotEmpty()) {
-            Column(
-                modifier = Modifier
-                    .offset {
-                        val x = (buttonPosition.x - containerPosition.x).toInt()
-                        val y = if (expandUpwards) {
-                            (buttonPosition.y - containerPosition.y - buttonSize.height * filtered.size).toInt()
-                        } else {
-                            (buttonPosition.y - containerPosition.y + buttonSize.height).toInt()
-                        }
-                        IntOffset(x, y)
-                    }
-                    .width(with(LocalDensity.current) { buttonSize.width.toDp() })
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(SonaTheme.colors.InputBackground)
-                    .zIndex(1f)
+            Popup(
+                offset = IntOffset(
+                    x = buttonPosition.x.toInt(),
+                    y = if (expandUpwards) (buttonPosition.y - buttonSize.height * filtered.size).toInt() else (buttonPosition.y + buttonSize.height).toInt()
+                ),
+                onDismissRequest = { expanded = false },
+                properties = PopupProperties(focusable = true)
             ) {
-                if (!expandUpwards) {
-                    Text(
-                        items[selectedIndex],
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
-                    )
-                }
-                filtered.forEach { (idx, name) ->
-                    ActionButton(
-                        onClick = {
-                            expanded = false
-                            onSelect(idx)
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text(name) }
-                }
-                if (expandUpwards) {
-                    Text(
-                        items[selectedIndex],
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
-                    )
+                Column(
+                    modifier = Modifier
+                        .width(with(LocalDensity.current) { buttonSize.width.toDp() })
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(SonaTheme.colors.InputBackground)
+                        .zIndex(1f)
+                ) {
+                    if (!expandUpwards) {
+                        Text(
+                            items[selectedIndex],
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                        )
+                    }
+                    filtered.forEach { (idx, name) ->
+                        ActionButton(
+                            onClick = {
+                                expanded = false
+                                onSelect(idx)
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text(name) }
+                    }
+                    if (expandUpwards) {
+                        Text(
+                            items[selectedIndex],
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                        )
+                    }
                 }
             }
         }
     }
 }
-

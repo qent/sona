@@ -14,6 +14,7 @@ import io.qent.sona.core.State.RolesState
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextArea
+import org.jetbrains.jewel.ui.component.TextField
 
 @Composable
 fun RolesPanel(state: RolesState) {
@@ -37,29 +38,38 @@ fun RolesPanel(state: RolesState) {
                 .padding(8.dp)
         ) {
             Row(Modifier.fillMaxWidth()) {
-                DropdownSelector(
-                    items = state.roles,
-                    selectedIndex = state.currentIndex,
-                    expandUpwards = false,
-                    onSelect = { state.onSelectRole(it) },
-                    modifier = Modifier.weight(1f),
-                    buttonModifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(Modifier.width(8.dp))
-                ActionButton(
-                    onClick = {
+                if (state.creating) {
+                    TextField(nameState, Modifier.weight(1f))
+                    Spacer(Modifier.width(8.dp))
+                    ActionButton(onClick = {
+                        state.onAddRole(nameState.text.toString(), textState.text.toString())
                         nameState.clearText()
-                        textState.clearText()
-                        state.onStartCreateRole()
-                    }
-                ) { Text("+") }
+                    }) { Text("Save") }
+                } else {
+                    DropdownSelector(
+                        items = state.roles,
+                        selectedIndex = state.currentIndex,
+                        expandUpwards = false,
+                        onSelect = { state.onSelectRole(it) },
+                        modifier = Modifier.weight(1f),
+                        buttonModifier = Modifier.fillMaxWidth()
+                    )
 
-                Spacer(Modifier.width(8.dp))
-                ActionButton(
-                    onClick = { state.onDeleteRole() },
-                    enabled = state.roles.size > 1
-                ) { Text("\uD83D\uDDD1") }
+                    Spacer(Modifier.width(8.dp))
+                    ActionButton(
+                        onClick = {
+                            nameState.clearText()
+                            textState.clearText()
+                            state.onStartCreateRole()
+                        }
+                    ) { Text("+") }
+
+                    Spacer(Modifier.width(8.dp))
+                    ActionButton(
+                        onClick = { state.onDeleteRole() },
+                        enabled = state.roles.size > 1
+                    ) { Text("\uD83D\uDDD1") }
+                }
             }
 
             Spacer(Modifier.height(8.dp))
