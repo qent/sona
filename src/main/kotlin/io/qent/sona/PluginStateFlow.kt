@@ -47,7 +47,7 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
         }, scope = scope
     )
 
-    var lastState: State = State.ChatState(emptyList(), 0, 0, false, {}, {}, {}, {})
+    var lastState: State = State.ChatState(emptyList(), 0, 0, false, {}, {}, {}, {}, {})
 
     init {
         stateProvider.state.onEach {

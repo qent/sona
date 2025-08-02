@@ -45,6 +45,7 @@ class StateProvider(
                 tokenUsage.inputTokenCount(),
                 isSending = requestInProgress,
                 onSendMessage = { text -> scope.launch { send(text) } },
+                onStop = { scope.launch { stop() } },
                 onNewChat = { scope.launch { newChat() } },
                 onOpenHistory = { scope.launch { showHistory() } },
                 onOpenRoles = { scope.launch { showRoles() } },
@@ -156,4 +157,5 @@ class StateProvider(
     }
 
     private suspend fun send(text: String) = chatFlow.send(text)
+    private fun stop() = chatFlow.stop()
 }
