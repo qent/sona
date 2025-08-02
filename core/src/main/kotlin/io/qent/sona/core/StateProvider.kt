@@ -1,6 +1,5 @@
 package io.qent.sona.core
 
-import dev.langchain4j.data.message.ChatMessageType
 import dev.langchain4j.model.chat.StreamingChatModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,9 +26,11 @@ class StateProvider(
 
     private var roles: Roles = Roles()
     private var creatingRole = false
+    private var currentChat: Chat = Chat("", dev.langchain4j.model.output.TokenUsage(0, 0))
 
     init {
         scope.launch {
+            roles = rolesRepository.load()
             val lastChatId = chatRepository.listChats().firstOrNull()?.id
             if (lastChatId == null) {
                 newChat()
@@ -38,18 +39,9 @@ class StateProvider(
             }
         }
 
-        chatFlow.onEach { (chatId, tokenUsage, messages, requestInProgress) ->
-            _state.emit(State.ChatState(
-                messages.filter { it.message.type() != ChatMessageType.SYSTEM }.map { it.message },
-                tokenUsage.outputTokenCount(),
-                tokenUsage.inputTokenCount(),
-                isSending = requestInProgress,
-                onSendMessage = { text -> scope.launch { send(text) } },
-                onStop = { scope.launch { stop() } },
-                onNewChat = { scope.launch { newChat() } },
-                onOpenHistory = { scope.launch { showHistory() } },
-                onOpenRoles = { scope.launch { showRoles() } },
-            ))
+        chatFlow.onEach { chat ->
+            currentChat = chat
+            _state.emit(createChatState(chat))
         }.launchIn(scope)
 
         chatFlow.buffer(10).filter { !it.requestInProgress }
@@ -67,6 +59,21 @@ class StateProvider(
             }
             .launchIn(scope)
     }
+
+    private fun createChatState(chat: Chat) = State.ChatState(
+        messages = chat.messages.map { it.message },
+        outputTokens = chat.tokenUsage.outputTokenCount(),
+        inputTokens = chat.tokenUsage.inputTokenCount(),
+        isSending = chat.requestInProgress,
+        roles = roles.roles.map { it.name },
+        activeRole = roles.active,
+        onSelectRole = { idx -> scope.launch { selectChatRole(idx) } },
+        onSendMessage = { text -> scope.launch { send(text) } },
+        onStop = { scope.launch { stop() } },
+        onNewChat = { scope.launch { newChat() } },
+        onOpenHistory = { scope.launch { showHistory() } },
+        onOpenRoles = { scope.launch { showRoles() } },
+    )
 
     private fun createListState(chats: List<ChatSummary>) = State.ChatListState(
         chats = chats,
@@ -120,6 +127,12 @@ class StateProvider(
         roles = roles.copy(active = idx)
         rolesRepository.save(roles)
         _state.emit(createRolesState())
+    }
+
+    private suspend fun selectChatRole(idx: Int) {
+        roles = roles.copy(active = idx)
+        rolesRepository.save(roles)
+        _state.emit(createChatState(currentChat))
     }
 
     private suspend fun startCreateRole() {

@@ -47,7 +47,20 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
         }, scope = scope
     )
 
-    var lastState: State = State.ChatState(emptyList(), 0, 0, false, {}, {}, {}, {}, {})
+    var lastState: State = State.ChatState(
+        messages = emptyList(),
+        outputTokens = 0,
+        inputTokens = 0,
+        isSending = false,
+        roles = emptyList(),
+        activeRole = 0,
+        onSelectRole = {},
+        onSendMessage = {},
+        onStop = {},
+        onNewChat = {},
+        onOpenHistory = {},
+        onOpenRoles = {},
+    )
 
     init {
         stateProvider.state.onEach {
