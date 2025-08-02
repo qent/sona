@@ -52,6 +52,10 @@ class ChatFlow(
         val messages = mutableListOf<ChatRepositoryMessage>()
 
         chatRepository.loadMessages(chatId).forEach { repositoryMessage ->
+            // Skip legacy system messages
+            if (repositoryMessage.message.type() == dev.langchain4j.data.message.ChatMessageType.SYSTEM) {
+                return@forEach
+            }
             outputTokens += repositoryMessage.outputTokens
             inputTokens += repositoryMessage.inputTokens
             messages.add(repositoryMessage)
@@ -72,13 +76,7 @@ class ChatFlow(
         val settings = settingsRepository.load()
         val userMessage = ChatRepositoryMessage(chatId, UserMessage.from(text), settings.model)
 
-        val baseMessages = if (currentState.messages.isEmpty()) {
-            val roleText = rolesRepository.load().let { it.roles[it.active].text }
-            val systemMessage = ChatRepositoryMessage(chatId, SystemMessage.from(roleText), settings.model)
-            listOf(systemMessage, userMessage)
-        } else {
-            currentState.messages + userMessage
-        }
+        val baseMessages = currentState.messages + userMessage
         emit(currentState.copy(messages = baseMessages))
 
         val placeholder = ChatRepositoryMessage(chatId, AiMessage.from(""), settings.model)
@@ -89,7 +87,10 @@ class ChatFlow(
 
         val model = modelFactory(settings)
 
-        var chatRequestBuilder = ChatRequestBuilder(baseMessages.map { it.message }.toMutableList())
+        val roleText = rolesRepository.load().let { it.roles[it.active].text }
+        val systemMessage = SystemMessage.from(roleText)
+
+        var chatRequestBuilder = ChatRequestBuilder((listOf(systemMessage) + baseMessages.map { it.message }).toMutableList())
         chatRequestBuilder.parameters(configurer = {
             toolSpecifications = ToolSpecifications.toolSpecificationsFrom(tools)
         })
@@ -110,7 +111,7 @@ class ChatFlow(
                 ))
             }
 
-            chatRequestBuilder = ChatRequestBuilder(currentState.messages.map { it.message }.toMutableList())
+            chatRequestBuilder = ChatRequestBuilder((listOf(systemMessage) + currentState.messages.map { it.message }).toMutableList())
             chatRequestBuilder.parameters(configurer = {
                 toolSpecifications = ToolSpecifications.toolSpecificationsFrom(tools)
             })

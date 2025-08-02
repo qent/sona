@@ -20,6 +20,9 @@ A scheduled GitHub Actions workflow runs every night and builds a plugin archive
 The plugin supports multiple system roles. Open the roles screen from the tool
 window actions to switch between roles or create new ones. Each role has its own
 prompt text. Roles can be added, selected and removed (except the last role).
+The active role can also be changed directly from the chat via the selector
+under the message input. The text of the active role is sent as a system
+message with every request but is not stored in the chat history.
 
 ## Architecture Overview
 

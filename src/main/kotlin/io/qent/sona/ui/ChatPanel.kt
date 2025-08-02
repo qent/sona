@@ -14,7 +14,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.Key
@@ -24,8 +29,11 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.mikepenz.markdown.compose.Markdown
 import com.mikepenz.markdown.model.rememberMarkdownState
 import dev.langchain4j.data.message.AiMessage
@@ -146,13 +154,22 @@ fun AiAvatar() {
 private fun Input(state: ChatState) {
     val text = remember { mutableStateOf("") }
     var isFocused by remember { mutableStateOf(false) }
+    var menuExpanded by remember { mutableStateOf(false) }
+    var buttonPosition by remember { mutableStateOf(Offset.Zero) }
+    var buttonSize by remember { mutableStateOf(IntSize.Zero) }
+    var containerPosition by remember { mutableStateOf(Offset.Zero) }
+
     Box(
         Modifier
             .fillMaxWidth()
             .background(SonaTheme.colors.InputBackground)
             .padding(12.dp)
+            .onGloballyPositioned { containerPosition = it.positionInRoot() }
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.align(Alignment.TopStart),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Box(
                 Modifier
                     .weight(1f)
@@ -217,6 +234,44 @@ private fun Input(state: ChatState) {
                     modifier = Modifier.height(40.dp)
                 ) {
                     Text("➤")
+                }
+            }
+        }
+
+        ActionButton(
+            onClick = { menuExpanded = !menuExpanded },
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .onGloballyPositioned {
+                    buttonPosition = it.positionInRoot()
+                    buttonSize = it.size
+                }
+        ) {
+            Text(state.roles[state.activeRole])
+        }
+
+        if (menuExpanded) {
+            Column(
+                modifier = Modifier
+                    .offset {
+                        IntOffset(
+                            x = (buttonPosition.x - containerPosition.x).toInt(),
+                            y = (buttonPosition.y - containerPosition.y - buttonSize.height * state.roles.size).toInt()
+                        )
+                    }
+                    .width(with(LocalDensity.current) { buttonSize.width.toDp() })
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(SonaTheme.colors.InputBackground)
+                    .zIndex(1f)
+            ) {
+                state.roles.forEachIndexed { idx, name ->
+                    ActionButton(
+                        onClick = {
+                            menuExpanded = false
+                            state.onSelectRole(idx)
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text(name) }
                 }
             }
         }
