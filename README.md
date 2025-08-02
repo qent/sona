@@ -13,6 +13,9 @@ Chat with an Anthropic language model right inside your IDE. The chat history is
 ## Installation
 Use the IDE plugin manager or download the plugin from releases.
 
+## Nightly builds
+A scheduled GitHub Actions workflow runs every night and builds a plugin archive if there were changes in the `main` branch during the previous day. The resulting archive is uploaded as a workflow artifact available from the run page.
+
 ## Roles
 The plugin supports multiple system roles. Open the roles screen from the tool
 window actions to switch between roles or create new ones. Each role has its own
