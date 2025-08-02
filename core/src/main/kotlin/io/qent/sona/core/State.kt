@@ -13,6 +13,7 @@ sealed class State {
         val inputTokens: Int,
         val isSending: Boolean,
         val onSendMessage: (String) -> Unit,
+        val onStop: () -> Unit,
         override val onNewChat: () -> Unit,
         override val onOpenHistory: () -> Unit,
         override val onOpenRoles: () -> Unit,

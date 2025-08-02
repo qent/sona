@@ -3,7 +3,8 @@
 Chat with Anthropic models directly from a side panel in your IDE. The chat
 history is persisted in IDE storage so it survives restarts. Configure API
 token, endpoint and model in the settings. Responses stream gradually so you
-can watch them being generated in real time.
+can watch them being generated in real time and stop the stream at any moment
+to keep the partial reply.
 
 <!-- Plugin description -->
 Chat with an Anthropic language model right inside your IDE. The chat history is stored persistently so you can resume conversations after restarting the IDE.

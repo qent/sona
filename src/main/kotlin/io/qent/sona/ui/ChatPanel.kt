@@ -198,17 +198,26 @@ private fun Input(state: ChatState) {
                 )
             }
             Spacer(Modifier.width(8.dp))
-            ActionButton(
-                onClick = {
-                    if (text.value.isNotBlank()) {
-                        state.onSendMessage(text.value)
-                        text.value = ""
-                    }
-                },
-                enabled = text.value.isNotBlank() && !state.isSending,
-                modifier = Modifier.height(40.dp)
-            ) {
-                Text("➤")
+            if (state.isSending) {
+                ActionButton(
+                    onClick = { state.onStop() },
+                    modifier = Modifier.height(40.dp)
+                ) {
+                    Text("■")
+                }
+            } else {
+                ActionButton(
+                    onClick = {
+                        if (text.value.isNotBlank()) {
+                            state.onSendMessage(text.value)
+                            text.value = ""
+                        }
+                    },
+                    enabled = text.value.isNotBlank(),
+                    modifier = Modifier.height(40.dp)
+                ) {
+                    Text("➤")
+                }
             }
         }
     }

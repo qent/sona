@@ -10,6 +10,8 @@ import dev.langchain4j.model.chat.StreamingChatModel
 import dev.langchain4j.model.chat.request.ChatRequest
 import dev.langchain4j.model.chat.response.ChatResponse
 import dev.langchain4j.model.output.TokenUsage
+import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -42,6 +44,7 @@ class ChatFlow(
 
     private val mutableSharedState = MutableSharedFlow<Chat>()
     private var currentState = Chat("", TokenUsage(0, 0))
+    private var currentContinuation: CancellableContinuation<ChatResponse>? = null
 
     suspend fun loadChat(chatId: String) {
         var outputTokens = 0
@@ -117,6 +120,8 @@ class ChatFlow(
         }
 
         emit(currentState.copy(requestInProgress = false))
+    } catch (_: CancellationException) {
+        // request was cancelled, keep partial response
     } catch (e: Exception) {
         val errorMessage = ChatRepositoryMessage(
             currentState.chatId,
@@ -127,6 +132,8 @@ class ChatFlow(
             messages = currentState.messages + errorMessage,
             requestInProgress = false
         ))
+    } finally {
+        currentContinuation = null
     }
 
     override suspend fun collect(collector: FlowCollector<Chat>) {
@@ -148,8 +155,10 @@ class ChatFlow(
     ): ChatResponse {
         val builder = StringBuilder()
         return suspendCancellableCoroutine { cont ->
+            currentContinuation = cont
             model.chat(request, object : dev.langchain4j.model.chat.response.StreamingChatResponseHandler {
                 override fun onPartialResponse(partialResponse: String) {
+                    if (!cont.isActive) return
                     builder.append(partialResponse)
                     val msgs = currentState.messages.toMutableList()
                     val lastIndex = msgs.lastIndex
@@ -160,6 +169,7 @@ class ChatFlow(
                 }
 
                 override fun onCompleteResponse(chatResponse: ChatResponse) {
+                    if (!cont.isActive) return
                     val lastUsage = calculateLastTokenUsage(chatResponse.tokenUsage())
                     val msgs = currentState.messages.toMutableList()
                     val lastIndex = msgs.lastIndex
@@ -180,9 +190,16 @@ class ChatFlow(
                 }
 
                 override fun onError(t: Throwable) {
+                    if (!cont.isActive) return
                     cont.resumeWithException(t)
                 }
             })
         }
+    }
+
+    fun stop() {
+        currentContinuation?.cancel()
+        currentContinuation = null
+        emit(currentState.copy(requestInProgress = false))
     }
 }
