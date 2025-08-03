@@ -20,6 +20,7 @@ sealed class State {
         val onSelectPreset: (Int) -> Unit,
         val onSendMessage: (String) -> Unit,
         val onStop: () -> Unit,
+        val onDeleteFrom: (Int) -> Unit,
         val toolRequest: Boolean,
         val onAllowTool: () -> Unit,
         val onAlwaysAllowTool: () -> Unit,

@@ -82,6 +82,7 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
         onSelectPreset = {},
         onSendMessage = {},
         onStop = {},
+        onDeleteFrom = {},
         toolRequest = false,
         onAllowTool = {},
         onAlwaysAllowTool = {},

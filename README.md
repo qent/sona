@@ -51,6 +51,12 @@ When the model requests to run a tool, the plugin asks for permission before
 executing it. You can allow the action once or choose **Always in this chat** to
 skip future confirmations for the same tool within the current conversation.
 
+## Deleting messages
+
+Each message has a trash icon in its top‑right corner. Clicking it removes that
+message and all following messages from both the chat view and persistent
+history.
+
 ## Architecture Overview
 
 The project is split into two modules:

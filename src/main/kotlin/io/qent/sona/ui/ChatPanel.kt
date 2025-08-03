@@ -3,6 +3,7 @@ package io.qent.sona.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -78,9 +79,9 @@ private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
                     val bottom: (@Composable () -> Unit)? = if (state.toolRequest && index == state.messages.lastIndex) {
                         @Composable { ToolPermissionButtons(state.onAllowTool, state.onAlwaysAllowTool, state.onDenyTool) }
                     } else null
-                    MessageBubble(message, isUser = false, bottomContent = bottom)
+                    MessageBubble(message, isUser = false, bottomContent = bottom, onDelete = { state.onDeleteFrom(index) })
                 } else if (message is UserMessage) {
-                    MessageBubble(message, isUser = true)
+                    MessageBubble(message, isUser = true, onDelete = { state.onDeleteFrom(index) })
                 }
             }
             Spacer(Modifier.height(2.dp))
@@ -94,7 +95,7 @@ private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun MessageBubble(message: Any, isUser: Boolean, bottomContent: (@Composable () -> Unit)? = null) {
+fun MessageBubble(message: Any, isUser: Boolean, bottomContent: (@Composable () -> Unit)? = null, onDelete: () -> Unit) {
     if (message is AiMessage) {
         if (message.text().isNullOrEmpty()) return
     }
@@ -134,6 +135,11 @@ fun MessageBubble(message: Any, isUser: Boolean, bottomContent: (@Composable () 
                 it()
             }
         }
+        Text(
+            "🗑",
+            color = textColor,
+            modifier = Modifier.align(Alignment.TopEnd).clickable(onClick = onDelete)
+        )
     }
 }
 

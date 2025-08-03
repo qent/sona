@@ -242,6 +242,13 @@ class ChatFlow(
         }
     }
 
+    suspend fun deleteFrom(index: Int) {
+        stop()
+        val chatId = currentState.chatId
+        chatRepository.deleteMessagesFrom(chatId, index)
+        loadChat(chatId)
+    }
+
     fun stop() {
         currentContinuation?.cancel()
         currentContinuation = null
