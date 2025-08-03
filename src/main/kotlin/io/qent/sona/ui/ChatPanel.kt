@@ -2,7 +2,6 @@ package io.qent.sona.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,6 +9,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,7 +20,10 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.pointerMoveFilter
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -94,6 +97,7 @@ private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MessageBubble(message: Any, isUser: Boolean, bottomContent: (@Composable () -> Unit)? = null, onDelete: () -> Unit) {
     if (message is AiMessage) {
@@ -101,45 +105,70 @@ fun MessageBubble(message: Any, isUser: Boolean, bottomContent: (@Composable () 
     }
 
     var hovered by remember { mutableStateOf(false) }
+    val clipboard = LocalClipboardManager.current
     val background = if (isUser) SonaTheme.colors.UserBubble else SonaTheme.colors.AiBubble
     val textColor = if (isUser) SonaTheme.colors.UserText else SonaTheme.colors.AiText
+    val messageText = when (message) {
+        is AiMessage -> message.text().orEmpty()
+        is UserMessage -> message.singleText().trim()
+        else -> ""
+    }
     Box(
         Modifier
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onPress = { hovered = true; tryAwaitRelease(); hovered = false }
-                )
-            }
+            .pointerMoveFilter(
+                onEnter = {
+                    hovered = true
+                    false
+                },
+                onExit = {
+                    hovered = false
+                    false
+                }
+            )
             .shadow(if (hovered) 6.dp else 2.dp, RoundedCornerShape(14.dp))
             .background(background, RoundedCornerShape(14.dp))
             .padding(horizontal = 12.dp, vertical = 8.dp)
             .widthIn(max = 420.dp)
     ) {
-        Column(Modifier.fillMaxWidth()) {
-            if (message is AiMessage) {
-                val mdState = rememberMarkdownState(message.text(), immediate = true)
-                Markdown(
-                    mdState,
-                    colors = SonaTheme.markdownColors,
-                    typography = SonaTheme.markdownTypography,
-                )
-            } else if (message is UserMessage) {
-                Text(
-                    message.singleText().trim(),
-                    color = textColor,
-                    fontSize = 15.sp
-                )
-            }
-            bottomContent?.let {
-                Spacer(Modifier.height(8.dp))
-                it()
+        SelectionContainer {
+            Column(Modifier.fillMaxWidth()) {
+                if (message is AiMessage) {
+                    val mdState = rememberMarkdownState(message.text(), immediate = true)
+                    Markdown(
+                        mdState,
+                        colors = SonaTheme.markdownColors,
+                        typography = SonaTheme.markdownTypography,
+                    )
+                } else if (message is UserMessage) {
+                    Text(
+                        message.singleText().trim(),
+                        color = textColor,
+                        fontSize = 15.sp
+                    )
+                }
+                bottomContent?.let {
+                    Spacer(Modifier.height(8.dp))
+                    it()
+                }
             }
         }
-        Text(
-            "🗑",
-            color = textColor,
-            modifier = Modifier.align(Alignment.TopEnd).clickable(onClick = onDelete)
-        )
+        Row(
+            modifier = Modifier.align(Alignment.TopEnd).alpha(if (hovered) 1f else 0f),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                "\uD83D\uDCCB",
+                color = textColor,
+                modifier = Modifier.clickable {
+                    clipboard.setText(AnnotatedString(messageText))
+                }
+            )
+            Text(
+                "\uD83D\uDDD1",
+                color = textColor,
+                modifier = Modifier.clickable(onClick = onDelete)
+            )
+        }
     }
 }
 

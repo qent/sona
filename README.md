@@ -55,11 +55,15 @@ skip future confirmations for the same tool within the current conversation.
 
 The available tools let the model read the focused file and switch the active role between Architect and Code.
 
-## Deleting messages
+## Copying and deleting messages
 
-Each message has a trash icon in its top‑right corner. Clicking it removes that
-message and all following messages from both the chat view and persistent
+When hovering a message its top‑right corner reveals copy and delete icons.
+The clipboard button copies the entire message text while the trash icon removes
+that message and all following messages from both the chat view and persistent
 history.
+
+Chat messages are now selectable so you can highlight and copy any portion of
+the text directly.
 
 ## Architecture Overview
 
