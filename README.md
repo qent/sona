@@ -25,13 +25,15 @@ branch during the previous day. The resulting archive is uploaded as a workflow 
 The plugin supports multiple system roles. Open the roles screen from the tool
 window actions to switch between roles or create new ones. Each role has its own
 prompt text. Roles can be added, selected and removed, but the default Architect
-and Coder roles cannot be deleted. The active role can also be changed directly
+and Code roles cannot be deleted. The active role can also be changed directly
 from the chat via the selector under the message input. The text of the active
 role is sent as a system message with every request but is not stored in the
 chat history.
 
+Models can also switch roles themselves using tools to toggle between Architect and Code.
+
 When starting a new conversation the message field shows a placeholder tailored
-to the active role. The Architect role suggests planning and design, the Coder
+to the active role. The Architect role suggests planning and design, the Code
 role suggests implementation, and other roles display a generic "Describe your
 task..." prompt. Once messages are present, the placeholder becomes
 "Type a message...".
@@ -50,6 +52,8 @@ it to trust all HTTPS certificates when connecting to custom endpoints.
 When the model requests to run a tool, the plugin asks for permission before
 executing it. You can allow the action once or choose **Always in this chat** to
 skip future confirmations for the same tool within the current conversation.
+
+The available tools let the model read the focused file and switch the active role between Architect and Code.
 
 ## Architecture Overview
 
