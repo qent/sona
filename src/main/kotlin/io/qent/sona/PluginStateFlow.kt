@@ -32,43 +32,27 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
     private val chatRepository = service<PluginChatRepository>()
     private val rolesRepository = service<PluginRolesRepository>()
     private val scope = CoroutineScope(Dispatchers.Default)
-    private val stateProvider = StateProvider(
-        presetsRepository,
-        chatRepository,
-        rolesRepository,
-        modelFactory = { preset ->
-            when (preset.provider) {
-                LlmProvider.Anthropic -> AnthropicStreamingChatModel.builder()
-                    .apiKey(preset.apiKey)
-                    .baseUrl(preset.apiEndpoint)
-                    .modelName(preset.model)
-                    .build()
+    private var stateProvider: StateProvider
 
-                LlmProvider.OpenAI -> OpenAiStreamingChatModel.builder()
-                    .apiKey(preset.apiKey)
-                    .baseUrl(preset.apiEndpoint)
-                    .modelName(preset.model)
-                    .build()
+    private val tools = object : Tools {
+        override fun getFocusedFileText(): String? {
+            return FileEditorManager.getInstance(project).selectedTextEditor?.document?.text
+        }
 
-                LlmProvider.Deepseek -> OpenAiStreamingChatModel.builder()
-                    .apiKey(preset.apiKey)
-                    .baseUrl(preset.apiEndpoint)
-                    .modelName(preset.model)
-                    .build()
-
-                LlmProvider.Gemini -> GoogleAiGeminiStreamingChatModel.builder()
-                    .apiKey(preset.apiKey)
-                    .baseUrl(preset.apiEndpoint)
-                    .modelName(preset.model)
-                    .build()
+        override fun switchToArchitect(): String {
+            scope.launch {
+                stateProvider.selectRole(DefaultRoles.ARCHITECT)
             }
-        },
-        tools = object : Tools {
-            override fun getFocusedFileText(): String? {
-                return FileEditorManager.getInstance(project).selectedTextEditor?.document?.text
+            return "Architect mode active"
+        }
+
+        override fun switchToCode(): String {
+            scope.launch {
+                stateProvider.selectRole(DefaultRoles.CODE)
             }
-        }, scope = scope
-    )
+            return "Code mode active"
+        }
+    }
 
     var lastState: State = State.ChatState(
         messages = emptyList(),
@@ -94,6 +78,41 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
     )
 
     init {
+        stateProvider = StateProvider(
+            presetsRepository,
+            chatRepository,
+            rolesRepository,
+            modelFactory = { preset ->
+                when (preset.provider) {
+                    LlmProvider.Anthropic -> AnthropicStreamingChatModel.builder()
+                        .apiKey(preset.apiKey)
+                        .baseUrl(preset.apiEndpoint)
+                        .modelName(preset.model)
+                        .build()
+
+                    LlmProvider.OpenAI -> OpenAiStreamingChatModel.builder()
+                        .apiKey(preset.apiKey)
+                        .baseUrl(preset.apiEndpoint)
+                        .modelName(preset.model)
+                        .build()
+
+                    LlmProvider.Deepseek -> OpenAiStreamingChatModel.builder()
+                        .apiKey(preset.apiKey)
+                        .baseUrl(preset.apiEndpoint)
+                        .modelName(preset.model)
+                        .build()
+
+                    LlmProvider.Gemini -> GoogleAiGeminiStreamingChatModel.builder()
+                        .apiKey(preset.apiKey)
+                        .baseUrl(preset.apiEndpoint)
+                        .modelName(preset.model)
+                        .build()
+                }
+            },
+            tools = tools,
+            scope = scope,
+        )
+
         stateProvider.state.onEach {
             lastState = it
         }.launchIn(scope)

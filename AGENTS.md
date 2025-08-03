@@ -9,11 +9,12 @@
   - Individual messages can be removed via a trash icon. Deleting a message truncates the chat history from that point.
   - System prompts (roles) are stored in `RolesRepository` and can be managed from
     the Roles screen. Each role has a name and text. The default Architect and
-    Coder roles cannot be deleted.
+    Code roles cannot be deleted.
 - LLM connection details are organised as presets via `PresetsRepository`. At least one preset must exist for the chat
   to work and they are managed from the Presets screen.
 - Plugin settings contain only the "Ignore HTTPS errors" flag which, when enabled, trusts all HTTPS certificates.
 - Each chat tracks tools approved by the user so that previously allowed tools run without asking again.
+- A tool is available to switch the active role between Architect and Code.
 - Run `./gradlew build` before committing any changes.
 - After completing a task, make sure `AGENTS.md` and `README.md` reflect the latest behavior.
 

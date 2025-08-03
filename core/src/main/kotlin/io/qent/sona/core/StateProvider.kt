@@ -72,7 +72,7 @@ class StateProvider(
         isSending = chat.requestInProgress,
         roles = roles.roles.map { it.name },
         activeRole = roles.active,
-        onSelectRole = { idx -> scope.launch { selectChatRole(idx) } },
+        onSelectRole = { idx -> scope.launch { selectRole(idx) } },
         presets = presets,
         onSelectPreset = { idx -> scope.launch { selectChatPreset(idx) } },
         onSendMessage = { text -> scope.launch { send(text) } },
@@ -159,13 +159,13 @@ class StateProvider(
     private suspend fun selectRole(idx: Int) {
         roles = roles.copy(active = idx)
         rolesRepository.save(roles)
-        _state.emit(createRolesState())
     }
 
-    private suspend fun selectChatRole(idx: Int) {
-        roles = roles.copy(active = idx)
-        rolesRepository.save(roles)
-        _state.emit(createChatState(currentChat))
+    suspend fun selectRole(role: DefaultRoles) {
+        val idx = roles.roles.indexOfFirst { it.name == role.displayName }
+        if (idx >= 0) {
+            selectRole(idx)
+        }
     }
 
     private suspend fun startCreateRole() {
