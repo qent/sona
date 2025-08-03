@@ -142,12 +142,12 @@ fun AiAvatar() {
 private fun Input(state: ChatState) {
     val text = remember { mutableStateOf("") }
     var isFocused by remember { mutableStateOf(false) }
-    val placeholder = if (state.messages.isNotEmpty()) {
+    val placeholder = if (state.messages.isNotEmpty() || state.roles.isEmpty()) {
         "Type a message..."
     } else {
         when (state.roles[state.activeRole]) {
             DefaultRoles.ARCHITECT -> "Describe what you'd like to plan and design..."
-            DefaultRoles.CODER -> "Describe what you'd like to implement..."
+            DefaultRoles.CODE -> "Describe what you'd like to implement..."
             else -> "Describe your task..."
         }
     }
