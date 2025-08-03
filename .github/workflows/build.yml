@@ -251,3 +251,8 @@ jobs:
           ${{ needs.build.outputs.changelog }}
           EOM
           )"
+
+      - name: Upload Release Asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "v${{ needs.build.outputs.version }}" ./build/distributions/*.zip
