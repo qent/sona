@@ -2,15 +2,18 @@ package io.qent.sona.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import io.qent.sona.core.LlmProvider
 import io.qent.sona.core.Preset
 import io.qent.sona.core.State
+import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
@@ -102,15 +105,16 @@ fun PresetsPanel(state: State.PresetsState) {
     }
 }
 
+@OptIn(ExperimentalJewelApi::class)
 @Composable
 private fun PresetForm(
-    nameState: androidx.compose.foundation.text.input.TextFieldState,
+    nameState: TextFieldState,
     provider: LlmProvider,
     onProviderChange: (LlmProvider) -> Unit,
     model: String,
     onModelChange: (String) -> Unit,
-    apiState: androidx.compose.foundation.text.input.TextFieldState,
-    tokenState: androidx.compose.foundation.text.input.TextFieldState
+    apiState: TextFieldState,
+    tokenState: TextFieldState
 ) {
     Column(Modifier.fillMaxWidth()) {
         Text("Name")
@@ -142,6 +146,20 @@ private fun PresetForm(
         TextField(apiState, Modifier.fillMaxWidth())
         Spacer(Modifier.height(8.dp))
         Text("Token")
-        TextField(tokenState, Modifier.fillMaxWidth())
+
+        TextField(
+            value = TextFieldValue("•".repeat(tokenState.text.length)),
+            onValueChange = { value ->
+                val input = value.text
+                val old = tokenState.text.toString()
+                val newValue: String? = when {
+                    input.length < old.length -> old.dropLast(old.length - input.length)
+                    input.length > old.length -> old + input.substring(old.length)
+                    else -> null
+                }
+                newValue?.let { tokenState.setTextAndPlaceCursorAtEnd(it) }
+            },
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }

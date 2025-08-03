@@ -63,7 +63,7 @@ private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
         state = listState,
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 10.dp)
     ) {
         items(state.messages.size) { index ->
             val message = state.messages[index]
@@ -75,8 +75,6 @@ private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
                 verticalAlignment = Alignment.Bottom
             ) {
                 if (message is AiMessage) {
-                    AiAvatar()
-                    Spacer(Modifier.width(8.dp))
                     MessageBubble(message, isUser = false)
                 } else if (message is UserMessage) {
                     MessageBubble(message, isUser = true)
@@ -106,7 +104,7 @@ fun MessageBubble(message: Any, isUser: Boolean) {
             }
             .shadow(if (hovered) 6.dp else 2.dp, RoundedCornerShape(14.dp))
             .background(background, RoundedCornerShape(14.dp))
-            .padding(horizontal = 16.dp, vertical = 10.dp)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
             .widthIn(max = 420.dp)
     ) {
         if (message is AiMessage) {
@@ -118,23 +116,11 @@ fun MessageBubble(message: Any, isUser: Boolean) {
             )
         } else if (message is UserMessage) {
             Text(
-                message.singleText(),
+                message.singleText().trim(),
                 color = textColor,
                 fontSize = 15.sp
             )
         }
-    }
-}
-
-@Composable
-fun AiAvatar() {
-    Box(
-        modifier = Modifier
-            .size(28.dp)
-            .background(SonaTheme.colors.AvatarBackground, shape = CircleShape),
-        contentAlignment = Alignment.Center
-    ) {
-        Text("\uD83E\uDD16", fontSize = 16.sp)
     }
 }
 

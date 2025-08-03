@@ -36,6 +36,7 @@ fun ChatListPanel(state: ChatListState) {
                 Row(
                     Modifier
                         .fillMaxWidth()
+                        .padding(vertical = 4.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .background(SonaTheme.colors.AiBubble)
                         .clickable(onClick = { state.onOpenChat(chat.id) })
@@ -46,6 +47,7 @@ fun ChatListPanel(state: ChatListState) {
                         Modifier.weight(1f)
                     ) {
                         Text(chat.firstMessage, maxLines = 1, color = SonaTheme.colors.AiText)
+                        Spacer(modifier = Modifier.height(4.dp))
                         val date = SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date(chat.createdAt))
                         Text(date, fontSize = 12.sp, color = SonaTheme.colors.Placeholder)
                     }
