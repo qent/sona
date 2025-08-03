@@ -22,7 +22,8 @@ data class Chat(
     val chatId: String,
     val tokenUsage: TokenUsage,
     val messages: List<ChatRepositoryMessage> = emptyList(),
-    val requestInProgress: Boolean = false
+    val requestInProgress: Boolean = false,
+    val toolRequest: String? = null,
 )
 
 class ChatFlow(
@@ -40,6 +41,7 @@ class ChatFlow(
     private val mutableSharedState = MutableSharedFlow<Chat>()
     private var currentState = Chat("", TokenUsage(0, 0))
     private var currentContinuation: CancellableContinuation<ChatResponse>? = null
+    private var toolContinuation: CancellableContinuation<ToolDecision>? = null
 
     suspend fun loadChat(chatId: String) {
         var outputTokens = 0
@@ -96,14 +98,30 @@ class ChatFlow(
             while (responseMessage.hasToolExecutionRequests()) {
                 for (toolRequest in responseMessage.toolExecutionRequests()) {
                     val toolName = toolRequest.name()
-                    val toolResponse = when (toolName) {
-                        "getFocusedFileText" -> ToolExecutionResultMessage(
+                    val decision = if (chatRepository.isToolAllowed(chatId, toolName)) {
+                        ToolDecision(true, false)
+                    } else {
+                        requestToolPermission(toolName)
+                    }
+                    if (decision.always) {
+                        chatRepository.addAllowedTool(chatId, toolName)
+                    }
+                    val toolResponse = if (decision.allow) {
+                        when (toolName) {
+                            "getFocusedFileText" -> ToolExecutionResultMessage(
+                                toolRequest.id(),
+                                toolName,
+                                tools.getFocusedFileText()
+                            )
+
+                            else -> throw IllegalArgumentException()
+                        }
+                    } else {
+                        ToolExecutionResultMessage(
                             toolRequest.id(),
                             toolName,
-                            tools.getFocusedFileText()
+                            "Tool execution cancelled"
                         )
-
-                        else -> throw IllegalArgumentException()
                     }
                     val toolResponseMessage = ChatRepositoryMessage(chatId, toolResponse, preset.model)
                     emit(
@@ -152,6 +170,21 @@ class ChatFlow(
             tokenUsage.inputTokenCount() - currentState.tokenUsage.inputTokenCount(),
             tokenUsage.outputTokenCount() - currentState.tokenUsage.outputTokenCount(),
         )
+    }
+
+    private data class ToolDecision(val allow: Boolean, val always: Boolean)
+
+    private suspend fun requestToolPermission(toolName: String): ToolDecision {
+        return suspendCancellableCoroutine { cont ->
+            toolContinuation = cont
+            emit(currentState.copy(toolRequest = toolName))
+        }
+    }
+
+    fun resolveToolPermission(allow: Boolean, always: Boolean) {
+        toolContinuation?.resume(ToolDecision(allow, always))
+        toolContinuation = null
+        emit(currentState.copy(toolRequest = null))
     }
 
     private suspend fun streamChat(

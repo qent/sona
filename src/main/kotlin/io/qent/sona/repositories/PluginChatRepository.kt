@@ -29,6 +29,7 @@ class PluginChatRepository : ChatRepository, PersistentStateComponent<PluginChat
         var id: String = UUID.randomUUID().toString(),
         var createdAt: Long = System.currentTimeMillis(),
         var messages: MutableList<StoredMessage> = mutableListOf(),
+        var allowedTools: MutableSet<String> = mutableSetOf(),
     )
 
     data class ChatsState(
@@ -81,6 +82,14 @@ class PluginChatRepository : ChatRepository, PersistentStateComponent<PluginChat
 
     override suspend fun loadMessages(chatId: String): List<ChatRepositoryMessage> {
         return findChat(chatId).messages.map { it.toStoredChatMessage(chatId) }
+    }
+
+    override suspend fun isToolAllowed(chatId: String, toolName: String): Boolean {
+        return findChat(chatId).allowedTools.contains(toolName)
+    }
+
+    override suspend fun addAllowedTool(chatId: String, toolName: String) {
+        findChat(chatId).allowedTools.add(toolName)
     }
 
     override suspend fun listChats(): List<ChatSummary> {

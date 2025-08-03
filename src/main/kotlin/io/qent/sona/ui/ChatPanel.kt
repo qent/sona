@@ -75,7 +75,10 @@ private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
                 verticalAlignment = Alignment.Bottom
             ) {
                 if (message is AiMessage) {
-                    MessageBubble(message, isUser = false)
+                    val bottom: (@Composable () -> Unit)? = if (state.toolRequest && index == state.messages.lastIndex) {
+                        @Composable { ToolPermissionButtons(state.onAllowTool, state.onAlwaysAllowTool, state.onDenyTool) }
+                    } else null
+                    MessageBubble(message, isUser = false, bottomContent = bottom)
                 } else if (message is UserMessage) {
                     MessageBubble(message, isUser = true)
                 }
@@ -91,7 +94,7 @@ private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun MessageBubble(message: Any, isUser: Boolean) {
+fun MessageBubble(message: Any, isUser: Boolean, bottomContent: (@Composable () -> Unit)? = null) {
     var hovered by remember { mutableStateOf(false) }
     val background = if (isUser) SonaTheme.colors.UserBubble else SonaTheme.colors.AiBubble
     val textColor = if (isUser) SonaTheme.colors.UserText else SonaTheme.colors.AiText
@@ -107,19 +110,46 @@ fun MessageBubble(message: Any, isUser: Boolean) {
             .padding(horizontal = 12.dp, vertical = 8.dp)
             .widthIn(max = 420.dp)
     ) {
-        if (message is AiMessage) {
-            val mdState = rememberMarkdownState(message.text(), immediate = true)
-            Markdown(
-                mdState,
-                colors = SonaTheme.markdownColors,
-                typography = SonaTheme.markdownTypography,
-            )
-        } else if (message is UserMessage) {
-            Text(
-                message.singleText().trim(),
-                color = textColor,
-                fontSize = 15.sp
-            )
+        Column(Modifier.fillMaxWidth()) {
+            if (message is AiMessage) {
+                val mdState = rememberMarkdownState(message.text(), immediate = true)
+                Markdown(
+                    mdState,
+                    colors = SonaTheme.markdownColors,
+                    typography = SonaTheme.markdownTypography,
+                )
+            } else if (message is UserMessage) {
+                Text(
+                    message.singleText().trim(),
+                    color = textColor,
+                    fontSize = 15.sp
+                )
+            }
+            bottomContent?.let {
+                Spacer(Modifier.height(8.dp))
+                it()
+            }
+        }
+    }
+}
+
+@Composable
+private fun ToolPermissionButtons(
+    onOk: () -> Unit,
+    onAlways: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    Column(Modifier.fillMaxWidth()) {
+        ActionButton(onClick = onOk, modifier = Modifier.fillMaxWidth()) {
+            Text("OK")
+        }
+        Spacer(Modifier.height(4.dp))
+        ActionButton(onClick = onAlways, modifier = Modifier.fillMaxWidth()) {
+            Text("Always in this chat")
+        }
+        Spacer(Modifier.height(4.dp))
+        ActionButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
+            Text("Cancel")
         }
     }
 }

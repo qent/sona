@@ -24,6 +24,12 @@ interface ChatRepository {
     /** Load all messages for a chat. */
     suspend fun loadMessages(chatId: String): List<ChatRepositoryMessage>
 
+    /** Check if a [toolName] is allowed to execute in the chat. */
+    suspend fun isToolAllowed(chatId: String, toolName: String): Boolean
+
+    /** Persist that a [toolName] is allowed for this chat. */
+    suspend fun addAllowedTool(chatId: String, toolName: String)
+
     /** List all chats with their first message snippet. */
     suspend fun listChats(): List<ChatSummary>
 

@@ -12,6 +12,7 @@
 - LLM connection details are organised as presets via `PresetsRepository`. At least one preset must exist for the chat
   to work and they are managed from the Presets screen.
 - Plugin settings contain only the "Ignore HTTPS errors" flag which, when enabled, trusts all HTTPS certificates.
+- Each chat tracks tools approved by the user so that previously allowed tools run without asking again.
 - Run `./gradlew build` before committing any changes.
 - After completing a task, make sure `AGENTS.md` and `README.md` reflect the latest behavior.
 

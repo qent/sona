@@ -45,6 +45,12 @@ tool window actions. At least one preset must exist for the chat to function.
 The settings screen contains only a single option: **Ignore HTTPS errors**. Enable
 it to trust all HTTPS certificates when connecting to custom endpoints.
 
+## Tools
+
+When the model requests to run a tool, the plugin asks for permission before
+executing it. You can allow the action once or choose **Always in this chat** to
+skip future confirmations for the same tool within the current conversation.
+
 ## Architecture Overview
 
 The project is split into two modules:
@@ -65,7 +71,8 @@ data class Chat(
     val chatId: String,
     val tokenUsage: TokenUsage,
     val messages: List<ChatRepositoryMessage> = emptyList(),
-    val requestInProgress: Boolean = false
+    val requestInProgress: Boolean = false,
+    val toolRequest: String? = null
 )
 ```
 
