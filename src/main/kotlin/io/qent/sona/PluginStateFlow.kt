@@ -32,7 +32,7 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
     private val chatRepository = service<PluginChatRepository>()
     private val rolesRepository = service<PluginRolesRepository>()
     private val scope = CoroutineScope(Dispatchers.Default)
-    private lateinit var stateProvider: StateProvider
+    private var stateProvider: StateProvider
 
     private val tools = object : Tools {
         override fun getFocusedFileText(): String? {
@@ -40,12 +40,16 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
         }
 
         override fun switchToArchitect(): String {
-            scope.launch { stateProvider.selectRoleByName(DefaultRoles.ARCHITECT) }
+            scope.launch {
+                stateProvider.selectRole(DefaultRoles.ARCHITECT)
+            }
             return "Architect mode active"
         }
 
         override fun switchToCode(): String {
-            scope.launch { stateProvider.selectRoleByName(DefaultRoles.CODE) }
+            scope.launch {
+                stateProvider.selectRole(DefaultRoles.CODE)
+            }
             return "Code mode active"
         }
     }

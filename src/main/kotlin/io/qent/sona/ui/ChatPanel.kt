@@ -166,8 +166,8 @@ private fun Input(state: ChatState) {
         "Type a message..."
     } else {
         when (state.roles[state.activeRole]) {
-            DefaultRoles.ARCHITECT -> "Describe what you'd like to plan and design..."
-            DefaultRoles.CODE -> "Describe what you'd like to implement..."
+            DefaultRoles.ARCHITECT.displayName -> "Describe what you'd like to plan and design..."
+            DefaultRoles.CODE.displayName -> "Describe what you'd like to implement..."
             else -> "Describe your task..."
         }
     }
