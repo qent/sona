@@ -20,7 +20,20 @@ class StateProvider(
     private val chatFlow = ChatFlow(presetsRepository, rolesRepository, chatRepository, modelFactory, tools, scope)
 
     private val _state = MutableSharedFlow<State>()
-    val state: Flow<State> = _state
+
+    val state: Flow<State> = _state.onSubscription {
+        roles = rolesRepository.load()
+        presets = presetsRepository.load()
+        val lastChatId = chatRepository.listChats().firstOrNull()?.id
+        if (presets.presets.isEmpty()) {
+            creatingPreset = true
+            _state.emit(createPresetsState())
+        } else if (lastChatId == null) {
+            newChat()
+        } else {
+            openChat(lastChatId)
+        }
+    }
 
     private var roles: Roles = Roles(0, emptyList())
     private var creatingRole = false
@@ -29,20 +42,6 @@ class StateProvider(
     private var currentChat: Chat = Chat("", TokenUsage(0, 0))
 
     init {
-        scope.launch {
-            roles = rolesRepository.load()
-            presets = presetsRepository.load()
-            val lastChatId = chatRepository.listChats().firstOrNull()?.id
-            if (presets.presets.isEmpty()) {
-                creatingPreset = true
-                _state.emit(createPresetsState())
-            } else if (lastChatId == null) {
-                newChat()
-            } else {
-                openChat(lastChatId)
-            }
-        }
-
         chatFlow.onEach { chat ->
             currentChat = chat
             _state.emit(createChatState(chat))
@@ -127,7 +126,18 @@ class StateProvider(
         _state.emit(createPresetsState())
     }
 
-    private suspend fun newChat() = chatFlow.loadChat(chatRepository.createChat())
+    private suspend fun newChat() {
+        val lastChat = chatRepository.listChats().firstOrNull()?.id ?: run {
+            chatFlow.loadChat(chatRepository.createChat())
+            return
+        }
+
+        if (chatRepository.loadMessages(lastChat).isEmpty()) {
+            openChat(lastChat)
+        } else {
+            chatFlow.loadChat(chatRepository.createChat())
+        }
+    }
 
     private suspend fun openChat(id: String) = chatFlow.loadChat(id)
 
