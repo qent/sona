@@ -6,7 +6,7 @@
 - Settings are stored using a repository interface in the logic module with an IntelliJ implementation in the UI module.
 - Chat history is persisted via a repository implementation (`PluginChatRepository`) that stores chats across IDE
   sessions.
-  - Individual messages can be removed via a trash icon. Deleting a message truncates the chat history from that point.
+  - Individual messages can be copied via a clipboard icon or removed via a trash icon. Deleting a message truncates the chat history from that point.
   - System prompts (roles) are stored in `RolesRepository` and can be managed from
     the Roles screen. Each role has a name and text. The default Architect and
     Code roles cannot be deleted.
