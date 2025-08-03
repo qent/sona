@@ -32,10 +32,10 @@ data class Chat(
 )
 
 class ChatFlow(
-    private val settingsRepository: SettingsRepository,
+    private val presetsRepository: PresetsRepository,
     private val rolesRepository: RolesRepository,
     private val chatRepository: ChatRepository,
-    private val modelFactory: suspend (Settings) -> StreamingChatModel,
+    private val modelFactory: (Preset) -> StreamingChatModel,
     tools: Tools,
     scope: CoroutineScope,
 ): Flow<Chat> {
@@ -68,21 +68,22 @@ class ChatFlow(
         }
     }
 
-    suspend fun send(text: String) = try {
+    suspend fun send(text: String) {
         val chatId = currentState.chatId
-        val settings = settingsRepository.load()
-        val userMessage = ChatRepositoryMessage(chatId, UserMessage.from(text), settings.model)
+        val preset = presetsRepository.load().let { it.presets[it.active] }
+        try {
+            val userMessage = ChatRepositoryMessage(chatId, UserMessage.from(text), preset.model)
 
         val baseMessages = currentState.messages + userMessage
         emit(currentState.copy(messages = baseMessages))
 
-        val placeholder = ChatRepositoryMessage(chatId, AiMessage.from(""), settings.model)
+        val placeholder = ChatRepositoryMessage(chatId, AiMessage.from(""), preset.model)
         emit(currentState.copy(
             requestInProgress = true,
             messages = baseMessages + placeholder
         ))
 
-        val model = modelFactory(settings)
+        val model = modelFactory(preset)
 
         val roleText = rolesRepository.load().let { it.roles[it.active].text }
         val systemMessage = SystemMessage.from(roleText)
@@ -92,7 +93,7 @@ class ChatFlow(
             toolSpecifications = ToolSpecifications.toolSpecificationsFrom(tools)
         })
 
-        var response = streamChat(model, chatRequestBuilder.build(), chatId, settings)
+        var response = streamChat(model, chatRequestBuilder.build(), chatId, preset)
         var responseMessage = response.aiMessage()
 
         while (responseMessage.hasToolExecutionRequests()) {
@@ -102,7 +103,7 @@ class ChatFlow(
                     "getFocusedFileText" -> ToolExecutionResultMessage(toolRequest.id(), toolName, tools.getFocusedFileText())
                     else -> throw IllegalArgumentException()
                 }
-                val toolResponseMessage = ChatRepositoryMessage(chatId, toolResponse, settings.model)
+                val toolResponseMessage = ChatRepositoryMessage(chatId, toolResponse, preset.model)
                 emit(currentState.copy(
                     messages = currentState.messages + toolResponseMessage
                 ))
@@ -113,25 +114,26 @@ class ChatFlow(
                 toolSpecifications = ToolSpecifications.toolSpecificationsFrom(tools)
             })
 
-            response = streamChat(model, chatRequestBuilder.build(), chatId, settings)
+            response = streamChat(model, chatRequestBuilder.build(), chatId, preset)
             responseMessage = response.aiMessage()
         }
 
         emit(currentState.copy(requestInProgress = false))
-    } catch (_: CancellationException) {
+        } catch (_: CancellationException) {
         // request was cancelled, keep partial response
-    } catch (e: Exception) {
+        } catch (e: Exception) {
         val errorMessage = ChatRepositoryMessage(
             currentState.chatId,
             AiMessage.from("Error: ${e.message}"),
-            settingsRepository.load().model
+            preset.model
         )
         emit(currentState.copy(
             messages = currentState.messages + errorMessage,
             requestInProgress = false
         ))
-    } finally {
-        currentContinuation = null
+        } finally {
+            currentContinuation = null
+        }
     }
 
     override suspend fun collect(collector: FlowCollector<Chat>) {
@@ -149,7 +151,7 @@ class ChatFlow(
         model: StreamingChatModel,
         request: ChatRequest,
         chatId: String,
-        settings: Settings
+        preset: Preset
     ): ChatResponse {
         val builder = StringBuilder()
         return suspendCancellableCoroutine { cont ->
@@ -175,7 +177,7 @@ class ChatFlow(
                         msgs[lastIndex] = ChatRepositoryMessage(
                             chatId,
                             chatResponse.aiMessage(),
-                            settings.model,
+                            preset.model,
                             inputTokens = lastUsage.inputTokenCount(),
                             outputTokens = lastUsage.outputTokenCount()
                         )

@@ -14,9 +14,7 @@ class PluginSettingsRepository :
     PersistentStateComponent<PluginSettingsRepository.PluginSettingsState>
 {
     data class PluginSettingsState(
-        var apiKey: String = "",
-        var apiEndpoint: String = "https://api.anthropic.com/v1/",
-        var model: String = "claude-3-5-haiku-20241022"
+        var ignoreHttpsErrors: Boolean = false,
     )
 
     private var pluginSettingsState = PluginSettingsState()
@@ -28,8 +26,6 @@ class PluginSettingsRepository :
     }
 
     override suspend fun load() = Settings(
-        pluginSettingsState.apiKey,
-        pluginSettingsState.apiEndpoint,
-        pluginSettingsState.model
+        pluginSettingsState.ignoreHttpsErrors,
     )
 }

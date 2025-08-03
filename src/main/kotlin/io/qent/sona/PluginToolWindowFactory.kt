@@ -13,7 +13,9 @@ import com.intellij.ui.content.ContentFactory
 import io.qent.sona.core.State.ChatListState
 import io.qent.sona.core.State.ChatState
 import io.qent.sona.core.State.RolesState
+import io.qent.sona.core.State.PresetsState
 import io.qent.sona.ui.ChatPanel
+import io.qent.sona.ui.PresetsPanel
 import io.qent.sona.ui.RolesPanel
 import io.qent.sona.ui.SonaTheme
 import io.qent.sona.services.ThemeService
@@ -32,6 +34,7 @@ class PluginToolWindowFactory : ToolWindowFactory, DumbAware {
                         is ChatState -> ChatPanel(s)
                         is ChatListState -> ChatListPanel(s)
                         is RolesState -> RolesPanel(s)
+                        is PresetsState -> PresetsPanel(s)
                     }
                 }
             },
@@ -43,7 +46,8 @@ class PluginToolWindowFactory : ToolWindowFactory, DumbAware {
         toolWindow.setTitleActions(listOf(
             ActionManager.getInstance().getAction("CreateNewChatAction"),
             ActionManager.getInstance().getAction("OpenHistoryAction"),
-            ActionManager.getInstance().getAction("OpenRolesAction")
+            ActionManager.getInstance().getAction("OpenRolesAction"),
+            ActionManager.getInstance().getAction("OpenPresetsAction"),
         ))
     }
 }

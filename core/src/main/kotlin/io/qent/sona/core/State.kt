@@ -6,6 +6,7 @@ sealed class State {
     abstract val onNewChat: () -> Unit
     abstract val onOpenHistory: () -> Unit
     abstract val onOpenRoles: () -> Unit
+    abstract val onOpenPresets: () -> Unit
 
     data class ChatState(
         val messages: List<ChatMessage>,
@@ -20,6 +21,7 @@ sealed class State {
         override val onNewChat: () -> Unit,
         override val onOpenHistory: () -> Unit,
         override val onOpenRoles: () -> Unit,
+        override val onOpenPresets: () -> Unit,
     ) : State()
 
     data class ChatListState(
@@ -28,6 +30,7 @@ sealed class State {
         val onDeleteChat: (String) -> Unit,
         override val onNewChat: () -> Unit,
         override val onOpenRoles: () -> Unit,
+        override val onOpenPresets: () -> Unit,
     ) : State() {
         override val onOpenHistory = { }
     }
@@ -44,7 +47,24 @@ sealed class State {
         val onSave: (String) -> Unit,
         override val onNewChat: () -> Unit,
         override val onOpenHistory: () -> Unit,
+        override val onOpenRoles: () -> Unit,
+        override val onOpenPresets: () -> Unit,
+    ) : State()
+
+    data class PresetsState(
+        val presets: List<String>,
+        val currentIndex: Int,
+        val creating: Boolean,
+        val preset: Preset,
+        val onSelectPreset: (Int) -> Unit,
+        val onStartCreatePreset: () -> Unit,
+        val onAddPreset: (Preset) -> Unit,
+        val onDeletePreset: () -> Unit,
+        val onSave: (Preset) -> Unit,
+        override val onNewChat: () -> Unit,
+        override val onOpenHistory: () -> Unit,
+        override val onOpenRoles: () -> Unit,
     ) : State() {
-        override val onOpenRoles = { }
+        override val onOpenPresets = { }
     }
 }

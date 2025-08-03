@@ -1,13 +1,13 @@
 # sona
 
-Chat with Anthropic models directly from a side panel in your IDE. The chat
-history is persisted in IDE storage so it survives restarts. Configure API
-token, endpoint and model in the settings. Responses stream gradually so you
-can watch them being generated in real time and stop the stream at any moment
+Chat with various language models directly from a side panel in your IDE. The chat
+history is persisted in IDE storage so it survives restarts. Connection details are
+managed as presets where you choose a provider, model, API endpoint and token. Responses stream
+gradually so you can watch them being generated in real time and stop the stream at any moment
 to keep the partial reply.
 
 <!-- Plugin description -->
-Chat with an Anthropic language model right inside your IDE. The chat history is stored persistently so you can resume conversations after restarting the IDE.
+Chat with Anthropic, OpenAI, Deepseek or Gemini models right inside your IDE. The chat history is stored persistently so you can resume conversations after restarting the IDE.
 <!-- Plugin description end -->
 
 ## Installation
@@ -23,6 +23,15 @@ prompt text. Roles can be added, selected and removed (except the last role).
 The active role can also be changed directly from the chat via the selector
 under the message input. The text of the active role is sent as a system
 message with every request but is not stored in the chat history.
+
+## Presets
+
+LLM credentials are stored as presets. Each preset defines the provider, model,
+API endpoint and token. Manage presets from the Presets screen opened via the
+tool window actions. At least one preset must exist for the chat to function.
+
+The settings screen contains only a single option: **Ignore HTTPS errors**. Enable
+it to trust all HTTPS certificates when connecting to custom endpoints.
 
 ## Architecture Overview
 

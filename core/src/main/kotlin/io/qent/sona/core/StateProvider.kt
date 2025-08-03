@@ -8,28 +8,34 @@ import kotlinx.coroutines.launch
 
 
 class StateProvider(
-    settingsRepository: SettingsRepository,
+    private val presetsRepository: PresetsRepository,
     private val chatRepository: ChatRepository,
     private val rolesRepository: RolesRepository,
-    modelFactory: suspend (Settings) -> StreamingChatModel,
+    modelFactory: (Preset) -> StreamingChatModel,
     tools: Tools,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 ) {
 
-    private val chatFlow = ChatFlow(settingsRepository, rolesRepository, chatRepository, modelFactory, tools, scope)
+    private val chatFlow = ChatFlow(presetsRepository, rolesRepository, chatRepository, modelFactory, tools, scope)
 
     private val _state = MutableSharedFlow<State>()
     val state: Flow<State> = _state
 
     private var roles: Roles = Roles(0, emptyList())
     private var creatingRole = false
+    private var presets: Presets = Presets(0, emptyList())
+    private var creatingPreset = false
     private var currentChat: Chat = Chat("", dev.langchain4j.model.output.TokenUsage(0, 0))
 
     init {
         scope.launch {
             roles = rolesRepository.load()
+            presets = presetsRepository.load()
             val lastChatId = chatRepository.listChats().firstOrNull()?.id
-            if (lastChatId == null) {
+            if (presets.presets.isEmpty()) {
+                creatingPreset = true
+                _state.emit(createPresetsState())
+            } else if (lastChatId == null) {
                 newChat()
             } else {
                 openChat(lastChatId)
@@ -70,6 +76,7 @@ class StateProvider(
         onNewChat = { scope.launch { newChat() } },
         onOpenHistory = { scope.launch { showHistory() } },
         onOpenRoles = { scope.launch { showRoles() } },
+        onOpenPresets = { scope.launch { showPresets() } },
     )
 
     private fun createListState(chats: List<ChatSummary>) = State.ChatListState(
@@ -78,6 +85,7 @@ class StateProvider(
         onDeleteChat = { id -> scope.launch { deleteChat(id) } },
         onNewChat = { scope.launch { newChat() } },
         onOpenRoles = { scope.launch { showRoles() } },
+        onOpenPresets = { scope.launch { showPresets() } },
     )
 
     private fun createRolesState(): State.RolesState {
@@ -93,7 +101,9 @@ class StateProvider(
             onDeleteRole = { scope.launch { deleteRole() } },
             onSave = { t -> scope.launch { saveRole(t) } },
             onNewChat = { scope.launch { newChat() } },
-            onOpenHistory = { scope.launch { showHistory() } }
+            onOpenHistory = { scope.launch { showHistory() } },
+            onOpenRoles = { },
+            onOpenPresets = { scope.launch { showPresets() } }
         )
     }
 
@@ -106,6 +116,12 @@ class StateProvider(
         roles = rolesRepository.load()
         creatingRole = false
         _state.emit(createRolesState())
+    }
+
+    private suspend fun showPresets() {
+        presets = presetsRepository.load()
+        if (presets.presets.isEmpty()) creatingPreset = true
+        _state.emit(createPresetsState())
     }
 
     private suspend fun newChat() = chatFlow.loadChat(chatRepository.createChat())
@@ -168,4 +184,73 @@ class StateProvider(
 
     private suspend fun send(text: String) = chatFlow.send(text)
     private fun stop() = chatFlow.stop()
+
+    private fun createPresetsState(): State.PresetsState {
+        val preset = if (creatingPreset || presets.presets.isEmpty()) {
+            Preset(
+                name = "",
+                provider = LlmProvider.Anthropic,
+                apiEndpoint = LlmProvider.Anthropic.defaultEndpoint,
+                model = LlmProvider.Anthropic.models.first(),
+                apiKey = "",
+            )
+        } else {
+            presets.presets[presets.active]
+        }
+        return State.PresetsState(
+            presets = presets.presets.map { it.name },
+            currentIndex = presets.active,
+            creating = creatingPreset || presets.presets.isEmpty(),
+            preset = preset,
+            onSelectPreset = { idx -> scope.launch { selectPreset(idx) } },
+            onStartCreatePreset = { scope.launch { startCreatePreset() } },
+            onAddPreset = { p -> scope.launch { addPreset(p) } },
+            onDeletePreset = { scope.launch { deletePreset() } },
+            onSave = { p -> scope.launch { savePreset(p) } },
+            onNewChat = { scope.launch { newChat() } },
+            onOpenHistory = { scope.launch { showHistory() } },
+            onOpenRoles = { scope.launch { showRoles() } },
+        )
+    }
+
+    private suspend fun selectPreset(idx: Int) {
+        presets = presets.copy(active = idx)
+        presetsRepository.save(presets)
+        _state.emit(createPresetsState())
+    }
+
+    private suspend fun startCreatePreset() {
+        creatingPreset = true
+        _state.emit(createPresetsState())
+    }
+
+    private suspend fun addPreset(preset: Preset) {
+        presets = Presets(
+            active = presets.presets.size,
+            presets = presets.presets + preset,
+        )
+        creatingPreset = false
+        presetsRepository.save(presets)
+        _state.emit(createPresetsState())
+    }
+
+    private suspend fun deletePreset() {
+        if (presets.presets.isEmpty()) return
+        val list = presets.presets.toMutableList()
+        list.removeAt(presets.active)
+        val newActive = presets.active.coerceAtMost(list.lastIndex).coerceAtLeast(0)
+        presets = Presets(newActive, list)
+        presetsRepository.save(presets)
+        _state.emit(createPresetsState())
+    }
+
+    private suspend fun savePreset(preset: Preset) {
+        val list = presets.presets.toMutableList()
+        if (list.isNotEmpty()) {
+            list[presets.active] = preset
+            presets = presets.copy(presets = list)
+            presetsRepository.save(presets)
+        }
+        _state.emit(createPresetsState())
+    }
 }

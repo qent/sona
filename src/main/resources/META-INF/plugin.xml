@@ -31,6 +31,12 @@
                 text="Role"
                 description="Edit system message"
                 icon="AllIcons.General.User"/>
+
+        <action id="OpenPresetsAction"
+                class="io.qent.sona.actions.OpenPresetsAction"
+                text="Preset"
+                description="Edit LLM presets"
+                icon="AllIcons.General.Gear"/>
     </actions>
 
     <extensions defaultExtensionNs="com.intellij">
@@ -44,6 +50,7 @@
         <applicationService serviceImplementation="io.qent.sona.repositories.PluginSettingsRepository"/>
         <applicationService serviceImplementation="io.qent.sona.repositories.PluginChatRepository"/>
         <applicationService serviceImplementation="io.qent.sona.repositories.PluginRolesRepository"/>
+        <applicationService serviceImplementation="io.qent.sona.repositories.PluginPresetsRepository"/>
         <applicationService serviceImplementation="io.qent.sona.services.ThemeService"/>
 
         <applicationConfigurable

@@ -9,6 +9,8 @@ qodana = "2024.3.4"
 langchain4j_core = "1.0.0"
 langchain4j_kotlin = "1.0.0-beta5"
 langchain4j_anthropic = "1.0.0-beta5"
+langchain4j_openai = "1.2.0"
+langchain4j_google_ai_gemini = "1.2.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -17,6 +19,8 @@ opentest4j = { group = "org.opentest4j", name = "opentest4j", version.ref = "ope
 langchain4j-core = { group = "dev.langchain4j", name = "langchain4j-core", version.ref = "langchain4j_core" }
 langchain4j-kotlin = { group = "dev.langchain4j", name = "langchain4j-kotlin", version.ref = "langchain4j_kotlin" }
 langchain4j-anthropic = { group = "dev.langchain4j", name = "langchain4j-anthropic", version.ref = "langchain4j_anthropic" }
+langchain4j-openai = { group = "dev.langchain4j", name = "langchain4j-open-ai", version.ref = "langchain4j_openai" }
+langchain4j-google-ai-gemini = { group = "dev.langchain4j", name = "langchain4j-google-ai-gemini", version.ref = "langchain4j_google_ai_gemini" }
 [plugins]
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
 intelliJPlatform = { id = "org.jetbrains.intellij.platform", version.ref = "intelliJPlatform" }
