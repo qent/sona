@@ -57,7 +57,7 @@ The available tools let the model read the focused file and switch the active ro
 
 ## Copying and deleting messages
 
-When hovering a message its top‑right corner reveals copy and delete icons.
+When hovering a message, copy and delete icons appear beneath its bottom‑right corner.
 The clipboard button copies the entire message text while the trash icon removes
 that message and all following messages from both the chat view and persistent
 history.

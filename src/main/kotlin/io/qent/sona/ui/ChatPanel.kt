@@ -3,6 +3,7 @@ package io.qent.sona.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -19,9 +20,11 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -113,7 +116,7 @@ fun MessageBubble(message: Any, isUser: Boolean, bottomContent: (@Composable () 
         is UserMessage -> message.singleText().trim()
         else -> ""
     }
-    Box(
+    Column(
         Modifier
             .pointerMoveFilter(
                 onEnter = {
@@ -125,48 +128,61 @@ fun MessageBubble(message: Any, isUser: Boolean, bottomContent: (@Composable () 
                     false
                 }
             )
-            .shadow(if (hovered) 6.dp else 2.dp, RoundedCornerShape(14.dp))
-            .background(background, RoundedCornerShape(14.dp))
-            .padding(horizontal = 12.dp, vertical = 8.dp)
             .widthIn(max = 420.dp)
     ) {
-        SelectionContainer {
-            Column(Modifier.fillMaxWidth()) {
-                if (message is AiMessage) {
-                    val mdState = rememberMarkdownState(message.text(), immediate = true)
-                    Markdown(
-                        mdState,
-                        colors = SonaTheme.markdownColors,
-                        typography = SonaTheme.markdownTypography,
-                    )
-                } else if (message is UserMessage) {
-                    Text(
-                        message.singleText().trim(),
-                        color = textColor,
-                        fontSize = 15.sp
-                    )
-                }
-                bottomContent?.let {
-                    Spacer(Modifier.height(8.dp))
-                    it()
+        Box(
+            Modifier
+                .shadow(if (hovered) 6.dp else 2.dp, RoundedCornerShape(14.dp))
+                .background(background, RoundedCornerShape(14.dp))
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .fillMaxWidth()
+        ) {
+            SelectionContainer {
+                Column(Modifier.fillMaxWidth()) {
+                    if (message is AiMessage) {
+                        val mdState = rememberMarkdownState(message.text(), immediate = true)
+                        Markdown(
+                            mdState,
+                            colors = SonaTheme.markdownColors,
+                            typography = SonaTheme.markdownTypography,
+                        )
+                    } else if (message is UserMessage) {
+                        Text(
+                            message.singleText().trim(),
+                            color = textColor,
+                            fontSize = 15.sp
+                        )
+                    }
+                    bottomContent?.let {
+                        Spacer(Modifier.height(8.dp))
+                        it()
+                    }
                 }
             }
         }
         Row(
-            modifier = Modifier.align(Alignment.TopEnd).alpha(if (hovered) 1f else 0f),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp)
+                .alpha(if (hovered) 1f else 0f),
+            horizontalArrangement = Arrangement.End,
         ) {
-            Text(
-                "\uD83D\uDCCB",
-                color = textColor,
-                modifier = Modifier.clickable {
-                    clipboard.setText(AnnotatedString(messageText))
-                }
+            Image(
+                painter = painterResource("icons/copy.svg"),
+                contentDescription = "Copy message",
+                colorFilter = ColorFilter.tint(textColor),
+                modifier = Modifier
+                    .size(16.dp)
+                    .clickable { clipboard.setText(AnnotatedString(messageText)) }
             )
-            Text(
-                "\uD83D\uDDD1",
-                color = textColor,
-                modifier = Modifier.clickable(onClick = onDelete)
+            Spacer(Modifier.width(4.dp))
+            Image(
+                painter = painterResource("icons/trash.svg"),
+                contentDescription = "Delete message",
+                colorFilter = ColorFilter.tint(textColor),
+                modifier = Modifier
+                    .size(16.dp)
+                    .clickable(onClick = onDelete)
             )
         }
     }
