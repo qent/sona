@@ -117,6 +117,18 @@ class ChatFlow(
                                 tools.getFocusedFileText()
                             )
 
+                            "switchToArchitect" -> ToolExecutionResultMessage(
+                                toolRequest.id(),
+                                toolName,
+                                tools.switchToArchitect()
+                            )
+
+                            "switchToCode" -> ToolExecutionResultMessage(
+                                toolRequest.id(),
+                                toolName,
+                                tools.switchToCode()
+                            )
+
                             else -> throw IllegalArgumentException()
                         }
                     } else {

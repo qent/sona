@@ -167,6 +167,13 @@ class StateProvider(
         _state.emit(createChatState(currentChat))
     }
 
+    suspend fun selectRoleByName(name: String) {
+        val idx = roles.roles.indexOfFirst { it.name == name }
+        if (idx >= 0) {
+            selectChatRole(idx)
+        }
+    }
+
     private suspend fun startCreateRole() {
         creatingRole = true
         _state.emit(createRolesState())
