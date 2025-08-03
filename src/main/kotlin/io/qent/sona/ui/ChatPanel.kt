@@ -95,6 +95,10 @@ private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
 
 @Composable
 fun MessageBubble(message: Any, isUser: Boolean, bottomContent: (@Composable () -> Unit)? = null) {
+    if (message is AiMessage) {
+        if (message.text().isNullOrEmpty()) return
+    }
+
     var hovered by remember { mutableStateOf(false) }
     val background = if (isUser) SonaTheme.colors.UserBubble else SonaTheme.colors.AiBubble
     val textColor = if (isUser) SonaTheme.colors.UserText else SonaTheme.colors.AiText
@@ -139,16 +143,16 @@ private fun ToolPermissionButtons(
     onAlways: () -> Unit,
     onCancel: () -> Unit,
 ) {
-    Column(Modifier.fillMaxWidth()) {
-        ActionButton(onClick = onOk, modifier = Modifier.fillMaxWidth()) {
+    Row(Modifier.fillMaxWidth()) {
+        ActionButton(onClick = onOk, modifier = Modifier.weight(1f)) {
             Text("OK")
         }
-        Spacer(Modifier.height(4.dp))
-        ActionButton(onClick = onAlways, modifier = Modifier.fillMaxWidth()) {
+        Spacer(Modifier.width(4.dp))
+        ActionButton(onClick = onAlways, modifier = Modifier.weight(2f)) {
             Text("Always in this chat")
         }
-        Spacer(Modifier.height(4.dp))
-        ActionButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
+        Spacer(Modifier.width(4.dp))
+        ActionButton(onClick = onCancel, modifier = Modifier.weight(1f)) {
             Text("Cancel")
         }
     }
@@ -206,12 +210,17 @@ private fun Input(state: ChatState) {
                         .height(80.dp)
                         .onFocusChanged { isFocused = it.isFocused }
                         .onPreviewKeyEvent { event ->
-                            if (event.type == KeyEventType.Companion.KeyUp && event.key == Key.Companion.Enter) {
-                                if (text.value.isNotBlank()) {
-                                    state.onSendMessage(text.value)
-                                    text.value = ""
+                            if (event.type == KeyEventType.KeyDown && event.key == Key.Enter) {
+                                if (event.isShiftPressed) {
+                                    text.value += "\n"
+                                    true
+                                } else {
+                                    if (text.value.isNotBlank()) {
+                                        state.onSendMessage(text.value)
+                                        text.value = ""
+                                    }
+                                    true
                                 }
-                                true
                             } else {
                                 false
                             }
