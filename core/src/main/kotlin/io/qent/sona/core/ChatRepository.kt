@@ -35,6 +35,9 @@ interface ChatRepository {
 
     /** Delete chat with all messages. */
     suspend fun deleteChat(chatId: String)
+
+    /** Delete all messages in [chatId] starting from [index]. */
+    suspend fun deleteMessagesFrom(chatId: String, index: Int)
 }
 
 data class ChatRepositoryMessage(

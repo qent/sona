@@ -77,6 +77,7 @@ class StateProvider(
         onSelectPreset = { idx -> scope.launch { selectChatPreset(idx) } },
         onSendMessage = { text -> scope.launch { send(text) } },
         onStop = { scope.launch { stop() } },
+        onDeleteFrom = { idx -> scope.launch { deleteFrom(idx) } },
         toolRequest = chat.toolRequest != null,
         onAllowTool = { scope.launch { chatFlow.resolveToolPermission(true, false) } },
         onAlwaysAllowTool = { scope.launch { chatFlow.resolveToolPermission(true, true) } },
@@ -204,6 +205,7 @@ class StateProvider(
 
     private suspend fun send(text: String) = chatFlow.send(text)
     private fun stop() = chatFlow.stop()
+    private suspend fun deleteFrom(idx: Int) = chatFlow.deleteFrom(idx)
 
     private fun createPresetsState(): State.PresetsState {
         val preset = if (creatingPreset || presets.presets.isEmpty()) {

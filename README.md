@@ -55,6 +55,12 @@ skip future confirmations for the same tool within the current conversation.
 
 The available tools let the model read the focused file and switch the active role between Architect and Code.
 
+## Deleting messages
+
+Each message has a trash icon in its top‑right corner. Clicking it removes that
+message and all following messages from both the chat view and persistent
+history.
+
 ## Architecture Overview
 
 The project is split into two modules:

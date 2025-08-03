@@ -105,4 +105,11 @@ class PluginChatRepository : ChatRepository, PersistentStateComponent<PluginChat
     override suspend fun deleteChat(chatId: String) {
         state.chats.removeIf { it.id == chatId }
     }
+
+    override suspend fun deleteMessagesFrom(chatId: String, index: Int) {
+        val chat = findChat(chatId)
+        if (index < chat.messages.size) {
+            chat.messages.subList(index, chat.messages.size).clear()
+        }
+    }
 }
