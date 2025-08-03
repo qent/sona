@@ -177,7 +177,8 @@ class StateProvider(
     }
 
     private suspend fun deleteRole() {
-        if (roles.roles.size <= 1) return
+        val currentName = roles.roles[roles.active].name
+        if (currentName in DefaultRoles.NAMES) return
         val list = roles.roles.toMutableList()
         list.removeAt(roles.active)
         val newActive = roles.active.coerceAtMost(list.lastIndex)

@@ -11,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import io.qent.sona.core.DefaultRoles
 import io.qent.sona.core.State.RolesState
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
@@ -69,7 +70,8 @@ fun RolesPanel(state: RolesState) {
                     Spacer(Modifier.width(8.dp))
                     ActionButton(
                         onClick = { state.onDeleteRole() },
-                        enabled = state.roles.size > 1
+                        enabled = state.roles.size > DefaultRoles.NAMES.size &&
+                            state.roles[state.currentIndex] !in DefaultRoles.NAMES
                     ) { Text("\uD83D\uDDD1") }
                 }
             }

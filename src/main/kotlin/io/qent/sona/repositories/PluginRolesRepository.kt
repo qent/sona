@@ -7,6 +7,7 @@ import com.intellij.openapi.components.Storage
 import io.qent.sona.core.Role
 import io.qent.sona.core.Roles
 import io.qent.sona.core.RolesRepository
+import io.qent.sona.core.DefaultRoles
 
 @Service
 @State(name = "PluginRoles", storages = [Storage("roles.xml")])
@@ -21,11 +22,11 @@ class PluginRolesRepository : RolesRepository, PersistentStateComponent<PluginRo
         var roles: MutableList<StoredRole> = mutableListOf(
             // https://github.com/RooCodeInc/Roo-Code/blob/main/packages/types/src/mode.ts
             StoredRole(
-                "\uD83C\uDFD7\uFE0F  Architect",
+                DefaultRoles.ARCHITECT,
                 "You are Roo, an experienced technical leader who is inquisitive and an excellent planner. Your goal is to gather information and get context to create a detailed plan for accomplishing the user's task, which the user will review and approve before they switch into another mode to implement the solution."
             ),
             StoredRole(
-                "\uD83D\uDCBB  Code",
+                DefaultRoles.CODER,
                 "You are Roo, a highly skilled software engineer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices."
             )
         )

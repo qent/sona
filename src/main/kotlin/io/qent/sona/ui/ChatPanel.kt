@@ -23,6 +23,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.qent.sona.core.DefaultRoles
 import com.mikepenz.markdown.compose.Markdown
 import com.mikepenz.markdown.model.rememberMarkdownState
 import dev.langchain4j.data.message.AiMessage
@@ -141,6 +142,15 @@ fun AiAvatar() {
 private fun Input(state: ChatState) {
     val text = remember { mutableStateOf("") }
     var isFocused by remember { mutableStateOf(false) }
+    val placeholder = if (state.messages.isNotEmpty()) {
+        "Type a message..."
+    } else {
+        when (state.roles[state.activeRole]) {
+            DefaultRoles.ARCHITECT -> "Describe what you'd like to plan and design..."
+            DefaultRoles.CODER -> "Describe what you'd like to implement..."
+            else -> "Describe your task..."
+        }
+    }
 
 
     Box(
@@ -166,7 +176,7 @@ private fun Input(state: ChatState) {
             ) {
                 if (text.value.isEmpty()) {
                     Text(
-                        "Напишите сообщение...",
+                        placeholder,
                         color = SonaTheme.colors.Placeholder,
                         fontSize = 14.sp
                     )
