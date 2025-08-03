@@ -6,9 +6,9 @@
 - Settings are stored using a repository interface in the logic module with an IntelliJ implementation in the UI module.
 - Chat history is persisted via a repository implementation (`PluginChatRepository`) that stores chats across IDE
   sessions.
-- System prompts (roles) are stored in `RolesRepository` and can be managed from
-  the Roles screen. Each role has a name and text and the last role cannot be
-  deleted.
+  - System prompts (roles) are stored in `RolesRepository` and can be managed from
+    the Roles screen. Each role has a name and text. The default Architect and
+    Coder roles cannot be deleted.
 - LLM connection details are organised as presets via `PresetsRepository`. At least one preset must exist for the chat
   to work and they are managed from the Presets screen.
 - Plugin settings contain only the "Ignore HTTPS errors" flag which, when enabled, trusts all HTTPS certificates.

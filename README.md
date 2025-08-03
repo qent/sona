@@ -24,10 +24,17 @@ branch during the previous day. The resulting archive is uploaded as a workflow 
 
 The plugin supports multiple system roles. Open the roles screen from the tool
 window actions to switch between roles or create new ones. Each role has its own
-prompt text. Roles can be added, selected and removed (except the last role).
-The active role can also be changed directly from the chat via the selector
-under the message input. The text of the active role is sent as a system
-message with every request but is not stored in the chat history.
+prompt text. Roles can be added, selected and removed, but the default Architect
+and Coder roles cannot be deleted. The active role can also be changed directly
+from the chat via the selector under the message input. The text of the active
+role is sent as a system message with every request but is not stored in the
+chat history.
+
+When starting a new conversation the message field shows a placeholder tailored
+to the active role. The Architect role suggests planning and design, the Coder
+role suggests implementation, and other roles display a generic "Describe your
+task..." prompt. Once messages are present, the placeholder becomes
+"Type a message...".
 
 ## Presets
 
