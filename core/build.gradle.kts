@@ -17,4 +17,5 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.langchain4j.core)
     implementation(libs.langchain4j.kotlin)
+    implementation(libs.langchain4j.mcp)
 }

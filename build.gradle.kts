@@ -62,6 +62,11 @@ dependencies {
         exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core")
     }
 
+    implementation(libs.langchain4j.mcp) {
+        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core-jvm")
+        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core")
+    }
+
     compileOnly("com.intellij.platform:kotlinx-coroutines-core-jvm:1.8.0-intellij-13")
 
     intellijPlatform {

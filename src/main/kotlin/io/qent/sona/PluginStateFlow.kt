@@ -15,6 +15,7 @@ import io.qent.sona.repositories.PluginPresetsRepository
 import io.qent.sona.repositories.PluginRolesRepository
 import io.qent.sona.repositories.PluginSettingsRepository
 import io.qent.sona.repositories.PluginFilePermissionsRepository
+import io.qent.sona.repositories.PluginMcpServersRepository
 import io.qent.sona.core.FilePermissionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -98,6 +99,7 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
             },
             externalTools = externalTools,
             filePermissionRepository = PluginFilePermissionsRepository(project),
+            mcpServersRepository = PluginMcpServersRepository(project),
             scope = scope,
             systemMessages = createSystemMessages(),
         )
