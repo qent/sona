@@ -13,11 +13,12 @@ class StateProvider(
     private val chatRepository: ChatRepository,
     private val rolesRepository: RolesRepository,
     modelFactory: (Preset) -> StreamingChatModel,
-    tools: Tools,
+    externalTools: ExternalTools,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 ) {
 
-    private val chatFlow = ChatFlow(presetsRepository, rolesRepository, chatRepository, modelFactory, tools, scope)
+    private val internalTools = DefaultInternalTools(scope, ::selectRole)
+    private val chatFlow = ChatFlow(presetsRepository, rolesRepository, chatRepository, modelFactory, internalTools, externalTools, scope)
 
     private val _state = MutableSharedFlow<State>(replay = 1)
 

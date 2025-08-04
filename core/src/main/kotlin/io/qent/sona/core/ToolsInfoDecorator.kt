@@ -2,14 +2,17 @@ package io.qent.sona.core
 
 import dev.langchain4j.agent.tool.Tool
 
-class ToolsInfoDecorator(private val tools: Tools) : Tools {
+class ToolsInfoDecorator(
+    private val internalTools: InternalTools,
+    private val externalTools: ExternalTools,
+) : Tools {
 
     @Tool("Return source of file opened at current focused editor")
-    override fun getFocusedFileText() = tools.getFocusedFileText()
+    override fun getFocusedFileText() = externalTools.getFocusedFileText()
 
     @Tool("Switch agent role to Architect")
-    override fun switchToArchitect() = tools.switchToArchitect()
+    override fun switchToArchitect() = internalTools.switchToArchitect()
 
     @Tool("Switch agent role to Code")
-    override fun switchToCode() = tools.switchToCode()
+    override fun switchToCode() = internalTools.switchToCode()
 }

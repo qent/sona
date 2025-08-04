@@ -37,8 +37,10 @@ IDE theme changes.
   the Compose UI and `PluginStateFlow`, a project service exposing
   `StateFlow<State>` from `StateProvider`.
 
-`Tools` are injected into `ChatFlow` through an interface so that IDE specific
-helpers can be implemented in the plugin module.
+`ExternalTools` are implemented in the plugin module using the IntelliJ
+API while `InternalTools` live in the core module for plugin interactions like
+switching roles. The `Tools` interface extends both and is injected into
+`ChatFlow` via a core implementation that delegates to the two sets of tools.
 
 Whenever you extend the logic make sure the flow of state remains unidirectional
 and that the core module stays free from IntelliJ SDK imports.

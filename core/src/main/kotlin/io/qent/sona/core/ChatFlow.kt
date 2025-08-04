@@ -32,12 +32,13 @@ class ChatFlow(
     private val rolesRepository: RolesRepository,
     private val chatRepository: ChatRepository,
     private val modelFactory: (Preset) -> StreamingChatModel,
-    tools: Tools,
+    internalTools: InternalTools,
+    externalTools: ExternalTools,
     scope: CoroutineScope,
 ) : Flow<Chat> {
 
     private val scope = scope + Dispatchers.IO
-    private val tools = ToolsInfoDecorator(tools)
+    private val tools = ToolsInfoDecorator(internalTools, externalTools)
 
     private val mutableSharedState = MutableSharedFlow<Chat>()
     private var currentState = Chat("", TokenUsage(0, 0))
