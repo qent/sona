@@ -12,6 +12,8 @@ import io.qent.sona.repositories.PluginChatRepository
 import io.qent.sona.repositories.PluginPresetsRepository
 import io.qent.sona.repositories.PluginRolesRepository
 import io.qent.sona.repositories.PluginSettingsRepository
+import io.qent.sona.repositories.PluginFilePermissionsRepository
+import io.qent.sona.core.FilePermissionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -35,6 +37,7 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
     private var stateProvider: StateProvider
 
     private val externalTools = PluginExternalTools(project)
+    private val filePermissionManager = FilePermissionManager(PluginFilePermissionsRepository(project))
 
     var lastState: State = State.ChatState(
         messages = emptyList(),
@@ -92,6 +95,7 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
                 }
             },
             externalTools = externalTools,
+            filePermissionManager = filePermissionManager,
             scope = scope,
         )
 

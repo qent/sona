@@ -32,13 +32,11 @@ class ChatFlow(
     private val rolesRepository: RolesRepository,
     private val chatRepository: ChatRepository,
     private val modelFactory: (Preset) -> StreamingChatModel,
-    internalTools: InternalTools,
-    externalTools: ExternalTools,
+    private val tools: Tools,
     scope: CoroutineScope,
 ) : Flow<Chat> {
 
     private val scope = scope + Dispatchers.IO
-    private val tools = ToolsInfoDecorator(internalTools, externalTools)
 
     private val mutableSharedState = MutableSharedFlow<Chat>()
     private var currentState = Chat("", TokenUsage(0, 0))
@@ -117,6 +115,17 @@ class ChatFlow(
                                 toolName,
                                 tools.getFocusedFileText()
                             )
+
+                            "readFile" -> {
+                                val path =
+                                    com.fasterxml.jackson.databind.ObjectMapper().readTree(toolRequest.arguments())
+                                        .get("path").asText()
+                                ToolExecutionResultMessage(
+                                    toolRequest.id(),
+                                    toolName,
+                                    tools.readFile(path)
+                                )
+                            }
 
                             "switchToArchitect" -> ToolExecutionResultMessage(
                                 toolRequest.id(),

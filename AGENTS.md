@@ -39,8 +39,10 @@ IDE theme changes.
 
 `ExternalTools` are implemented in the plugin module using the IntelliJ
 API while `InternalTools` live in the core module for plugin interactions like
-switching roles. The `Tools` interface extends both and is injected into
-`ChatFlow` via a core implementation that delegates to the two sets of tools.
+switching roles. `ToolsInfoDecorator` combines them and routes file responses through a
+permission manager that checks absolute paths against a whitelist (project root by default)
+and a blacklist of sensitive files before exposing file contents to the model.
+`ChatFlow` depends only on the `Tools` interface and receives the decorator from `StateProvider`.
 
 Whenever you extend the logic make sure the flow of state remains unidirectional
 and that the core module stays free from IntelliJ SDK imports.
