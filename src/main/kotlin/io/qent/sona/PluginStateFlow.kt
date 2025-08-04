@@ -2,12 +2,12 @@ package io.qent.sona
 
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import dev.langchain4j.model.anthropic.AnthropicStreamingChatModel
 import dev.langchain4j.model.googleai.GoogleAiGeminiStreamingChatModel
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel
 import io.qent.sona.core.*
+import io.qent.sona.tools.PluginExternalTools
 import io.qent.sona.repositories.PluginChatRepository
 import io.qent.sona.repositories.PluginPresetsRepository
 import io.qent.sona.repositories.PluginRolesRepository
@@ -34,25 +34,7 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
     private val scope = CoroutineScope(Dispatchers.Default)
     private var stateProvider: StateProvider
 
-    private val tools = object : Tools {
-        override fun getFocusedFileText(): String? {
-            return FileEditorManager.getInstance(project).selectedTextEditor?.document?.text
-        }
-
-        override fun switchToArchitect(): String {
-            scope.launch {
-                stateProvider.selectRole(DefaultRoles.ARCHITECT)
-            }
-            return "Architect mode active"
-        }
-
-        override fun switchToCode(): String {
-            scope.launch {
-                stateProvider.selectRole(DefaultRoles.CODE)
-            }
-            return "Code mode active"
-        }
-    }
+    private val externalTools = PluginExternalTools(project)
 
     var lastState: State = State.ChatState(
         messages = emptyList(),
@@ -109,7 +91,7 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
                         .build()
                 }
             },
-            tools = tools,
+            externalTools = externalTools,
             scope = scope,
         )
 
