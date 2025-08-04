@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.intellij.openapi.util.IconLoader
 import com.mikepenz.markdown.compose.Markdown
+import com.mikepenz.markdown.compose.components.markdownComponents
 import com.mikepenz.markdown.model.rememberMarkdownState
 import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.data.message.UserMessage
@@ -156,6 +157,10 @@ fun MessageBubble(message: Any, isUser: Boolean, bottomContent: (@Composable () 
                             mdState,
                             colors = SonaTheme.markdownColors,
                             typography = SonaTheme.markdownTypography,
+                            components = markdownComponents(
+                                codeFence = { CopyableCodeBlock(it, true) },
+                                codeBlock = { CopyableCodeBlock(it, false) },
+                            ),
                         )
                     } else if (message is UserMessage) {
                         Text(
