@@ -2,6 +2,7 @@ package io.qent.sona.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -13,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.mikepenz.markdown.compose.components.MarkdownComponentModel
 import com.mikepenz.markdown.compose.elements.MarkdownCodeBlock
 import com.mikepenz.markdown.compose.elements.MarkdownCodeFence
+import org.intellij.markdown.ast.getTextInNode
 import org.jetbrains.jewel.ui.component.IconButton
 
 /**
@@ -27,7 +29,9 @@ fun CopyableCodeBlock(model: MarkdownComponentModel, fence: Boolean) {
         } else {
             MarkdownCodeBlock(model.content, model.node, style = model.typography.code)
         }
-        IconButton(onClick = { clipboard.setText(AnnotatedString(model.content)) }, modifier = Modifier.align(Alignment.TopEnd)) {
+        IconButton(onClick = {
+            clipboard.setText(AnnotatedString(model.node.getTextInNode(model.content).toString())
+        ) }, modifier = Modifier.align(Alignment.TopEnd).padding(top = 12.dp, end = 4.dp)) {
             Image(
                 painter = loadIcon("/icons/copy.svg"),
                 contentDescription = "Copy code",
