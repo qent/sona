@@ -44,6 +44,9 @@ permission manager that checks absolute paths against a whitelist (project root 
 and a blacklist of sensitive files before exposing file contents to the model.
 File permissions can also be adjusted by adding a `sona.json` file at the project root with
 `permissions.files.whitelist` and `blacklist` arrays of regex patterns.
+`sona.json` may additionally define an `mcpServers` array with Model Context Protocol server
+configurations including name, command, arguments, environment variables, transport, URL,
+working directory and request headers.
 `ChatFlow` depends only on the `Tools` interface and receives the decorator from `StateProvider`.
 
 Whenever you extend the logic make sure the flow of state remains unidirectional

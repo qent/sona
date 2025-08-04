@@ -66,6 +66,9 @@ The available tools let the model read the focused file, read any file by absolu
 }
 ```
 
+The same configuration file can also include an `mcpServers` array specifying Model Context Protocol
+servers. Each entry supports `name`, `command`, `args`, `env`, `transport`, `url`, `cwd` and `headers` fields.
+
 ## Copying and deleting messages
 
 When hovering a message, copy and delete icons appear beneath its bottom‑right corner.
