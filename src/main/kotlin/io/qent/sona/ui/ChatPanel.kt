@@ -1,9 +1,9 @@
 package io.qent.sona.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -13,31 +13,38 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.pointerMoveFilter
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.qent.sona.core.DefaultRoles
+import com.intellij.openapi.util.IconLoader
 import com.mikepenz.markdown.compose.Markdown
 import com.mikepenz.markdown.model.rememberMarkdownState
 import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.data.message.UserMessage
+import io.qent.sona.PluginStateFlow
+import io.qent.sona.core.DefaultRoles
 import io.qent.sona.core.State.ChatState
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
+import java.awt.Image
+import java.awt.image.BufferedImage
+import javax.swing.ImageIcon
 
 @Composable
 fun ChatPanel(state: ChatState) {
@@ -75,10 +82,7 @@ private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
         items(state.messages.size) { index ->
             val message = state.messages[index]
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 2.dp),
-                horizontalArrangement = if (message is UserMessage) Arrangement.End else Arrangement.Start,
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Bottom
             ) {
                 if (message is AiMessage) {
@@ -128,7 +132,7 @@ fun MessageBubble(message: Any, isUser: Boolean, bottomContent: (@Composable () 
                     false
                 }
             )
-            .widthIn(max = 420.dp)
+            .fillMaxWidth()
     ) {
         Box(
             Modifier
@@ -163,25 +167,25 @@ fun MessageBubble(message: Any, isUser: Boolean, bottomContent: (@Composable () 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 4.dp)
+                .padding(top = 2.dp)
                 .alpha(if (hovered) 1f else 0f),
             horizontalArrangement = Arrangement.End,
         ) {
             Image(
-                painter = painterResource("icons/copy.svg"),
+                painter = loadIcon("/icons/copy.svg"),
                 contentDescription = "Copy message",
                 colorFilter = ColorFilter.tint(textColor),
                 modifier = Modifier
-                    .size(16.dp)
+                    .size(12.dp)
                     .clickable { clipboard.setText(AnnotatedString(messageText)) }
             )
-            Spacer(Modifier.width(4.dp))
+            Spacer(Modifier.width(8.dp))
             Image(
-                painter = painterResource("icons/trash.svg"),
+                painter = loadIcon("/icons/trash.svg"),
                 contentDescription = "Delete message",
                 colorFilter = ColorFilter.tint(textColor),
                 modifier = Modifier
-                    .size(16.dp)
+                    .size(12.dp)
                     .clickable(onClick = onDelete)
             )
         }
@@ -332,4 +336,19 @@ private fun Input(state: ChatState) {
             }
         }
     }
+}
+
+@Composable
+fun loadIcon(path: String): Painter {
+    val icon = IconLoader.getIcon(path, PluginStateFlow::class.java)
+    val bufferedImage = iconToImage(icon)
+    return BitmapPainter(bufferedImage.toComposeImageBitmap())
+}
+
+fun iconToImage(icon: javax.swing.Icon): BufferedImage {
+    val image = BufferedImage(icon.iconWidth, icon.iconHeight, BufferedImage.TYPE_INT_ARGB)
+    val g = image.createGraphics()
+    icon.paintIcon(null, g, 0, 0)
+    g.dispose()
+    return image
 }
