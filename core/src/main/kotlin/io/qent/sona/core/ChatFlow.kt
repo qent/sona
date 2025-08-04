@@ -12,6 +12,7 @@ import dev.langchain4j.model.chat.request.ChatRequest
 import dev.langchain4j.model.chat.response.ChatResponse
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler
 import dev.langchain4j.model.output.TokenUsage
+import dev.langchain4j.service.tool.ToolProviderRequest
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
@@ -36,6 +37,7 @@ class ChatFlow(
     private val tools: Tools,
     scope: CoroutineScope,
     private val systemMessages: List<SystemMessage> = emptyList(),
+    private val mcpManager: McpConnectionManager? = null,
 ) : Flow<Chat> {
 
     private val scope = scope + Dispatchers.IO
@@ -91,8 +93,13 @@ class ChatFlow(
 
             var chatRequestBuilder =
                 ChatRequestBuilder((systemMessages + roleMessage + baseMessages.map { it.message }).toMutableList())
+            val baseToolSpecs = ToolSpecifications.toolSpecificationsFrom(tools).toMutableList()
+            mcpManager?.let {
+                val provided = it.toolProvider.provideTools(ToolProviderRequest(null, null))
+                baseToolSpecs.addAll(provided.tools().keys)
+            }
             chatRequestBuilder.parameters(configurer = {
-                toolSpecifications = ToolSpecifications.toolSpecificationsFrom(tools)
+                toolSpecifications = baseToolSpecs
             })
 
             var response = streamChat(model, chatRequestBuilder.build(), chatId, preset)
@@ -140,7 +147,24 @@ class ChatFlow(
                                 tools.switchToCode()
                             )
 
-                            else -> throw IllegalArgumentException()
+                            else ->
+                                if (mcpManager?.hasTool(toolName) == true) {
+                                    ToolExecutionResultMessage(
+                                        toolRequest.id(),
+                                        toolName,
+                                        mcpManager.execute(
+                                            toolRequest.id(),
+                                            toolName,
+                                            toolRequest.arguments()
+                                        )
+                                    )
+                                } else {
+                                    ToolExecutionResultMessage(
+                                        toolRequest.id(),
+                                        toolName,
+                                        "Tool not found"
+                                    )
+                                }
                         }
                     } else {
                         ToolExecutionResultMessage(
@@ -165,8 +189,13 @@ class ChatFlow(
 
                 chatRequestBuilder =
                     ChatRequestBuilder((systemMessages + roleMessage + messagesWithToolsResponse.map { it.message }).toMutableList())
+                val loopToolSpecs = ToolSpecifications.toolSpecificationsFrom(tools).toMutableList()
+                mcpManager?.let {
+                    val provided = it.toolProvider.provideTools(ToolProviderRequest(null, null))
+                    loopToolSpecs.addAll(provided.tools().keys)
+                }
                 chatRequestBuilder.parameters(configurer = {
-                    toolSpecifications = ToolSpecifications.toolSpecificationsFrom(tools)
+                    toolSpecifications = loopToolSpecs
                 })
 
                 response = streamChat(model, chatRequestBuilder.build(), chatId, preset)

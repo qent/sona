@@ -16,6 +16,7 @@ class StateProvider(
     modelFactory: (Preset) -> StreamingChatModel,
     externalTools: ExternalTools,
     filePermissionRepository: FilePermissionsRepository,
+    mcpServersRepository: McpServersRepository? = null,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default),
     private val systemMessages: List<SystemMessage> = emptyList(),
 ) {
@@ -23,7 +24,8 @@ class StateProvider(
     private val filePermissionManager = FilePermissionManager(filePermissionRepository)
     private val internalTools = DefaultInternalTools(scope, ::selectRole)
     private val tools: Tools = ToolsInfoDecorator(internalTools, externalTools, filePermissionManager)
-    private val chatFlow = ChatFlow(presetsRepository, rolesRepository, chatRepository, modelFactory, tools, scope, systemMessages)
+    private val mcpManager = mcpServersRepository?.let { McpConnectionManager(it) }
+    private val chatFlow = ChatFlow(presetsRepository, rolesRepository, chatRepository, modelFactory, tools, scope, systemMessages, mcpManager)
 
     private val _state = MutableSharedFlow<State>(replay = 1)
 
@@ -226,7 +228,10 @@ class StateProvider(
             chatFlow.send(text)
         }
     }
-    private fun stop() = chatFlow.stop()
+    private fun stop() {
+        chatFlow.stop()
+        mcpManager?.stop()
+    }
     private suspend fun deleteFrom(idx: Int) = chatFlow.deleteFrom(idx)
 
     private fun createPresetsState(): State.PresetsState {
