@@ -1,5 +1,6 @@
 package io.qent.sona.core
 
+import com.google.gson.Gson
 import dev.langchain4j.agent.tool.ToolSpecifications
 import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.data.message.SystemMessage
@@ -117,9 +118,8 @@ class ChatFlow(
                             )
 
                             "readFile" -> {
-                                val path =
-                                    com.fasterxml.jackson.databind.ObjectMapper().readTree(toolRequest.arguments())
-                                        .get("path").asText()
+                                val args = Gson().fromJson(toolRequest.arguments(), Map::class.java) as Map<*, *>
+                                val path = args["arg0"]?.toString() ?: ""
                                 ToolExecutionResultMessage(
                                     toolRequest.id(),
                                     toolName,
