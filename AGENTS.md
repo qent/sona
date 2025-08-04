@@ -42,6 +42,8 @@ API while `InternalTools` live in the core module for plugin interactions like
 switching roles. `ToolsInfoDecorator` combines them and routes file responses through a
 permission manager that checks absolute paths against a whitelist (project root by default)
 and a blacklist of sensitive files before exposing file contents to the model.
+File permissions can also be adjusted by adding a `sona.json` file at the project root with
+`permissions.files.whitelist` and `blacklist` arrays of regex patterns.
 `ChatFlow` depends only on the `Tools` interface and receives the decorator from `StateProvider`.
 
 Whenever you extend the logic make sure the flow of state remains unidirectional

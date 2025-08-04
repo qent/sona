@@ -34,6 +34,8 @@ dependencies {
 
     implementation("com.mikepenz:multiplatform-markdown-renderer-jvm:0.35.0")
 
+    implementation(libs.gson)
+
     implementation(project(":core")) {
         exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core-jvm")
         exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core")
