@@ -11,6 +11,7 @@ import dev.langchain4j.model.chat.request.ChatRequest
 import dev.langchain4j.model.chat.response.ChatResponse
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler
 import dev.langchain4j.model.output.TokenUsage
+import dev.langchain4j.internal.Json
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
@@ -117,9 +118,8 @@ class ChatFlow(
                             )
 
                             "readFile" -> {
-                                val path =
-                                    com.fasterxml.jackson.databind.ObjectMapper().readTree(toolRequest.arguments())
-                                        .get("path").asText()
+                                val arguments = Json.fromJson(toolRequest.arguments(), Map::class.java) as Map<*, *>
+                                val path = arguments["path"]?.toString() ?: ""
                                 ToolExecutionResultMessage(
                                     toolRequest.id(),
                                     toolName,
