@@ -37,7 +37,7 @@ class ChatFlow(
     private val tools: Tools,
     scope: CoroutineScope,
     private val systemMessages: List<SystemMessage> = emptyList(),
-    private val mcpManager: McpConnectionManager? = null,
+    private val mcpManager: McpConnectionManager,
 ) : Flow<Chat> {
 
     private val scope = scope + Dispatchers.IO
