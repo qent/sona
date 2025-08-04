@@ -28,7 +28,9 @@ prompt text. Roles can be added, selected and removed, but the default Architect
 and Code roles cannot be deleted. The active role can also be changed directly
 from the chat via the selector under the message input. The text of the active
 role is sent as a system message with every request but is not stored in the
-chat history.
+chat history. Every request is also prefixed with a system message summarizing
+the current environment (OS, IDE, Java, Python, Node.js versions, project
+languages, file extension statistics and build systems).
 
 Models can also switch roles themselves using tools to toggle between Architect and Code.
 

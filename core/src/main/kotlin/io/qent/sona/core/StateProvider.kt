@@ -1,5 +1,6 @@
 package io.qent.sona.core
 
+import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.model.chat.StreamingChatModel
 import dev.langchain4j.model.output.TokenUsage
 import kotlinx.coroutines.CoroutineScope
@@ -14,11 +15,12 @@ class StateProvider(
     private val rolesRepository: RolesRepository,
     modelFactory: (Preset) -> StreamingChatModel,
     externalTools: ExternalTools,
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default),
+    private val systemMessages: List<SystemMessage> = emptyList(),
 ) {
 
     private val internalTools = DefaultInternalTools(scope, ::selectRole)
-    private val chatFlow = ChatFlow(presetsRepository, rolesRepository, chatRepository, modelFactory, internalTools, externalTools, scope)
+    private val chatFlow = ChatFlow(presetsRepository, rolesRepository, chatRepository, modelFactory, internalTools, externalTools, scope, systemMessages)
 
     private val _state = MutableSharedFlow<State>(replay = 1)
 

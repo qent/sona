@@ -15,6 +15,9 @@
 - Plugin settings contain only the "Ignore HTTPS errors" flag which, when enabled, trusts all HTTPS certificates.
 - Each chat tracks tools approved by the user so that previously allowed tools run without asking again.
 - A tool is available to switch the active role between Architect and Code.
+- The UI passes a list of additional `SystemMessage` values to the core. The first message describes the current
+  environment (OS, IDE, Java, Python, Node.js, project languages, file extension statistics, build systems) and is
+  prepended to every LLM request.
 - Run `./gradlew build` before committing any changes.
 - After completing a task, make sure `AGENTS.md` and `README.md` reflect the latest behavior.
 
