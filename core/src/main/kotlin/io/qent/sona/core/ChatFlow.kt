@@ -35,6 +35,7 @@ class ChatFlow(
     internalTools: InternalTools,
     externalTools: ExternalTools,
     scope: CoroutineScope,
+    private val systemMessages: List<SystemMessage> = emptyList(),
 ) : Flow<Chat> {
 
     private val scope = scope + Dispatchers.IO
@@ -87,10 +88,10 @@ class ChatFlow(
             val model = modelFactory(preset)
 
             val roleText = rolesRepository.load().let { it.roles[it.active].text }
-            val systemMessage = SystemMessage.from(roleText)
+            val roleMessage = SystemMessage.from(roleText)
 
             var chatRequestBuilder =
-                ChatRequestBuilder((listOf(systemMessage) + baseMessages.map { it.message }).toMutableList())
+                ChatRequestBuilder((systemMessages + roleMessage + baseMessages.map { it.message }).toMutableList())
             chatRequestBuilder.parameters(configurer = {
                 toolSpecifications = ToolSpecifications.toolSpecificationsFrom(tools)
             })
@@ -154,7 +155,7 @@ class ChatFlow(
                 ))
 
                 chatRequestBuilder =
-                    ChatRequestBuilder((listOf(systemMessage) + messagesWithToolsResponse.map { it.message }).toMutableList())
+                    ChatRequestBuilder((systemMessages + roleMessage + messagesWithToolsResponse.map { it.message }).toMutableList())
                 chatRequestBuilder.parameters(configurer = {
                     toolSpecifications = ToolSpecifications.toolSpecificationsFrom(tools)
                 })
