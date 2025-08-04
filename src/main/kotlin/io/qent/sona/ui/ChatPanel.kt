@@ -63,7 +63,7 @@ fun ChatPanel(state: ChatState) {
     ) {
         Header(state)
         Box(
-            Modifier.weight(1f).padding(vertical = 8.dp)
+            Modifier.weight(1f)
         ) {
             Messages(state)
         }
@@ -144,6 +144,7 @@ fun MessageBubble(message: Any, isUser: Boolean, bottomContent: (@Composable () 
     ) {
         Box(
             Modifier
+                .padding(top = if (isUser) 6.dp else 0.dp)
                 .shadow(if (isUser) if (hovered) 6.dp else 2.dp else 0.dp, RoundedCornerShape(14.dp))
                 .background(background, RoundedCornerShape(6.dp))
                 .padding(horizontal = if (isUser) 12.dp else 0.dp, vertical = if (isUser) 8.dp else 2.dp)
@@ -180,7 +181,7 @@ fun MessageBubble(message: Any, isUser: Boolean, bottomContent: (@Composable () 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 4.dp)
+                .padding(top = if (isUser) 4.dp else 0.dp)
                 .alpha(alpha),
             horizontalArrangement = Arrangement.End,
         ) {
@@ -250,8 +251,6 @@ private fun Input(state: ChatState) {
     Box(
         Modifier
             .fillMaxWidth()
-            .background(SonaTheme.colors.InputBackground)
-            .padding(10.dp, 8.dp)
     ) {
         Row(
             modifier = Modifier.align(Alignment.TopStart),
