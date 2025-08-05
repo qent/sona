@@ -47,3 +47,15 @@ fun TokenUsage.toInfo(): TokenUsageInfo {
     )
 }
 
+/**
+ * Calculate the cost in USD for this token usage given the model pricing.
+ */
+fun TokenUsageInfo.cost(model: LlmModel?): Double {
+    if (model == null) return 0.0
+    fun calc(tokens: Int, price: Double) = tokens / 1_000_000.0 * price
+    return calc(outputTokens, model.outputCostPerMTokens) +
+        calc(inputTokens, model.inputCostPerMTokens) +
+        calc(cacheCreationInputTokens, model.cacheCreationCostPerMTokens) +
+        calc(cacheReadInputTokens, model.cacheReadCostPerMTokens)
+}
+

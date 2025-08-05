@@ -52,6 +52,8 @@ import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
 import java.awt.image.BufferedImage
 
+import io.qent.sona.core.cost
+
 @Composable
 fun ChatPanel(state: ChatState) {
     Column(
@@ -71,17 +73,30 @@ fun ChatPanel(state: ChatState) {
 
 @Composable
 private fun Header(state: ChatState) {
+    val preset = state.presets.presets.getOrNull(state.presets.active)
+    val model = preset?.provider?.models?.find { it.name == preset.model }
+    val totalCost = state.totalTokenUsage.cost(model)
+    val lastCost = state.lastTokenUsage.cost(model)
+    val contextTokens = state.lastTokenUsage.outputTokens + state.lastTokenUsage.inputTokens
+    val maxContext = model?.maxContextTokens ?: 0
+    val contextPercent = if (maxContext > 0) contextTokens * 100 / maxContext else 0
+
     Column(Modifier.fillMaxWidth().padding(8.dp)) {
         Text(
             "Out: ${state.totalTokenUsage.outputTokens}  In: ${state.totalTokenUsage.inputTokens}  " +
-                "CachedOut: ${state.totalTokenUsage.cacheCreationInputTokens}  CachedIn: ${state.totalTokenUsage.cacheReadInputTokens}"
+                "CachedOut: ${state.totalTokenUsage.cacheCreationInputTokens}  CachedIn: ${state.totalTokenUsage.cacheReadInputTokens}  " +
+                "Cost: ${formatCost(totalCost)}"
         )
         Text(
             "Last Out: ${state.lastTokenUsage.outputTokens}  In: ${state.lastTokenUsage.inputTokens}  " +
-                "CachedOut: ${state.lastTokenUsage.cacheCreationInputTokens}  CachedIn: ${state.lastTokenUsage.cacheReadInputTokens}"
+                "CachedOut: ${state.lastTokenUsage.cacheCreationInputTokens}  CachedIn: ${state.lastTokenUsage.cacheReadInputTokens}  " +
+                "Cost: ${formatCost(lastCost)}"
         )
+        Text("Context: $contextTokens/${maxContext} (${contextPercent}%)")
     }
 }
+
+private fun formatCost(cost: Double) = "$" + String.format("%.4f", cost)
 
 @Composable
 private fun Messages(state: ChatState, modifier: Modifier = Modifier) {

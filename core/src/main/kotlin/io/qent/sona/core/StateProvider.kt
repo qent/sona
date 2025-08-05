@@ -242,7 +242,7 @@ class StateProvider(
                 name = "Sonnet 4.0",
                 provider = LlmProvider.Anthropic,
                 apiEndpoint = LlmProvider.Anthropic.defaultEndpoint,
-                model = LlmProvider.Anthropic.models.first(),
+                model = LlmProvider.Anthropic.models.first().name,
                 apiKey = "",
             )
         } else {
