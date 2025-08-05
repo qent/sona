@@ -92,6 +92,8 @@ class StateProvider(
             onStop = { scope.launch { stop() } },
             onDeleteFrom = { idx -> scope.launch { deleteFrom(idx) } },
             toolRequest = chat.toolRequest != null,
+            autoApproveTools = chat.autoApproveTools,
+            onToggleAutoApprove = { scope.launch { chatFlow.toggleAutoApproveTools() } },
             onAllowTool = { scope.launch { chatFlow.resolveToolPermission(true, false) } },
             onAlwaysAllowTool = { scope.launch { chatFlow.resolveToolPermission(true, true) } },
             onDenyTool = { scope.launch { chatFlow.resolveToolPermission(false, false) } },

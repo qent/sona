@@ -14,6 +14,9 @@
   to work and they are managed from the Presets screen.
 - Plugin settings contain only the "Ignore HTTPS errors" flag which, when enabled, trusts all HTTPS certificates.
 - Each chat tracks tools approved by the user so that previously allowed tools run without asking again.
+- A 🤘 button next to the send action can temporarily auto-approve all tool
+  requests in the current chat. The setting resets when switching chats and is
+  not persisted.
 - A tool is available to switch the active role between Architect and Code.
 - The UI passes a list of additional `SystemMessage` values to the core. The first message describes the current
   environment (OS, IDE, Java, Python, Node.js, file extension statistics, build systems) and is prepended to every LLM request.

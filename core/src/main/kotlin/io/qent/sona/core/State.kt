@@ -22,6 +22,8 @@ sealed class State {
         val onStop: () -> Unit,
         val onDeleteFrom: (Int) -> Unit,
         val toolRequest: Boolean,
+        val autoApproveTools: Boolean,
+        val onToggleAutoApprove: () -> Unit,
         val onAllowTool: () -> Unit,
         val onAlwaysAllowTool: () -> Unit,
         val onDenyTool: () -> Unit,

@@ -26,6 +26,7 @@ data class Chat(
     val requestInProgress: Boolean = false,
     val isStreaming: Boolean = false,
     val toolRequest: String? = null,
+    val autoApproveTools: Boolean = false,
 )
 
 class ChatFlow(
@@ -97,7 +98,7 @@ class ChatFlow(
                 val messagesWithToolsResponse = currentState.messages.toMutableList()
                 for (toolRequest in responseMessage.toolExecutionRequests()) {
                     val toolName = toolRequest.name()
-                    val decision = if (chatRepository.isToolAllowed(chatId, toolName)) {
+                    val decision = if (currentState.autoApproveTools || chatRepository.isToolAllowed(chatId, toolName)) {
                         ToolDecision(true, false)
                     } else {
                         requestToolPermission(toolName)
@@ -226,6 +227,10 @@ class ChatFlow(
         toolContinuation?.resume(ToolDecision(allow, always))
         toolContinuation = null
         emit(currentState.copy(toolRequest = null))
+    }
+
+    fun toggleAutoApproveTools() {
+        emit(currentState.copy(autoApproveTools = !currentState.autoApproveTools))
     }
 
     private suspend fun streamChat(
