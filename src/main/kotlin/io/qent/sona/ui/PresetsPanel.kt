@@ -80,7 +80,7 @@ fun PresetsPanel(state: State.PresetsState) {
                     Column {
                         PresetForm(nameState, provider, {
                             provider = it
-                            model = it.models.first()
+                            model = it.models.first().name
                             apiState.setTextAndPlaceCursorAtEnd(it.defaultEndpoint)
                         }, model, { model = it }, apiState, tokenState)
                         Spacer(Modifier.height(12.dp))
@@ -126,7 +126,7 @@ fun PresetsPanel(state: State.PresetsState) {
                 Spacer(Modifier.height(8.dp))
                 PresetForm(nameState, provider, {
                     provider = it
-                    model = it.models.first()
+                    model = it.models.first().name
                     apiState.setTextAndPlaceCursorAtEnd(it.defaultEndpoint)
                 }, model, { model = it }, apiState, tokenState)
                 Spacer(Modifier.height(8.dp))
@@ -179,10 +179,10 @@ private fun PresetForm(
         Text("Model")
         Spacer(Modifier.height(2.dp))
         DropdownSelector(
-            items = provider.models,
-            selectedIndex = provider.models.indexOf(model).coerceAtLeast(0),
+            items = provider.models.map { it.name },
+            selectedIndex = provider.models.indexOfFirst { it.name == model }.coerceAtLeast(0),
             expandUpwards = false,
-            onSelect = { idx -> onModelChange(provider.models[idx]) },
+            onSelect = { idx -> onModelChange(provider.models[idx].name) },
             modifier = Modifier.fillMaxWidth(),
             backgroundColor = SonaTheme.colors.Background,
             buttonModifier = Modifier.fillMaxWidth()

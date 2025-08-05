@@ -1,21 +1,46 @@
 package io.qent.sona.core
 
-enum class LlmProvider(val defaultEndpoint: String, val models: List<String>) {
+/** Information about a specific LLM model. */
+data class LlmModel(
+    val name: String,
+    val outputCostPerMTokens: Double = 0.0,
+    val inputCostPerMTokens: Double = 0.0,
+    val cacheCreationCostPerMTokens: Double = 0.0,
+    val cacheReadCostPerMTokens: Double = 0.0,
+    val maxContextTokens: Int = 0,
+)
+
+enum class LlmProvider(val defaultEndpoint: String, val models: List<LlmModel>) {
     Anthropic(
         "https://api.anthropic.com/v1/",
-        listOf("claude-sonnet-4-20250514", "claude-3-7-sonnet-20250219", "claude-3-5-haiku-20241022"),
+        listOf(
+            LlmModel("claude-sonnet-4-20250514", maxContextTokens = 200_000),
+            LlmModel("claude-3-7-sonnet-20250219", maxContextTokens = 200_000),
+            LlmModel("claude-3-5-haiku-20241022", maxContextTokens = 200_000),
+        ),
     ),
     OpenAI(
         "https://api.openai.com/v1/",
-        listOf("o3", "gpt-4.1", "gpt-4.1-mini", "gpt-4o"),
+        listOf(
+            LlmModel("o3", maxContextTokens = 128_000),
+            LlmModel("gpt-4.1", maxContextTokens = 128_000),
+            LlmModel("gpt-4.1-mini", maxContextTokens = 128_000),
+            LlmModel("gpt-4o", maxContextTokens = 128_000),
+        ),
     ),
     Deepseek(
         "https://api.deepseek.com/v1/",
-        listOf("deepseek-chat", "deepseek-reasoner"),
+        listOf(
+            LlmModel("deepseek-chat", maxContextTokens = 128_000),
+            LlmModel("deepseek-reasoner", maxContextTokens = 128_000),
+        ),
     ),
     Gemini(
         "https://generativelanguage.googleapis.com/v1beta/",
-        listOf("gemini-2.5-pro", "gemini-2.5-flash"),
+        listOf(
+            LlmModel("gemini-2.5-pro", maxContextTokens = 128_000),
+            LlmModel("gemini-2.5-flash", maxContextTokens = 128_000),
+        ),
     );
 }
 

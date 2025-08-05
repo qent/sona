@@ -46,6 +46,10 @@ LLM credentials are stored as presets. Each preset defines the provider, model,
 API endpoint and token. Manage presets from the Presets screen opened via the
 tool window actions. At least one preset must exist for the chat to function.
 
+The chat header shows token usage together with the estimated cost for the last
+message and for the entire conversation. It also displays how much of the
+model's context window is currently filled based on the active preset.
+
 The settings screen contains only a single option: **Ignore HTTPS errors**. Enable
 it to trust all HTTPS certificates when connecting to custom endpoints.
 

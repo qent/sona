@@ -18,7 +18,7 @@ class PluginPresetsRepository : PresetsRepository,
         var name: String = "",
         var provider: String = LlmProvider.Anthropic.name,
         var apiEndpoint: String = LlmProvider.Anthropic.defaultEndpoint,
-        var model: String = LlmProvider.Anthropic.models.first(),
+        var model: String = LlmProvider.Anthropic.models.first().name,
         var apiKey: String = "",
     )
 
@@ -42,7 +42,7 @@ class PluginPresetsRepository : PresetsRepository,
                 stored.name,
                 provider,
                 stored.apiEndpoint.ifEmpty { provider.defaultEndpoint },
-                stored.model.ifEmpty { provider.models.first() },
+                stored.model.ifEmpty { provider.models.first().name },
                 stored.apiKey,
             )
         }
