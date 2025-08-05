@@ -8,6 +8,8 @@ import dev.langchain4j.model.anthropic.AnthropicStreamingChatModel
 import dev.langchain4j.model.googleai.GoogleAiGeminiStreamingChatModel
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel
 import dev.langchain4j.data.message.SystemMessage
+import dev.langchain4j.http.client.jdk.JdkHttpClient
+import dev.langchain4j.http.client.jdk.JdkHttpClientBuilder
 import io.qent.sona.core.*
 import io.qent.sona.tools.PluginExternalTools
 import io.qent.sona.repositories.PluginChatRepository
@@ -23,10 +25,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import java.io.File
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
+import java.net.http.HttpClient
 import javax.net.ssl.*
 
 
@@ -74,29 +76,49 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
             rolesRepository,
             modelFactory = { preset ->
                 when (preset.provider) {
-                    LlmProvider.Anthropic -> AnthropicStreamingChatModel.builder()
-                        .apiKey(preset.apiKey)
-                        .baseUrl(preset.apiEndpoint)
-                        .modelName(preset.model)
-                        .build()
+                    LlmProvider.Anthropic -> {
+                        val builder = AnthropicStreamingChatModel.builder()
+                            .apiKey(preset.apiKey)
+                            .baseUrl(preset.apiEndpoint)
+                            .modelName(preset.model)
+                        if (settingsRepository.state.ignoreHttpsErrors) {
+                            builder.httpClientBuilder(ignoreHttpsClientBuilder())
+                        }
+                        builder.build()
+                    }
 
-                    LlmProvider.OpenAI -> OpenAiStreamingChatModel.builder()
-                        .apiKey(preset.apiKey)
-                        .baseUrl(preset.apiEndpoint)
-                        .modelName(preset.model)
-                        .build()
+                    LlmProvider.OpenAI -> {
+                        val builder = OpenAiStreamingChatModel.builder()
+                            .apiKey(preset.apiKey)
+                            .baseUrl(preset.apiEndpoint)
+                            .modelName(preset.model)
+                        if (settingsRepository.state.ignoreHttpsErrors) {
+                            builder.httpClientBuilder(ignoreHttpsClientBuilder())
+                        }
+                        builder.build()
+                    }
 
-                    LlmProvider.Deepseek -> OpenAiStreamingChatModel.builder()
-                        .apiKey(preset.apiKey)
-                        .baseUrl(preset.apiEndpoint)
-                        .modelName(preset.model)
-                        .build()
+                    LlmProvider.Deepseek -> {
+                        val builder = OpenAiStreamingChatModel.builder()
+                            .apiKey(preset.apiKey)
+                            .baseUrl(preset.apiEndpoint)
+                            .modelName(preset.model)
+                        if (settingsRepository.state.ignoreHttpsErrors) {
+                            builder.httpClientBuilder(ignoreHttpsClientBuilder())
+                        }
+                        builder.build()
+                    }
 
-                    LlmProvider.Gemini -> GoogleAiGeminiStreamingChatModel.builder()
-                        .apiKey(preset.apiKey)
-                        .baseUrl(preset.apiEndpoint)
-                        .modelName(preset.model)
-                        .build()
+                    LlmProvider.Gemini -> {
+                        val builder = GoogleAiGeminiStreamingChatModel.builder()
+                            .apiKey(preset.apiKey)
+                            .baseUrl(preset.apiEndpoint)
+                            .modelName(preset.model)
+                        if (settingsRepository.state.ignoreHttpsErrors) {
+                            builder.httpClientBuilder(ignoreHttpsClientBuilder())
+                        }
+                        builder.build()
+                    }
                 }
             },
             externalTools = externalTools,
@@ -109,20 +131,19 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
         stateProvider.state.onEach {
             lastState = it
         }.launchIn(scope)
+    }
 
-        scope.launch {
-            if (settingsRepository.load().ignoreHttpsErrors) {
-                val trustAll: Array<TrustManager> = arrayOf(object : X509TrustManager {
-                    override fun checkClientTrusted(c: Array<X509Certificate?>?, a: String?) = Unit
-                    override fun checkServerTrusted(c: Array<X509Certificate?>?, a: String?) = Unit
-                    override fun getAcceptedIssuers(): Array<X509Certificate?>? = arrayOfNulls(0)
-                })
-                val sc = SSLContext.getInstance("SSL")
-                sc.init(null, trustAll, SecureRandom())
-                HttpsURLConnection.setDefaultSSLSocketFactory(sc.socketFactory)
-                HttpsURLConnection.setDefaultHostnameVerifier { _: String?, _: SSLSession? -> true }
-            }
+    private fun ignoreHttpsClientBuilder(): JdkHttpClientBuilder {
+        val trustAll: Array<TrustManager> = arrayOf(object : X509TrustManager {
+            override fun checkClientTrusted(certs: Array<X509Certificate?>?, authType: String?) = Unit
+            override fun checkServerTrusted(certs: Array<X509Certificate?>?, authType: String?) = Unit
+            override fun getAcceptedIssuers(): Array<X509Certificate?>? = arrayOfNulls(0)
+        })
+        val sslContext = SSLContext.getInstance("SSL").apply {
+            init(null, trustAll, SecureRandom())
         }
+        val httpClientBuilder = HttpClient.newBuilder().sslContext(sslContext)
+        return JdkHttpClient.builder().httpClientBuilder(httpClientBuilder)
     }
 
     private fun createSystemMessages(): List<SystemMessage> {
