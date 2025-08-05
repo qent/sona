@@ -81,6 +81,9 @@ servers. Each entry supports `name`, `command`, `args`, `env`, `transport`, `url
 Currently `transport` may be `stdio` or `http`. Every server runs in its own coroutine so a failure does
 not affect the plugin. Tools provided by MCP servers require the same user confirmation as local tools.
 
+The tool window includes a **Servers** action listing all configured MCP servers together with their current
+connection status.
+
 ```json
 {
   "mcpServers": [

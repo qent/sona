@@ -15,6 +15,7 @@ class CreateNewChatAction : AnAction("Create", "Create new chat", AllIcons.Gener
                 is State.ChatState -> if (messages.isNotEmpty()) onNewChat()
                 is State.RolesState -> onNewChat()
                 is State.PresetsState -> onNewChat()
+                is State.ServersState -> onNewChat()
             }
         }
     }

@@ -1,12 +1,14 @@
 package io.qent.sona.core
 
 import dev.langchain4j.data.message.ChatMessage
+import kotlinx.coroutines.flow.StateFlow
 
 sealed class State {
     abstract val onNewChat: () -> Unit
     abstract val onOpenHistory: () -> Unit
     abstract val onOpenRoles: () -> Unit
     abstract val onOpenPresets: () -> Unit
+    abstract val onOpenServers: () -> Unit
 
     data class ChatState(
         val messages: List<ChatMessage>,
@@ -31,6 +33,7 @@ sealed class State {
         override val onOpenHistory: () -> Unit,
         override val onOpenRoles: () -> Unit,
         override val onOpenPresets: () -> Unit,
+        override val onOpenServers: () -> Unit,
     ) : State()
 
     data class ChatListState(
@@ -40,6 +43,7 @@ sealed class State {
         override val onNewChat: () -> Unit,
         override val onOpenRoles: () -> Unit,
         override val onOpenPresets: () -> Unit,
+        override val onOpenServers: () -> Unit,
     ) : State() {
         override val onOpenHistory = { }
     }
@@ -58,6 +62,7 @@ sealed class State {
         override val onOpenHistory: () -> Unit,
         override val onOpenRoles: () -> Unit,
         override val onOpenPresets: () -> Unit,
+        override val onOpenServers: () -> Unit,
     ) : State()
 
     data class PresetsState(
@@ -73,7 +78,18 @@ sealed class State {
         override val onNewChat: () -> Unit,
         override val onOpenHistory: () -> Unit,
         override val onOpenRoles: () -> Unit,
+        override val onOpenServers: () -> Unit,
     ) : State() {
         override val onOpenPresets = { }
+    }
+
+    data class ServersState(
+        val servers: StateFlow<List<McpServerStatus>>,
+        override val onNewChat: () -> Unit,
+        override val onOpenHistory: () -> Unit,
+        override val onOpenRoles: () -> Unit,
+        override val onOpenPresets: () -> Unit,
+    ) : State() {
+        override val onOpenServers = { }
     }
 }

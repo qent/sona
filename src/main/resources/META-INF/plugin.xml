@@ -37,6 +37,12 @@
                 text="Preset"
                 description="Edit LLM presets"
                 icon="AllIcons.General.Gear"/>
+
+        <action id="OpenServersAction"
+                class="io.qent.sona.actions.OpenServersAction"
+                text="Servers"
+                description="Show MCP servers"
+                icon="AllIcons.Nodes.Folder"/>
     </actions>
 
     <extensions defaultExtensionNs="com.intellij">
