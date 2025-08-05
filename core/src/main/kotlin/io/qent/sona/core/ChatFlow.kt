@@ -93,11 +93,8 @@ class ChatFlow(
 
             var chatRequestBuilder =
                 ChatRequestBuilder((systemMessages + roleMessage + baseMessages.map { it.message }).toMutableList())
-            val baseToolSpecs = ToolSpecifications.toolSpecificationsFrom(tools).toMutableList()
-            mcpManager?.let {
-                val provided = it.toolProvider.provideTools(ToolProviderRequest(null, null))
-                baseToolSpecs.addAll(provided.tools().keys)
-            }
+            val baseToolSpecs = ToolSpecifications.toolSpecificationsFrom(tools).toMutableList() + mcpManager.listTools()
+
             chatRequestBuilder.parameters(configurer = {
                 toolSpecifications = baseToolSpecs
             })
@@ -189,11 +186,8 @@ class ChatFlow(
 
                 chatRequestBuilder =
                     ChatRequestBuilder((systemMessages + roleMessage + messagesWithToolsResponse.map { it.message }).toMutableList())
-                val loopToolSpecs = ToolSpecifications.toolSpecificationsFrom(tools).toMutableList()
-                mcpManager?.let {
-                    val provided = it.toolProvider.provideTools(ToolProviderRequest(null, null))
-                    loopToolSpecs.addAll(provided.tools().keys)
-                }
+                val loopToolSpecs = ToolSpecifications.toolSpecificationsFrom(tools).toMutableList() + mcpManager.listTools()
+
                 chatRequestBuilder.parameters(configurer = {
                     toolSpecifications = loopToolSpecs
                 })

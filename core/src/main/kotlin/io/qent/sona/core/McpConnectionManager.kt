@@ -15,8 +15,6 @@ class McpConnectionManager(
     private val scope = scope
     private val clients = mutableMapOf<String, McpClient>()
     private val tools = mutableMapOf<String, McpClient>()
-    @Volatile var toolProvider: McpToolProvider = McpToolProvider.builder().mcpClients(emptyList()).build()
-        private set
 
     init {
         this.scope.launch {
@@ -26,9 +24,11 @@ class McpConnectionManager(
                         val client = createClient(config) ?: return@launch
                         synchronized(this@McpConnectionManager) {
                             clients[config.name] = client
-                            toolProvider = McpToolProvider.builder().mcpClients(clients.values.toList()).build()
+
+                            client.listTools().forEach { spec ->
+                                tools[spec.name()] = client
+                            }
                         }
-                        client.listTools().forEach { spec -> tools[spec.name()] = client }
                     }.onFailure {
                         println("Failed to connect to MCP server ${config.name}: ${it.message}")
                     }
@@ -68,6 +68,8 @@ class McpConnectionManager(
     }
 
     fun hasTool(name: String): Boolean = tools.containsKey(name)
+
+    fun listTools() = clients.values.flatMap { it.listTools() }
 
     suspend fun execute(id: String, name: String, args: String): String {
         val client = tools[name] ?: return "Tool not found"
