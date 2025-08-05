@@ -14,32 +14,99 @@ enum class LlmProvider(val defaultEndpoint: String, val models: List<LlmModel>) 
     Anthropic(
         "https://api.anthropic.com/v1/",
         listOf(
-            LlmModel("claude-sonnet-4-20250514", maxContextTokens = 200_000),
-            LlmModel("claude-3-7-sonnet-20250219", maxContextTokens = 200_000),
-            LlmModel("claude-3-5-haiku-20241022", maxContextTokens = 200_000),
+            // Pricing: https://www.anthropic.com/pricing
+            LlmModel(
+                name = "claude-sonnet-4-20250514",
+                outputCostPerMTokens = 15.0,
+                inputCostPerMTokens = 3.0,
+                cacheCreationCostPerMTokens = 3.75,
+                cacheReadCostPerMTokens = 0.30,
+                maxContextTokens = 200_000,
+            ),
+            LlmModel(
+                name = "claude-3-7-sonnet-20250219",
+                outputCostPerMTokens = 15.0,
+                inputCostPerMTokens = 3.0,
+                cacheCreationCostPerMTokens = 3.75,
+                cacheReadCostPerMTokens = 0.30,
+                maxContextTokens = 200_000,
+            ),
+            LlmModel(
+                name = "claude-3-5-haiku-20241022",
+                outputCostPerMTokens = 4.0,
+                inputCostPerMTokens = 0.80,
+                cacheCreationCostPerMTokens = 1.0,
+                cacheReadCostPerMTokens = 0.08,
+                maxContextTokens = 200_000,
+            ),
         ),
     ),
     OpenAI(
         "https://api.openai.com/v1/",
         listOf(
-            LlmModel("o3", maxContextTokens = 128_000),
-            LlmModel("gpt-4.1", maxContextTokens = 128_000),
-            LlmModel("gpt-4.1-mini", maxContextTokens = 128_000),
-            LlmModel("gpt-4o", maxContextTokens = 128_000),
+            // Pricing: https://openai.com/pricing
+            LlmModel(
+                name = "o3",
+                outputCostPerMTokens = 60.0,
+                inputCostPerMTokens = 15.0,
+                maxContextTokens = 128_000,
+            ),
+            LlmModel(
+                name = "gpt-4.1",
+                outputCostPerMTokens = 30.0,
+                inputCostPerMTokens = 10.0,
+                maxContextTokens = 128_000,
+            ),
+            LlmModel(
+                name = "gpt-4.1-mini",
+                outputCostPerMTokens = 4.0,
+                inputCostPerMTokens = 1.0,
+                maxContextTokens = 128_000,
+            ),
+            LlmModel(
+                name = "gpt-4o",
+                outputCostPerMTokens = 15.0,
+                inputCostPerMTokens = 5.0,
+                maxContextTokens = 128_000,
+            ),
         ),
     ),
     Deepseek(
         "https://api.deepseek.com/v1/",
         listOf(
-            LlmModel("deepseek-chat", maxContextTokens = 128_000),
-            LlmModel("deepseek-reasoner", maxContextTokens = 128_000),
+            // Pricing: https://www.deepseek.com/pricing
+            LlmModel(
+                name = "deepseek-chat",
+                outputCostPerMTokens = 0.28,
+                inputCostPerMTokens = 0.14,
+                maxContextTokens = 128_000,
+            ),
+            LlmModel(
+                name = "deepseek-reasoner",
+                outputCostPerMTokens = 2.19,
+                inputCostPerMTokens = 0.55,
+                maxContextTokens = 128_000,
+            ),
         ),
     ),
     Gemini(
         "https://generativelanguage.googleapis.com/v1beta/",
         listOf(
-            LlmModel("gemini-2.5-pro", maxContextTokens = 128_000),
-            LlmModel("gemini-2.5-flash", maxContextTokens = 128_000),
+            // Pricing: https://ai.google.dev/pricing
+            LlmModel(
+                name = "gemini-2.5-pro",
+                outputCostPerMTokens = 10.0,
+                inputCostPerMTokens = 1.25,
+                cacheCreationCostPerMTokens = 0.31,
+                maxContextTokens = 128_000,
+            ),
+            LlmModel(
+                name = "gemini-2.5-flash",
+                outputCostPerMTokens = 2.5,
+                inputCostPerMTokens = 0.30,
+                cacheCreationCostPerMTokens = 0.075,
+                maxContextTokens = 128_000,
+            ),
         ),
     );
 }

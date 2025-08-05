@@ -53,6 +53,26 @@ model's context window is currently filled based on the active preset.
 The settings screen contains only a single option: **Ignore HTTPS errors**. Enable
 it to trust all HTTPS certificates when connecting to custom endpoints.
 
+## Model pricing
+
+Token costs are embedded for each supported model so conversations can display
+their estimated price. The rates below are in USD per million tokens and are
+based on the official pricing pages.
+
+| Provider | Model | Input | Output | Source |
+| --- | --- | --- | --- | --- |
+| Anthropic | Claude Sonnet 4 | $3.00 | $15.00 | [link](https://www.anthropic.com/pricing) |
+| Anthropic | Claude 3.7 Sonnet | $3.00 | $15.00 | [link](https://www.anthropic.com/pricing) |
+| Anthropic | Claude 3.5 Haiku | $0.80 | $4.00 | [link](https://www.anthropic.com/pricing) |
+| OpenAI | o3 | $15.00 | $60.00 | [link](https://openai.com/pricing) |
+| OpenAI | GPT-4.1 | $10.00 | $30.00 | [link](https://openai.com/pricing) |
+| OpenAI | GPT-4.1 Mini | $1.00 | $4.00 | [link](https://openai.com/pricing) |
+| OpenAI | GPT-4o | $5.00 | $15.00 | [link](https://openai.com/pricing) |
+| Deepseek | deepseek-chat | $0.14 | $0.28 | [link](https://www.deepseek.com/pricing) |
+| Deepseek | deepseek-reasoner | $0.55 | $2.19 | [link](https://www.deepseek.com/pricing) |
+| Gemini | Gemini 2.5 Pro | $1.25 | $10.00 | [link](https://ai.google.dev/pricing) |
+| Gemini | Gemini 2.5 Flash | $0.30 | $2.50 | [link](https://ai.google.dev/pricing) |
+
 ## Tools
 
 When the model requests to run a tool, the plugin asks for permission before
