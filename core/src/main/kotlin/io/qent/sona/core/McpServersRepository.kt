@@ -5,7 +5,7 @@ data class McpServerConfig(
     val command: String? = null,
     val args: List<String>? = null,
     val env: Map<String, String>? = null,
-    val transport: String? = null,
+    val transport: String,
     val url: String? = null,
     val cwd: String? = null,
     val headers: Map<String, String>? = null,

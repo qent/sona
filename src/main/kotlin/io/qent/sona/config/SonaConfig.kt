@@ -21,7 +21,7 @@ class SonaConfig {
         var command: String? = null
         var args: List<String>? = null
         var env: Map<String, String>? = null
-        var transport: String? = null
+        var transport: String = "stdio"
         var url: String? = null
         var cwd: String? = null
         var headers: Map<String, String>? = null

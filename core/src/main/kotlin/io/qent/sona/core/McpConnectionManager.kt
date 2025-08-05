@@ -1,7 +1,6 @@
 package io.qent.sona.core
 
 import dev.langchain4j.agent.tool.ToolExecutionRequest as AgentToolExecutionRequest
-import dev.langchain4j.mcp.McpToolProvider
 import dev.langchain4j.mcp.client.DefaultMcpClient
 import dev.langchain4j.mcp.client.McpClient
 import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport
@@ -10,9 +9,9 @@ import kotlinx.coroutines.*
 
 class McpConnectionManager(
     private val repository: McpServersRepository,
-    scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    scope: CoroutineScope
 ) {
-    private val scope = scope
+    private val scope = scope + SupervisorJob() + Dispatchers.IO
     private val clients = mutableMapOf<String, McpClient>()
     private val tools = mutableMapOf<String, McpClient>()
 
