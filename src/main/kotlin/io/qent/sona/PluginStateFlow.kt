@@ -67,6 +67,7 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
         onOpenHistory = {},
         onOpenRoles = {},
         onOpenPresets = {},
+        onOpenServers = {},
     )
 
     init {

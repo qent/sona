@@ -101,6 +101,7 @@ class StateProvider(
             onOpenHistory = { scope.launch { showHistory() } },
             onOpenRoles = { scope.launch { showRoles() } },
             onOpenPresets = { scope.launch { showPresets() } },
+            onOpenServers = { scope.launch { showServers() } },
         )
     }
 
@@ -111,6 +112,7 @@ class StateProvider(
         onNewChat = { scope.launch { newChat() } },
         onOpenRoles = { scope.launch { showRoles() } },
         onOpenPresets = { scope.launch { showPresets() } },
+        onOpenServers = { scope.launch { showServers() } },
     )
 
     private fun createRolesState(): State.RolesState {
@@ -131,7 +133,8 @@ class StateProvider(
             onNewChat = { scope.launch { newChat() } },
             onOpenHistory = { scope.launch { showHistory() } },
             onOpenRoles = { },
-            onOpenPresets = { scope.launch { showPresets() } }
+            onOpenPresets = { scope.launch { showPresets() } },
+            onOpenServers = { scope.launch { showServers() } },
         )
     }
 
@@ -150,6 +153,10 @@ class StateProvider(
         presets = presetsRepository.load()
         if (presets.presets.isEmpty()) creatingPreset = true
         _state.emit(createPresetsState())
+    }
+
+    private suspend fun showServers() {
+        _state.emit(createServersState())
     }
 
     private suspend fun newChat() {
@@ -263,8 +270,17 @@ class StateProvider(
             onNewChat = { scope.launch { newChat() } },
             onOpenHistory = { scope.launch { showHistory() } },
             onOpenRoles = { scope.launch { showRoles() } },
+            onOpenServers = { scope.launch { showServers() } },
         )
     }
+
+    private fun createServersState(): State.ServersState = State.ServersState(
+        servers = mcpManager.servers,
+        onNewChat = { scope.launch { newChat() } },
+        onOpenHistory = { scope.launch { showHistory() } },
+        onOpenRoles = { scope.launch { showRoles() } },
+        onOpenPresets = { scope.launch { showPresets() } },
+    )
 
     private suspend fun selectChatPreset(idx: Int) {
         presets = presets.copy(active = idx)

@@ -15,6 +15,7 @@ import io.qent.sona.services.ThemeService
 import io.qent.sona.ui.ChatPanel
 import io.qent.sona.ui.PresetsPanel
 import io.qent.sona.ui.RolesPanel
+import io.qent.sona.ui.ServersPanel
 import io.qent.sona.ui.SonaTheme
 import org.jetbrains.jewel.bridge.JewelComposePanel
 
@@ -32,6 +33,7 @@ class PluginToolWindowFactory : ToolWindowFactory, DumbAware {
                         is ChatListState -> ChatListPanel(s)
                         is RolesState -> RolesPanel(s)
                         is PresetsState -> PresetsPanel(s)
+                        is ServersState -> ServersPanel(s)
                     }
                 }
             },
@@ -46,6 +48,7 @@ class PluginToolWindowFactory : ToolWindowFactory, DumbAware {
                 ActionManager.getInstance().getAction("OpenHistoryAction"),
                 ActionManager.getInstance().getAction("OpenRolesAction"),
                 ActionManager.getInstance().getAction("OpenPresetsAction"),
+                ActionManager.getInstance().getAction("OpenServersAction"),
             )
         )
     }

@@ -6,6 +6,9 @@ import dev.langchain4j.mcp.client.McpClient
 import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport
 import dev.langchain4j.mcp.client.transport.stdio.StdioMcpTransport
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class McpConnectionManager(
     private val repository: McpServersRepository,
@@ -14,21 +17,53 @@ class McpConnectionManager(
     private val scope = scope + SupervisorJob() + Dispatchers.IO
     private val clients = mutableMapOf<String, McpClient>()
     private val tools = mutableMapOf<String, McpClient>()
+    private val statuses = mutableMapOf<String, McpServerStatus>()
+
+    private val _servers = MutableStateFlow<List<McpServerStatus>>(emptyList())
+    val servers: StateFlow<List<McpServerStatus>> = _servers.asStateFlow()
+
+    private fun updateStatus(status: McpServerStatus) {
+        synchronized(this) {
+            statuses[status.name] = status
+            _servers.value = statuses.values.toList()
+        }
+    }
 
     init {
         this.scope.launch {
             repository.list().forEach { config ->
+                updateStatus(
+                    McpServerStatus(
+                        name = config.name,
+                        status = McpServerStatus.Status.CONNECTING,
+                        tools = emptyList()
+                    )
+                )
                 launch {
                     runCatching {
-                        val client = createClient(config) ?: return@launch
+                        val client = createClient(config) ?: throw Exception("Invalid config")
+                        val specs = client.listTools()
                         synchronized(this@McpConnectionManager) {
                             clients[config.name] = client
-
-                            client.listTools().forEach { spec ->
+                            specs.forEach { spec ->
                                 tools[spec.name()] = client
                             }
                         }
+                        updateStatus(
+                            McpServerStatus(
+                                name = config.name,
+                                status = McpServerStatus.Status.CONNECTED,
+                                tools = specs
+                            )
+                        )
                     }.onFailure {
+                        updateStatus(
+                            McpServerStatus(
+                                name = config.name,
+                                status = McpServerStatus.Status.FAILED(it as? Exception ?: Exception(it)),
+                                tools = emptyList()
+                            )
+                        )
                         println("Failed to connect to MCP server ${config.name}: ${it.message}")
                     }
                 }
