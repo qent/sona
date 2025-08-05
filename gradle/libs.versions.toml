@@ -12,7 +12,7 @@ langchain4j_anthropic = "1.2.0"
 langchain4j_openai = "1.2.0"
 langchain4j_google_ai_gemini = "1.2.0"
 gson = "2.10.1"
-langchain4j_mcp = "1.0.0-beta5"
+langchain4j_mcp = "1.2.0-beta8"
 langchain4j_http_client_jdk = "1.2.0"
 
 [libraries]
