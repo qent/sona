@@ -17,12 +17,14 @@ interface ChatRepository {
         chatId: String,
         message: ChatMessage,
         model: String,
-        inputTokens: Int = 0,
-        outputTokens: Int = 0,
+        tokenUsage: TokenUsageInfo = TokenUsageInfo(),
     )
 
     /** Load all messages for a chat. */
     suspend fun loadMessages(chatId: String): List<ChatRepositoryMessage>
+
+    /** Load total token usage for a chat. */
+    suspend fun loadTokenUsage(chatId: String): TokenUsageInfo
 
     /** Check if a [toolName] is allowed to execute in the chat. */
     suspend fun isToolAllowed(chatId: String, toolName: String): Boolean
@@ -44,8 +46,7 @@ data class ChatRepositoryMessage(
     val chatId: String,
     val message: ChatMessage,
     val model: String,
-    val inputTokens: Int = 0,
-    val outputTokens: Int = 0,
+    val tokenUsage: TokenUsageInfo = TokenUsageInfo(),
 )
 
 data class ChatSummary(

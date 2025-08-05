@@ -110,7 +110,7 @@ current conversation state:
 ```
 data class Chat(
     val chatId: String,
-    val tokenUsage: TokenUsage,
+    val tokenUsage: TokenUsageInfo,
     val messages: List<ChatRepositoryMessage> = emptyList(),
     val requestInProgress: Boolean = false,
     val toolRequest: String? = null
@@ -120,6 +120,13 @@ data class Chat(
 `StateProvider` consumes `ChatFlow` and maps it to a higher level
 `State` model used by the UI. Both `ChatFlow` and `StateProvider`
 operate purely on Kotlin flows without any IntelliJ types.
+
+`tokenUsage` represents the cumulative input, output and cached tokens
+spent for all AI responses in the chat. Each AI message also
+stores its own token usage including cached tokens while user messages
+always record zeros. Providers that do not expose cache statistics
+simply report zero cached tokens. Removing messages does not affect the
+total usage stored for the chat.
 
 Repositories for settings and chat history are declared as interfaces in
 `core` so that the UI module can provide IDE specific implementations.

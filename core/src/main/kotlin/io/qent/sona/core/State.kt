@@ -10,8 +10,8 @@ sealed class State {
 
     data class ChatState(
         val messages: List<ChatMessage>,
-        val outputTokens: Int,
-        val inputTokens: Int,
+        val totalTokenUsage: TokenUsageInfo,
+        val lastTokenUsage: TokenUsageInfo,
         val isSending: Boolean,
         val roles: List<String>,
         val activeRole: Int,

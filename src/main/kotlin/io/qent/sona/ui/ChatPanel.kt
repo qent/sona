@@ -73,8 +73,15 @@ fun ChatPanel(state: ChatState) {
 
 @Composable
 private fun Header(state: ChatState) {
-    Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text("Out: ${state.outputTokens}  In: ${state.inputTokens}")
+    Column(Modifier.fillMaxWidth().padding(8.dp)) {
+        Text(
+            "Out: ${state.totalTokenUsage.outputTokens}  In: ${state.totalTokenUsage.inputTokens}  " +
+                "CachedOut: ${state.totalTokenUsage.cachedOutputTokens}  CachedIn: ${state.totalTokenUsage.cachedInputTokens}"
+        )
+        Text(
+            "Last Out: ${state.lastTokenUsage.outputTokens}  In: ${state.lastTokenUsage.inputTokens}  " +
+                "CachedOut: ${state.lastTokenUsage.cachedOutputTokens}  CachedIn: ${state.lastTokenUsage.cachedInputTokens}"
+        )
     }
 }
 

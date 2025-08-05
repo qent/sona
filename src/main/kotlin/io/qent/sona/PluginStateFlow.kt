@@ -44,8 +44,8 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
 
     var lastState: State = State.ChatState(
         messages = emptyList(),
-        outputTokens = 0,
-        inputTokens = 0,
+        totalTokenUsage = TokenUsageInfo(),
+        lastTokenUsage = TokenUsageInfo(),
         isSending = false,
         roles = emptyList(),
         activeRole = 0,
