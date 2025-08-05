@@ -56,6 +56,8 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
         onStop = {},
         onDeleteFrom = {},
         toolRequest = false,
+        autoApproveTools = false,
+        onToggleAutoApprove = {},
         onAllowTool = {},
         onAlwaysAllowTool = {},
         onDenyTool = {},

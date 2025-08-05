@@ -55,6 +55,10 @@ When the model requests to run a tool, the plugin asks for permission before
 executing it. You can allow the action once or choose **Always in this chat** to
 skip future confirmations for the same tool within the current conversation.
 
+A 🤘 button next to the send action toggles automatic approval of all tool
+requests in the current chat. When enabled, tools run without prompting until
+you switch to a different chat.
+
 The available tools let the model read the focused file, read any file by absolute path, and switch the active role between Architect and Code. File access is guarded by a permission system with a whitelist (project root by default) and a blacklist blocking sensitive files such as `.env`. Custom lists can be supplied by creating a `sona.json` file in the project root:
 
 ```

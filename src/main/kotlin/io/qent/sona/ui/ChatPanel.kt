@@ -326,71 +326,83 @@ private fun Input(state: ChatState) {
             modifier = Modifier.align(Alignment.BottomStart).padding(6.dp).offset(x = 115.dp).alpha(0.6f)
         )
 
-        if (state.isSending) {
-            val transition = rememberInfiniteTransition(label = "stopPulse")
-            val scale by transition.animateFloat(
-                initialValue = 1f,
-                targetValue = 1f,
-                animationSpec = infiniteRepeatable(
-                    animation = keyframes {
-                        durationMillis = 1500
-                        0.95f at 200
-                        1.1f at 400
-                        0.8f at 700
-                        1.10f at 1000
-                        0.85f at 1300
-                        1.15f at 1600
-                        0.9f at 2000
-                    }
-                ),
-                label = "scale"
-            )
 
-            Box(
-                modifier = Modifier
-                    .padding(4.dp)
-                    .size(30.dp)
-                    .align(Alignment.BottomEnd),
-                contentAlignment = Alignment.Center
-            ) {
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .graphicsLayer {
-                            scaleX = scale
-                            scaleY = scale
-                        }
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.2f))
-                )
-
-                ActionButton(
-                    onClick = { state.onStop() },
-                    modifier = Modifier
-                        .matchParentSize()
-                        .clip(CircleShape)
-                ) {
-                    Text("■")
-                }
-            }
-        } else {
+        Row(
+            modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             ActionButton(
-                onClick = {
-                    if (text.value.isNotBlank()) {
-                        state.onSendMessage(text.value)
-                        text.value = ""
-                    }
-                },
-                enabled = text.value.isNotBlank(),
+                onClick = { state.onToggleAutoApprove() },
                 modifier = Modifier
-                    .padding(4.dp)
                     .height(30.dp)
                     .width(30.dp)
                     .clip(CircleShape)
-                    .alpha(alpha = if (text.value.isBlank()) 0.4f else 1f)
-                    .align(Alignment.BottomEnd)
+                    .alpha(if (state.autoApproveTools) 0.6f else 0.3f)
             ) {
-                Text("➤")
+                Text("🤘")
+            }
+            Spacer(Modifier.width(4.dp))
+            if (state.isSending) {
+                val transition = rememberInfiniteTransition(label = "stopPulse")
+                val scale by transition.animateFloat(
+                    initialValue = 1f,
+                    targetValue = 1f,
+                    animationSpec = infiniteRepeatable(
+                        animation = keyframes {
+                            durationMillis = 1500
+                            0.95f at 200
+                            1.1f at 400
+                            0.8f at 700
+                            1.10f at 1000
+                            0.85f at 1300
+                            1.15f at 1600
+                            0.9f at 2000
+                        }
+                    ),
+                    label = "scale",
+                )
+
+                Box(
+                    modifier = Modifier.size(30.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .graphicsLayer {
+                                scaleX = scale
+                                scaleY = scale
+                            }
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.2f))
+                    )
+
+                    ActionButton(
+                        onClick = { state.onStop() },
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clip(CircleShape),
+                    ) {
+                        Text("■")
+                    }
+                }
+            } else {
+                ActionButton(
+                    onClick = {
+                        if (text.value.isNotBlank()) {
+                            state.onSendMessage(text.value)
+                            text.value = ""
+                        }
+                    },
+                    enabled = text.value.isNotBlank(),
+                    modifier = Modifier
+                        .height(30.dp)
+                        .width(30.dp)
+                        .clip(CircleShape)
+                        .alpha(alpha = if (text.value.isBlank()) 0.4f else 1f),
+                ) {
+                    Text("➤")
+                }
             }
         }
     }
