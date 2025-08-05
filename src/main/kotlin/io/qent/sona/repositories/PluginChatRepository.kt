@@ -11,6 +11,7 @@ import dev.langchain4j.data.message.UserMessage
 import io.qent.sona.core.ChatRepository
 import io.qent.sona.core.ChatRepositoryMessage
 import io.qent.sona.core.ChatSummary
+import io.qent.sona.core.TokenUsageInfo
 import java.util.*
 
 @Service
@@ -22,6 +23,8 @@ class PluginChatRepository : ChatRepository, PersistentStateComponent<PluginChat
         var model: String = "",
         var inputTokens: Int = 0,
         var outputTokens: Int = 0,
+        var cachedInputTokens: Int = 0,
+        var cachedOutputTokens: Int = 0,
         var timestamp: Long = 0L,
     )
 
@@ -30,6 +33,10 @@ class PluginChatRepository : ChatRepository, PersistentStateComponent<PluginChat
         var createdAt: Long = System.currentTimeMillis(),
         var messages: MutableList<StoredMessage> = mutableListOf(),
         var allowedTools: MutableSet<String> = mutableSetOf(),
+        var inputTokens: Int = 0,
+        var outputTokens: Int = 0,
+        var cachedInputTokens: Int = 0,
+        var cachedOutputTokens: Int = 0,
     )
 
     data class ChatsState(
@@ -52,8 +59,12 @@ class PluginChatRepository : ChatRepository, PersistentStateComponent<PluginChat
             chatId = chatId,
             message = msg,
             model = model,
-            inputTokens = inputTokens,
-            outputTokens = outputTokens,
+            tokenUsage = TokenUsageInfo(
+                outputTokens = outputTokens,
+                inputTokens = inputTokens,
+                cachedOutputTokens = cachedOutputTokens,
+                cachedInputTokens = cachedInputTokens,
+            ),
         )
     }
 
@@ -67,21 +78,37 @@ class PluginChatRepository : ChatRepository, PersistentStateComponent<PluginChat
         chatId: String,
         message: ChatMessage,
         model: String,
-        inputTokens: Int,
-        outputTokens: Int
+        tokenUsage: TokenUsageInfo
     ) {
         val stored = StoredMessage(
             json = ChatMessageSerializer.messageToJson(message),
             model = model,
-            inputTokens = inputTokens,
-            outputTokens = outputTokens,
+            inputTokens = tokenUsage.inputTokens,
+            outputTokens = tokenUsage.outputTokens,
+            cachedInputTokens = tokenUsage.cachedInputTokens,
+            cachedOutputTokens = tokenUsage.cachedOutputTokens,
             timestamp = System.currentTimeMillis(),
         )
-        findChat(chatId).messages.add(stored)
+        val chat = findChat(chatId)
+        chat.messages.add(stored)
+        chat.inputTokens += tokenUsage.inputTokens
+        chat.outputTokens += tokenUsage.outputTokens
+        chat.cachedInputTokens += tokenUsage.cachedInputTokens
+        chat.cachedOutputTokens += tokenUsage.cachedOutputTokens
     }
 
     override suspend fun loadMessages(chatId: String): List<ChatRepositoryMessage> {
         return findChat(chatId).messages.map { it.toStoredChatMessage(chatId) }
+    }
+
+    override suspend fun loadTokenUsage(chatId: String): TokenUsageInfo {
+        val chat = findChat(chatId)
+        return TokenUsageInfo(
+            outputTokens = chat.outputTokens,
+            inputTokens = chat.inputTokens,
+            cachedOutputTokens = chat.cachedOutputTokens,
+            cachedInputTokens = chat.cachedInputTokens,
+        )
     }
 
     override suspend fun isToolAllowed(chatId: String, toolName: String): Boolean {

@@ -11,7 +11,6 @@ import dev.langchain4j.model.chat.StreamingChatModel
 import dev.langchain4j.model.chat.request.ChatRequest
 import dev.langchain4j.model.chat.response.ChatResponse
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler
-import dev.langchain4j.model.output.TokenUsage
 import dev.langchain4j.service.tool.ToolProviderRequest
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +21,7 @@ import kotlin.coroutines.resumeWithException
 
 data class Chat(
     val chatId: String,
-    val tokenUsage: TokenUsage,
+    val tokenUsage: TokenUsageInfo,
     val messages: List<ChatRepositoryMessage> = emptyList(),
     val requestInProgress: Boolean = false,
     val isStreaming: Boolean = false,
@@ -43,22 +42,14 @@ class ChatFlow(
     private val scope = scope + Dispatchers.IO
 
     private val mutableSharedState = MutableSharedFlow<Chat>()
-    private var currentState = Chat("", TokenUsage(0, 0))
+    private var currentState = Chat("", TokenUsageInfo())
     private var currentContinuation: CancellableContinuation<ChatResponse>? = null
     private var toolContinuation: CancellableContinuation<ToolDecision>? = null
 
     suspend fun loadChat(chatId: String) {
-        var outputTokens = 0
-        var inputTokens = 0
-        val messages = mutableListOf<ChatRepositoryMessage>()
-
-        chatRepository.loadMessages(chatId).forEach { repositoryMessage ->
-            outputTokens += repositoryMessage.outputTokens
-            inputTokens += repositoryMessage.inputTokens
-            messages.add(repositoryMessage)
-        }
-
-        emit(Chat(chatId, TokenUsage(inputTokens, outputTokens), messages))
+        val messages = chatRepository.loadMessages(chatId)
+        val usage = chatRepository.loadTokenUsage(chatId)
+        emit(Chat(chatId, usage, messages))
     }
 
     private fun emit(chat: Chat) {
@@ -219,13 +210,6 @@ class ChatFlow(
         mutableSharedState.collect(collector)
     }
 
-    private fun calculateLastTokenUsage(tokenUsage: TokenUsage): TokenUsage {
-        return TokenUsage(
-            tokenUsage.inputTokenCount() - currentState.tokenUsage.inputTokenCount(),
-            tokenUsage.outputTokenCount() - currentState.tokenUsage.outputTokenCount(),
-        )
-    }
-
     private data class ToolDecision(val allow: Boolean, val always: Boolean)
 
     private suspend fun requestToolPermission(toolName: String): ToolDecision {
@@ -271,7 +255,7 @@ class ChatFlow(
 
                 override fun onCompleteResponse(chatResponse: ChatResponse) {
                     if (!cont.isActive) return
-                    val lastUsage = calculateLastTokenUsage(chatResponse.tokenUsage())
+                    val lastUsage = chatResponse.tokenUsage().toInfo()
                     val msgs = currentState.messages.toMutableList()
                     val lastIndex = msgs.lastIndex
                     if (lastIndex >= 0) {
@@ -279,13 +263,12 @@ class ChatFlow(
                             chatId,
                             chatResponse.aiMessage(),
                             preset.model,
-                            inputTokens = lastUsage.inputTokenCount(),
-                            outputTokens = lastUsage.outputTokenCount()
+                            tokenUsage = lastUsage,
                         )
                         emit(
                             currentState.copy(
                                 messages = msgs,
-                                tokenUsage = chatResponse.tokenUsage(),
+                                tokenUsage = currentState.tokenUsage + lastUsage,
                                 isStreaming = false,
                                 requestInProgress = false
                             )

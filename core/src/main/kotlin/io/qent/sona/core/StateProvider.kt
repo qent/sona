@@ -1,8 +1,8 @@
 package io.qent.sona.core
 
 import dev.langchain4j.data.message.SystemMessage
+import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.model.chat.StreamingChatModel
-import dev.langchain4j.model.output.TokenUsage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -35,7 +35,7 @@ class StateProvider(
     private var creatingRole = false
     private var presets: Presets = Presets(0, emptyList())
     private var creatingPreset = false
-    private var currentChat: Chat = Chat("", TokenUsage(0, 0))
+    private var currentChat: Chat = Chat("", TokenUsageInfo())
 
     init {
         chatFlow.onEach { chat ->
@@ -52,8 +52,7 @@ class StateProvider(
                     message.chatId,
                     message.message,
                     message.model,
-                    message.inputTokens,
-                    message.outputTokens
+                    message.tokenUsage
                 )
             }
             .launchIn(scope)
@@ -74,10 +73,12 @@ class StateProvider(
     }
 
     private fun createChatState(chat: Chat): State.ChatState {
+        val lastAi = chat.messages.lastOrNull { it.message is AiMessage }
+        val lastUsage = lastAi?.tokenUsage ?: TokenUsageInfo()
         return State.ChatState(
             messages = chat.messages.map { it.message },
-            outputTokens = chat.tokenUsage.outputTokenCount(),
-            inputTokens = chat.tokenUsage.inputTokenCount(),
+            totalTokenUsage = chat.tokenUsage,
+            lastTokenUsage = lastUsage,
             isSending = chat.requestInProgress,
             roles = roles.roles.map { it.name },
             activeRole = roles.active,
