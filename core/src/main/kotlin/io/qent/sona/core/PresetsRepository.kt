@@ -14,7 +14,7 @@ enum class LlmProvider(val defaultEndpoint: String, val models: List<LlmModel>) 
     Anthropic(
         "https://api.anthropic.com/v1/",
         listOf(
-            // Pricing: https://www.anthropic.com/pricing
+            // Pricing: https://www.anthropic.com/pricing#api
             LlmModel(
                 name = "claude-sonnet-4-20250514",
                 outputCostPerMTokens = 15.0,
@@ -44,29 +44,33 @@ enum class LlmProvider(val defaultEndpoint: String, val models: List<LlmModel>) 
     OpenAI(
         "https://api.openai.com/v1/",
         listOf(
-            // Pricing: https://openai.com/pricing
+            // Pricing: https://platform.openai.com/docs/pricing
             LlmModel(
                 name = "o3",
-                outputCostPerMTokens = 60.0,
-                inputCostPerMTokens = 15.0,
+                outputCostPerMTokens = 8.0,
+                inputCostPerMTokens = 2.0,
+                cacheReadCostPerMTokens = 0.5,
                 maxContextTokens = 128_000,
             ),
             LlmModel(
                 name = "gpt-4.1",
-                outputCostPerMTokens = 30.0,
-                inputCostPerMTokens = 10.0,
+                outputCostPerMTokens = 8.0,
+                inputCostPerMTokens = 2.0,
+                cacheReadCostPerMTokens = 0.5,
                 maxContextTokens = 128_000,
             ),
             LlmModel(
                 name = "gpt-4.1-mini",
-                outputCostPerMTokens = 4.0,
-                inputCostPerMTokens = 1.0,
+                outputCostPerMTokens = 1.6,
+                inputCostPerMTokens = 0.4,
+                cacheReadCostPerMTokens = 0.1,
                 maxContextTokens = 128_000,
             ),
             LlmModel(
                 name = "gpt-4o",
-                outputCostPerMTokens = 15.0,
-                inputCostPerMTokens = 5.0,
+                outputCostPerMTokens = 10.0,
+                inputCostPerMTokens = 2.5,
+                cacheReadCostPerMTokens = 1.25,
                 maxContextTokens = 128_000,
             ),
         ),
@@ -74,25 +78,27 @@ enum class LlmProvider(val defaultEndpoint: String, val models: List<LlmModel>) 
     Deepseek(
         "https://api.deepseek.com/v1/",
         listOf(
-            // Pricing: https://www.deepseek.com/pricing
+            // Pricing: https://api-docs.deepseek.com/quick_start/pricing
             LlmModel(
                 name = "deepseek-chat",
-                outputCostPerMTokens = 0.28,
-                inputCostPerMTokens = 0.14,
-                maxContextTokens = 128_000,
+                outputCostPerMTokens = 1.10,
+                inputCostPerMTokens = 0.27,
+                cacheReadCostPerMTokens = 0.07,
+                maxContextTokens = 64_000,
             ),
             LlmModel(
                 name = "deepseek-reasoner",
                 outputCostPerMTokens = 2.19,
                 inputCostPerMTokens = 0.55,
-                maxContextTokens = 128_000,
+                cacheReadCostPerMTokens = 0.14,
+                maxContextTokens = 64_000,
             ),
         ),
     ),
     Gemini(
         "https://generativelanguage.googleapis.com/v1beta/",
         listOf(
-            // Pricing: https://ai.google.dev/pricing
+            // Pricing: https://ai.google.dev/gemini-api/docs/pricing
             LlmModel(
                 name = "gemini-2.5-pro",
                 outputCostPerMTokens = 10.0,
