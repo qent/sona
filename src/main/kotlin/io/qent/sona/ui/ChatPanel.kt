@@ -50,9 +50,7 @@ import io.qent.sona.core.DefaultRoles
 import io.qent.sona.core.State.ChatState
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
-import java.awt.Image
 import java.awt.image.BufferedImage
-import javax.swing.ImageIcon
 
 @Composable
 fun ChatPanel(state: ChatState) {
@@ -76,11 +74,11 @@ private fun Header(state: ChatState) {
     Column(Modifier.fillMaxWidth().padding(8.dp)) {
         Text(
             "Out: ${state.totalTokenUsage.outputTokens}  In: ${state.totalTokenUsage.inputTokens}  " +
-                "CachedOut: ${state.totalTokenUsage.cachedOutputTokens}  CachedIn: ${state.totalTokenUsage.cachedInputTokens}"
+                "CachedOut: ${state.totalTokenUsage.cacheCreationInputTokens}  CachedIn: ${state.totalTokenUsage.cacheReadInputTokens}"
         )
         Text(
             "Last Out: ${state.lastTokenUsage.outputTokens}  In: ${state.lastTokenUsage.inputTokens}  " +
-                "CachedOut: ${state.lastTokenUsage.cachedOutputTokens}  CachedIn: ${state.lastTokenUsage.cachedInputTokens}"
+                "CachedOut: ${state.lastTokenUsage.cacheCreationInputTokens}  CachedIn: ${state.lastTokenUsage.cacheReadInputTokens}"
         )
     }
 }

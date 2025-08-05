@@ -35,8 +35,8 @@ class PluginChatRepository : ChatRepository, PersistentStateComponent<PluginChat
         var allowedTools: MutableSet<String> = mutableSetOf(),
         var inputTokens: Int = 0,
         var outputTokens: Int = 0,
-        var cachedInputTokens: Int = 0,
-        var cachedOutputTokens: Int = 0,
+        var cacheReadInputTokens: Int = 0,
+        var cacheCreationInputTokens: Int = 0,
     )
 
     data class ChatsState(
@@ -62,8 +62,8 @@ class PluginChatRepository : ChatRepository, PersistentStateComponent<PluginChat
             tokenUsage = TokenUsageInfo(
                 outputTokens = outputTokens,
                 inputTokens = inputTokens,
-                cachedOutputTokens = cachedOutputTokens,
-                cachedInputTokens = cachedInputTokens,
+                cacheCreationInputTokens = cachedOutputTokens,
+                cacheReadInputTokens = cachedInputTokens,
             ),
         )
     }
@@ -85,16 +85,16 @@ class PluginChatRepository : ChatRepository, PersistentStateComponent<PluginChat
             model = model,
             inputTokens = tokenUsage.inputTokens,
             outputTokens = tokenUsage.outputTokens,
-            cachedInputTokens = tokenUsage.cachedInputTokens,
-            cachedOutputTokens = tokenUsage.cachedOutputTokens,
+            cachedInputTokens = tokenUsage.cacheReadInputTokens,
+            cachedOutputTokens = tokenUsage.cacheCreationInputTokens,
             timestamp = System.currentTimeMillis(),
         )
         val chat = findChat(chatId)
         chat.messages.add(stored)
         chat.inputTokens += tokenUsage.inputTokens
         chat.outputTokens += tokenUsage.outputTokens
-        chat.cachedInputTokens += tokenUsage.cachedInputTokens
-        chat.cachedOutputTokens += tokenUsage.cachedOutputTokens
+        chat.cacheReadInputTokens += tokenUsage.cacheReadInputTokens
+        chat.cacheCreationInputTokens += tokenUsage.cacheCreationInputTokens
     }
 
     override suspend fun loadMessages(chatId: String): List<ChatRepositoryMessage> {
@@ -106,8 +106,8 @@ class PluginChatRepository : ChatRepository, PersistentStateComponent<PluginChat
         return TokenUsageInfo(
             outputTokens = chat.outputTokens,
             inputTokens = chat.inputTokens,
-            cachedOutputTokens = chat.cachedOutputTokens,
-            cachedInputTokens = chat.cachedInputTokens,
+            cacheCreationInputTokens = chat.cacheCreationInputTokens,
+            cacheReadInputTokens = chat.cacheReadInputTokens,
         )
     }
 
