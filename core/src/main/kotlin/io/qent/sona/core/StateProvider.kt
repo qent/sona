@@ -24,7 +24,7 @@ class StateProvider(
     private val filePermissionManager = FilePermissionManager(filePermissionRepository)
     private val internalTools = DefaultInternalTools(scope, ::selectRole)
     private val tools: Tools = ToolsInfoDecorator(internalTools, externalTools, filePermissionManager)
-    private val mcpManager = McpConnectionManager(mcpServersRepository)
+    private val mcpManager = McpConnectionManager(mcpServersRepository, scope)
     private val chatFlow = ChatFlow(presetsRepository, rolesRepository, chatRepository, modelFactory, tools, scope, systemMessages, mcpManager)
 
     private val _state = MutableSharedFlow<State>(replay = 1)

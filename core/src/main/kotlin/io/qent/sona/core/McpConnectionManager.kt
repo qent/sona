@@ -68,7 +68,11 @@ class McpConnectionManager(
 
     fun hasTool(name: String): Boolean = tools.containsKey(name)
 
-    fun listTools() = clients.values.flatMap { it.listTools() }
+    fun listTools() = try {
+        clients.values.flatMap { it.listTools() }
+    } catch (_: Exception) {
+        emptyList()
+    }
 
     suspend fun execute(id: String, name: String, args: String): String {
         val client = tools[name] ?: return "Tool not found"
