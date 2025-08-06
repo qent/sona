@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.Color
 
 data class SonaColors(
     val Background: Color,
+    val BackgroundText: Color,
     val UserBubble: Color,
     val AiBubble: Color,
     val UserText: Color,
@@ -21,6 +22,7 @@ data class SonaColors(
 
 private val DarkPalette = SonaColors(
     Background = Color(0xFF20232A),
+    BackgroundText = Color(0xFF7A818A),
     UserBubble = Color(0xFF3366FF),
     AiBubble = Color(0xFF292D36),
     UserText = Color.White,
@@ -35,6 +37,7 @@ private val DarkPalette = SonaColors(
 
 private val LightPalette = SonaColors(
     Background = Color(0xFFFFFFFF),
+    BackgroundText = Color(0xFF6E6E6E),
     UserBubble = Color(0xFF3366FF),
     AiBubble = Color(0xFFF0F0F0),
     UserText = Color.Black,

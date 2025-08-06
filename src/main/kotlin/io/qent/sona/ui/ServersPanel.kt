@@ -11,10 +11,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.qent.sona.core.McpServerStatus
@@ -44,7 +48,7 @@ fun ServersPanel(state: State.ServersState) {
                 .weight(1f)
         ) {
             items(servers) { server ->
-                Row(
+                Column(
                     Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
@@ -52,21 +56,71 @@ fun ServersPanel(state: State.ServersState) {
                         .background(SonaTheme.colors.AiBubble)
                         .clickable { state.onToggleServer(server.name) }
                         .padding(vertical = 8.dp, horizontal = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(server.name, color = SonaTheme.colors.AiText, modifier = Modifier.weight(1f))
-                    val color = when (server.status) {
-                        is McpServerStatus.Status.DISABLED -> Color.Gray
-                        is McpServerStatus.Status.FAILED -> Color(0xFFF44336)
-                        is McpServerStatus.Status.CONNECTING -> Color(0xFFFFC107)
-                        is McpServerStatus.Status.CONNECTED -> Color(0xFF4CAF50)
-                    }
-                    Box(
+                    Row(
                         Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(color)
-                    )
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(server.name, color = SonaTheme.colors.AiText, modifier = Modifier.weight(1f))
+                        val color = when (server.status) {
+                            is McpServerStatus.Status.DISABLED -> Color.Gray
+                            is McpServerStatus.Status.FAILED -> Color(0xFFF44336)
+                            is McpServerStatus.Status.CONNECTING -> Color(0xFFFFC107)
+                            is McpServerStatus.Status.CONNECTED -> Color(0xFF4CAF50)
+                        }
+                        Box(
+                            Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(color)
+                        )
+                    }
+
+                    val status = server.status
+                    when (status) {
+                        is McpServerStatus.Status.FAILED -> {
+                            Text(status.e.toString(), Modifier.padding(vertical = 8.dp), color = SonaTheme.colors.BackgroundText)
+                        }
+                        is McpServerStatus.Status.CONNECTED -> {
+                            val expanded = remember { mutableStateOf(false) }
+                            Column(
+                                Modifier
+                                    .fillMaxSize()
+                            ) {
+                                ActionButton(
+                                    onClick = { expanded.value = !expanded.value },
+                                    Modifier
+                                        .height(12.dp)
+                                        .fillMaxWidth()
+                                ) {
+                                    Text(
+                                        if (expanded.value) "⏶" else "⏷",
+                                        Modifier.fillMaxWidth(),
+                                        fontSize = 12.sp,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                                if (expanded.value) {
+                                    for (tool in server.tools) {
+                                        Row(
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .padding(top = 12.dp),
+                                            verticalAlignment = Alignment.Top
+                                        ) {
+                                            Text(tool.name(), Modifier.width(200.dp), fontWeight = FontWeight.Bold)
+                                            Text(
+                                                tool.description().trimIndent(),
+                                                color = SonaTheme.colors.BackgroundText
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else -> Unit
+                    }
                 }
             }
         }
