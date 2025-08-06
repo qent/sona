@@ -21,6 +21,7 @@
 - The UI passes a list of additional `SystemMessage` values to the core. The first message describes the current
   environment (OS, IDE, Java, Python, Node.js, file extension statistics, build systems) and is prepended to every LLM request.
 - ChatFlow leverages langchain4j `AiService` and `TokenStream` to emit partial responses and tool events via streaming callbacks.
+- AI messages show a gear icon that toggles visibility of requested tools. Tool outputs stream into a terminal-style bubble with animated dots until completion.
 - Run `./gradlew build` before committing any changes.
 - After completing a task, make sure `AGENTS.md` and `README.md` reflect the latest behavior.
 

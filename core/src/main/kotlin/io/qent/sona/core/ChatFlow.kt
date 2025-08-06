@@ -88,7 +88,7 @@ class ChatFlow(
 
             val toolSpecs = ToolSpecifications.toolSpecificationsFrom(tools).toMutableList() + mcpManager.listTools()
             val toolMap = toolSpecs.associateWith { spec: ToolSpecification ->
-                PermissionedToolExecutor(chatId, spec.name()) { req ->
+                PermissionedToolExecutor(chatId, preset.model, spec.name()) { req ->
                     when (spec.name()) {
                         "getFocusedFileText" -> tools.getFocusedFileText()
                         "readFile" -> {
@@ -128,11 +128,21 @@ class ChatFlow(
                     val toolMsg = ToolExecutionResultMessage(exec.request().id(), exec.request().name(), exec.result())
                     val repoMsg = ChatRepositoryMessage(chatId, toolMsg, preset.model)
                     runBlocking { chatRepository.addMessage(chatId, toolMsg, preset.model) }
+                    val msgs = currentState.messages.toMutableList()
+                    val idx = msgs.indexOfLast {
+                        val m = it.message
+                        m is ToolExecutionResultMessage && m.id() == exec.request().id()
+                    }
+                    if (idx >= 0) {
+                        msgs[idx] = repoMsg
+                    } else {
+                        msgs += repoMsg
+                    }
                     val placeholderAfter = ChatRepositoryMessage(chatId, AiMessage.from(""), preset.model)
                     builder.setLength(0)
                     emit(
                         currentState.copy(
-                            messages = currentState.messages + repoMsg + placeholderAfter,
+                            messages = msgs + placeholderAfter,
                             requestInProgress = true,
                             isStreaming = false
                         )
@@ -222,6 +232,7 @@ class ChatFlow(
 
     inner class PermissionedToolExecutor(
         private val chatId: String,
+        private val model: String,
         private val name: String,
         private val run: (ToolExecutionRequest) -> String,
     ) : ToolExecutor {
@@ -236,7 +247,20 @@ class ChatFlow(
             if (decision.always) {
                 runBlocking { chatRepository.addAllowedTool(chatId, name) }
             }
-            return if (decision.allow) run(request) else "Tool execution cancelled"
+            return if (decision.allow) {
+                emit(
+                    currentState.copy(
+                        messages = currentState.messages + ChatRepositoryMessage(
+                            chatId,
+                            ToolExecutionResultMessage(request.id(), name, ""),
+                            model
+                        ),
+                        requestInProgress = true,
+                        isStreaming = false
+                    )
+                )
+                run(request)
+            } else "Tool execution cancelled"
         }
     }
 
