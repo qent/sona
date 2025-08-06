@@ -24,6 +24,7 @@ import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.intellij.openapi.util.IconLoader
@@ -38,6 +39,8 @@ import org.jetbrains.jewel.ui.component.Text
 import java.awt.image.BufferedImage
 
 import io.qent.sona.ui.SonaTheme
+import dev.langchain4j.agent.tool.ToolExecutionRequest
+import kotlinx.coroutines.delay
 import javax.swing.Icon
 
 @Composable
@@ -82,6 +85,8 @@ private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
 
                 if (message is UiMessage.Ai || message is UiMessage.User) {
                     MessageBubble(message, bottomContent = bottom, onDelete = { state.onDeleteFrom(index) })
+                } else if (message is UiMessage.Tool) {
+                    ToolMessageBubble(message, onDelete = { state.onDeleteFrom(index) })
                 }
             }
             Spacer(Modifier.height(2.dp))
@@ -109,6 +114,7 @@ fun MessageBubble(
     val background = if (isUser) SonaTheme.colors.UserBubble else SonaTheme.colors.Background
     val textColor = if (isUser) SonaTheme.colors.UserText else SonaTheme.colors.AiText
     val messageText = message.text
+    var showTools by remember { mutableStateOf(false) }
     Column(
         Modifier
             .pointerMoveFilter(
@@ -144,6 +150,10 @@ fun MessageBubble(
                                 codeBlock = { CopyableCodeBlock(it, false) },
                             ),
                         )
+                        if (showTools && message.toolRequests.isNotEmpty()) {
+                            Spacer(Modifier.height(8.dp))
+                            ToolRequests(message.toolRequests)
+                        }
                     } else if (message is UiMessage.User) {
                         Text(
                             message.text,
@@ -156,6 +166,18 @@ fun MessageBubble(
                         it()
                     }
                 }
+            }
+            if (message is UiMessage.Ai && message.toolRequests.isNotEmpty()) {
+                Image(
+                    painter = loadIcon("/icons/gear.svg"),
+                    contentDescription = "Show tool requests",
+                    colorFilter = ColorFilter.tint(textColor),
+                    modifier = Modifier
+                        .size(12.dp)
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp)
+                        .clickable { showTools = !showTools }
+                )
             }
         }
         val alpha by animateFloatAsState(if (hovered) 1f else 0f)
@@ -183,6 +205,106 @@ fun MessageBubble(
                     .size(12.dp)
                     .clickable(onClick = onDelete)
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun ToolMessageBubble(
+    message: UiMessage.Tool,
+    onDelete: () -> Unit,
+) {
+    var hovered by remember { mutableStateOf(false) }
+    val clipboard = LocalClipboardManager.current
+    val background = SonaTheme.colors.AiBubble
+    val textColor = SonaTheme.colors.AiText
+    Column(
+        Modifier
+            .pointerMoveFilter(
+                onEnter = {
+                    hovered = true
+                    false
+                },
+                onExit = {
+                    hovered = false
+                    false
+                }
+            )
+            .fillMaxWidth()
+    ) {
+        Box(
+            Modifier
+                .padding(top = 6.dp)
+                .shadow(2.dp, RoundedCornerShape(14.dp))
+                .background(background, RoundedCornerShape(6.dp))
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .fillMaxWidth()
+        ) {
+            if (message.text.isEmpty()) {
+                AnimatedDots(textColor)
+            } else {
+                SelectionContainer {
+                    Text(
+                        message.text,
+                        color = textColor,
+                        fontSize = 15.sp,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+            }
+        }
+        val alpha by animateFloatAsState(if (hovered) 1f else 0f)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp)
+                .alpha(alpha),
+            horizontalArrangement = Arrangement.End,
+        ) {
+            Image(
+                painter = loadIcon("/icons/copy.svg"),
+                contentDescription = "Copy message",
+                colorFilter = ColorFilter.tint(textColor),
+                modifier = Modifier
+                    .size(12.dp)
+                    .clickable { clipboard.setText(AnnotatedString(message.text)) }
+            )
+            Spacer(Modifier.width(8.dp))
+            Image(
+                painter = loadIcon("/icons/trash.svg"),
+                contentDescription = "Delete message",
+                colorFilter = ColorFilter.tint(textColor),
+                modifier = Modifier
+                    .size(12.dp)
+                    .clickable(onClick = onDelete)
+            )
+        }
+    }
+}
+
+@Composable
+private fun AnimatedDots(color: Color) {
+    var dots by remember { mutableStateOf(0) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            dots = (dots + 1) % 4
+            delay(300)
+        }
+    }
+    Text(".".repeat(dots), color = color, fontSize = 15.sp, fontFamily = FontFamily.Monospace)
+}
+
+@Composable
+private fun ToolRequests(requests: List<ToolExecutionRequest>) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .background(SonaTheme.colors.Background.copy(alpha = 0.1f), RoundedCornerShape(4.dp))
+            .padding(4.dp)
+    ) {
+        requests.forEach { req ->
+            Text("${req.name()}: ${req.arguments()}", color = SonaTheme.colors.AiText, fontSize = 13.sp)
         }
     }
 }
