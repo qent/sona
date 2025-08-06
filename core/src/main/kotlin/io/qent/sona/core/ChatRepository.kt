@@ -52,5 +52,6 @@ data class ChatRepositoryMessage(
 data class ChatSummary(
     val id: String,
     val firstMessage: String,
+    val messages: Int,
     val createdAt: Long,
 )

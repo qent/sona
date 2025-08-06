@@ -125,7 +125,7 @@ class PluginChatRepository : ChatRepository, PersistentStateComponent<PluginChat
                 ChatMessageDeserializer.messageFromJson(it.json)
             }.firstOrNull { it is UserMessage }
             val first = (firstMsg as? UserMessage)?.singleText() ?: ""
-            ChatSummary(chat.id, first.take(100), chat.createdAt)
+            ChatSummary(chat.id, first.take(100), chat.messages.size, chat.createdAt)
         }
     }
 
