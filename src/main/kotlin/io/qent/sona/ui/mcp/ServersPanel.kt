@@ -38,9 +38,14 @@ fun ServersPanel(state: State.ServersState) {
             .background(SonaTheme.colors.Background)
             .padding(8.dp)
     ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            ActionButton(onClick = state.onReload) {
-                Text("\u27f3", Modifier.padding(2.dp), fontSize = 24.sp)
+        Row(Modifier.fillMaxWidth()) {
+            Text(
+                "MCP Servers",
+                modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
+                style = SonaTheme.markdownTypography.h5
+            )
+            ActionButton(onClick = state.onReload, Modifier.padding(4.dp)) {
+                Text("\u27f3", Modifier.padding(4.dp), fontSize = 24.sp)
             }
         }
         LazyColumn(
@@ -58,8 +63,11 @@ fun ServersPanel(state: State.ServersState) {
                         .clip(RoundedCornerShape(8.dp))
                         .background(SonaTheme.colors.AiBubble)
                         .clickable {
-                            if (server.status is McpServerStatus.Status.CONNECTED) {
-                                expanded.value = !expanded.value
+                            when (server.status) {
+                                is McpServerStatus.Status.CONNECTED -> expanded.value = !expanded.value
+                                McpServerStatus.Status.CONNECTING -> Unit
+                                McpServerStatus.Status.DISABLED -> state.onToggleServer(server.name)
+                                is McpServerStatus.Status.FAILED -> Unit
                             }
                         }
                         .padding(4.dp)

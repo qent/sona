@@ -36,13 +36,21 @@
                 class="io.qent.sona.actions.OpenPresetsAction"
                 text="Preset"
                 description="Edit LLM presets"
-                icon="AllIcons.General.Gear"/>
+                icon="AllIcons.General.GearPlain"/>
 
         <action id="OpenServersAction"
                 class="io.qent.sona.actions.OpenServersAction"
                 text="Servers"
                 description="Show MCP servers"
                 icon="AllIcons.Webreferences.Server"/>
+
+
+        <action id="OpenSonaToolWindowAction"
+                class="io.qent.sona.actions.OpenSonaAction"
+                text="Open Sona"
+                description="Open chat with Sona">
+            <keyboard-shortcut keymap="$default" first-keystroke="meta control S"/>
+        </action>
     </actions>
 
     <extensions defaultExtensionNs="com.intellij">

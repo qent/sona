@@ -35,12 +35,16 @@ fun RolesPanel(state: RolesState) {
             .fillMaxSize()
             .background(SonaTheme.colors.Background)
     ) {
-        // Base screen content
         Column(
             Modifier
                 .fillMaxSize()
                 .padding(8.dp)
         ) {
+            Text(
+                "Agent roles",
+                modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
+                style = SonaTheme.markdownTypography.h5
+            )
             Row(Modifier.fillMaxWidth()) {
                 if (state.creating) {
                     TextField(nameState, Modifier.weight(1f))

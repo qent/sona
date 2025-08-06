@@ -50,6 +50,11 @@ fun PresetsPanel(state: State.PresetsState) {
                 .fillMaxSize()
                 .padding(8.dp)
         ) {
+            Text(
+                "Models presets",
+                modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
+                style = SonaTheme.markdownTypography.h5
+            )
             if (state.presets.isEmpty() || state.creating) {
                 if (state.presets.isEmpty()) {
                     Column(

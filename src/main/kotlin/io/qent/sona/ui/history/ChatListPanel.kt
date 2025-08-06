@@ -26,6 +26,11 @@ fun ChatListPanel(state: ChatListState) {
             .background(SonaTheme.colors.Background)
             .padding(8.dp)
     ) {
+        Text(
+            "History",
+            modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
+            style = SonaTheme.markdownTypography.h5
+        )
         LazyColumn(
             state = listState,
             modifier = Modifier
