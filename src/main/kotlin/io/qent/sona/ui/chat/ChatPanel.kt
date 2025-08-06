@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.project.Project
 import com.mikepenz.markdown.compose.Markdown
 import com.mikepenz.markdown.compose.components.markdownComponents
 import com.mikepenz.markdown.model.rememberMarkdownState
@@ -42,7 +43,7 @@ import io.qent.sona.ui.SonaTheme
 import javax.swing.Icon
 
 @Composable
-fun ChatPanel(state: ChatState) {
+fun ChatPanel(project: Project, state: ChatState) {
     Column(
         Modifier
             .fillMaxSize()
@@ -52,14 +53,14 @@ fun ChatPanel(state: ChatState) {
         Box(
             Modifier.weight(1f)
         ) {
-            Messages(state)
+            Messages(project, state)
         }
         ChatInput(state)
     }
 }
 
 @Composable
-private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
+private fun Messages(project: Project, state: ChatState, modifier: Modifier = Modifier) {
     val listState = rememberLazyListState()
     LazyColumn(
         state = listState,
@@ -77,9 +78,9 @@ private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
                     val bottom: (@Composable () -> Unit)? = if (state.toolRequest && index == state.messages.lastIndex) {
                         @Composable { ToolPermissionButtons(state.onAllowTool, state.onAlwaysAllowTool, state.onDenyTool) }
                     } else null
-                    MessageBubble(message, isUser = false, bottomContent = bottom, onDelete = { state.onDeleteFrom(index) })
+                    MessageBubble(project, message, isUser = false, bottomContent = bottom, onDelete = { state.onDeleteFrom(index) })
                 } else if (message is UserMessage) {
-                    MessageBubble(message, isUser = true, onDelete = { state.onDeleteFrom(index) })
+                    MessageBubble(project, message, isUser = true, onDelete = { state.onDeleteFrom(index) })
                 }
             }
             Spacer(Modifier.height(2.dp))
@@ -94,7 +95,7 @@ private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun MessageBubble(message: Any, isUser: Boolean, bottomContent: (@Composable () -> Unit)? = null, onDelete: () -> Unit) {
+fun MessageBubble(project: Project, message: Any, isUser: Boolean, bottomContent: (@Composable () -> Unit)? = null, onDelete: () -> Unit) {
     if (message is AiMessage) {
         if (message.text().isNullOrEmpty()) return
     }
@@ -139,8 +140,8 @@ fun MessageBubble(message: Any, isUser: Boolean, bottomContent: (@Composable () 
                             colors = SonaTheme.markdownColors,
                             typography = SonaTheme.markdownTypography,
                             components = markdownComponents(
-                                codeFence = { CopyableCodeBlock(it, true) },
-                                codeBlock = { CopyableCodeBlock(it, false) },
+                                codeFence = { CopyableCodeBlock(project, it, true) },
+                                codeBlock = { CopyableCodeBlock(project, it, false) },
                             ),
                         )
                     } else if (message is UserMessage) {
