@@ -1,4 +1,4 @@
-package io.qent.sona.ui
+package io.qent.sona.ui.roles
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -13,6 +13,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import io.qent.sona.core.DefaultRoles
 import io.qent.sona.core.State.RolesState
+import io.qent.sona.ui.DropdownSelector
+import io.qent.sona.ui.SonaTheme
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextArea

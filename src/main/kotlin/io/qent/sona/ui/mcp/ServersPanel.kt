@@ -1,4 +1,4 @@
-package io.qent.sona.ui
+package io.qent.sona.ui.mcp
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,14 +18,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.qent.sona.core.McpServerStatus
 import io.qent.sona.core.State
+import io.qent.sona.ui.SonaTheme
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
 import java.awt.Desktop
+import java.net.URI
 
 @Composable
 fun ServersPanel(state: State.ServersState) {
@@ -97,7 +98,7 @@ fun ServersPanel(state: State.ServersState) {
                                         .clip(RoundedCornerShape(12.dp))
                                         .background(color = SonaTheme.colors.UserBubble)
                                         .clickable {
-                                            Desktop.getDesktop().browse(java.net.URI("https://plugins.jetbrains.com/plugin/26071-mcp-server"))
+                                            Desktop.getDesktop().browse(URI("https://plugins.jetbrains.com/plugin/26071-mcp-server"))
                                         }
                                         .padding(horizontal = 10.dp, vertical = 6.dp)
                                 ) {

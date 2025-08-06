@@ -1,4 +1,4 @@
-package io.qent.sona.ui
+package io.qent.sona.ui.chat
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.mikepenz.markdown.compose.components.MarkdownComponentModel
 import com.mikepenz.markdown.compose.elements.MarkdownCodeBlock
 import com.mikepenz.markdown.compose.elements.MarkdownCodeFence
-import org.intellij.markdown.ast.getTextInNode
+import io.qent.sona.ui.SonaTheme
 import org.jetbrains.jewel.ui.component.IconButton
 
 /**
