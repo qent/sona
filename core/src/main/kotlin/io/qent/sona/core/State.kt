@@ -1,14 +1,14 @@
 package io.qent.sona.core
 
+import dev.langchain4j.agent.tool.ToolExecutionRequest
 import kotlinx.coroutines.flow.StateFlow
 
 sealed interface UiMessage {
     val text: String
 
     data class User(override val text: String) : UiMessage
-    data class Ai(override val text: String) : UiMessage
+    data class Ai(override val text: String, val toolRequests: List<ToolExecutionRequest>) : UiMessage
     data class Tool(override val text: String) : UiMessage
-    data class System(override val text: String) : UiMessage
 }
 
 data class UiChatSummary(

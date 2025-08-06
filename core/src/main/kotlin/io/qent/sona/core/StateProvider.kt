@@ -64,7 +64,7 @@ class StateProvider(
         val lastAi = chat.messages.lastOrNull { it.message is AiMessage }
         val lastUsage = lastAi?.tokenUsage ?: TokenUsageInfo()
         return State.ChatState(
-            messages = chat.messages.map { it.toUiMessage() },
+            messages = chat.messages.mapNotNull { it.toUiMessage() },
             totalTokenUsage = chat.tokenUsage,
             lastTokenUsage = lastUsage,
             isSending = chat.requestInProgress,
@@ -321,12 +321,11 @@ class StateProvider(
     }
 }
 
-private fun ChatRepositoryMessage.toUiMessage(): UiMessage = when (val m = message) {
-    is AiMessage -> UiMessage.Ai(m.text().orEmpty())
+private fun ChatRepositoryMessage.toUiMessage(): UiMessage? = when (val m = message) {
+    is AiMessage -> UiMessage.Ai(m.text().orEmpty(), m.toolExecutionRequests())
     is UserMessage -> UiMessage.User(m.singleText().trim())
-    is SystemMessage -> UiMessage.System(m.text())
     is ToolExecutionResultMessage -> UiMessage.Tool(m.text())
-    else -> UiMessage.System(m.toString())
+    else -> null
 }
 
 private fun ChatSummary.toUi(): UiChatSummary =
