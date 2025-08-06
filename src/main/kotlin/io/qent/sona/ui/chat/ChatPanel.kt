@@ -30,10 +30,9 @@ import com.intellij.openapi.util.IconLoader
 import com.mikepenz.markdown.compose.Markdown
 import com.mikepenz.markdown.compose.components.markdownComponents
 import com.mikepenz.markdown.model.rememberMarkdownState
-import dev.langchain4j.data.message.AiMessage
-import dev.langchain4j.data.message.UserMessage
-import io.qent.sona.PluginStateFlow
 import io.qent.sona.core.State.ChatState
+import io.qent.sona.core.UiMessage
+import io.qent.sona.PluginStateFlow
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
 import java.awt.image.BufferedImage
@@ -73,13 +72,16 @@ private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Bottom
             ) {
-                if (message is AiMessage) {
-                    val bottom: (@Composable () -> Unit)? = if (state.toolRequest && index == state.messages.lastIndex) {
-                        @Composable { ToolPermissionButtons(state.onAllowTool, state.onAlwaysAllowTool, state.onDenyTool) }
-                    } else null
-                    MessageBubble(message, isUser = false, bottomContent = bottom, onDelete = { state.onDeleteFrom(index) })
-                } else if (message is UserMessage) {
-                    MessageBubble(message, isUser = true, onDelete = { state.onDeleteFrom(index) })
+                val bottom: (@Composable () -> Unit)? = if (
+                    message is UiMessage.Ai &&
+                    state.toolRequest &&
+                    index == state.messages.lastIndex
+                ) {
+                    @Composable { ToolPermissionButtons(state.onAllowTool, state.onAlwaysAllowTool, state.onDenyTool) }
+                } else null
+
+                if (message is UiMessage.Ai || message is UiMessage.User) {
+                    MessageBubble(message, bottomContent = bottom, onDelete = { state.onDeleteFrom(index) })
                 }
             }
             Spacer(Modifier.height(2.dp))
@@ -94,20 +96,19 @@ private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun MessageBubble(message: Any, isUser: Boolean, bottomContent: (@Composable () -> Unit)? = null, onDelete: () -> Unit) {
-    if (message is AiMessage) {
-        if (message.text().isNullOrEmpty()) return
-    }
+fun MessageBubble(
+    message: UiMessage,
+    bottomContent: (@Composable () -> Unit)? = null,
+    onDelete: () -> Unit,
+) {
+    if (message is UiMessage.Ai && message.text.isEmpty()) return
 
+    val isUser = message is UiMessage.User
     var hovered by remember { mutableStateOf(false) }
     val clipboard = LocalClipboardManager.current
     val background = if (isUser) SonaTheme.colors.UserBubble else SonaTheme.colors.Background
     val textColor = if (isUser) SonaTheme.colors.UserText else SonaTheme.colors.AiText
-    val messageText = when (message) {
-        is AiMessage -> message.text().orEmpty()
-        is UserMessage -> message.singleText().trim()
-        else -> ""
-    }
+    val messageText = message.text
     Column(
         Modifier
             .pointerMoveFilter(
@@ -132,8 +133,8 @@ fun MessageBubble(message: Any, isUser: Boolean, bottomContent: (@Composable () 
         ) {
             SelectionContainer {
                 Column(Modifier.fillMaxWidth()) {
-                    if (message is AiMessage) {
-                        val mdState = rememberMarkdownState(message.text(), immediate = true)
+                    if (message is UiMessage.Ai) {
+                        val mdState = rememberMarkdownState(message.text, immediate = true)
                         Markdown(
                             mdState,
                             colors = SonaTheme.markdownColors,
@@ -143,9 +144,9 @@ fun MessageBubble(message: Any, isUser: Boolean, bottomContent: (@Composable () 
                                 codeBlock = { CopyableCodeBlock(it, false) },
                             ),
                         )
-                    } else if (message is UserMessage) {
+                    } else if (message is UiMessage.User) {
                         Text(
-                            message.singleText().trim(),
+                            message.text,
                             color = textColor,
                             fontSize = 15.sp
                         )
