@@ -106,7 +106,7 @@ class StateProvider(
     }
 
     private fun createListState(chats: List<ChatSummary>) = State.ChatListState(
-        chats = chats,
+        chats = chats.filter { it.messages != 0 },
         onOpenChat = { id -> scope.launch { openChat(id) } },
         onDeleteChat = { id -> scope.launch { deleteChat(id) } },
         onNewChat = { scope.launch { newChat() } },
