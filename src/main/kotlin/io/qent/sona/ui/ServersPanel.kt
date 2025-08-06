@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import io.qent.sona.core.McpServerStatus
 import io.qent.sona.core.State
 import org.jetbrains.jewel.ui.component.ActionButton
@@ -32,7 +33,9 @@ fun ServersPanel(state: State.ServersState) {
             .padding(8.dp)
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            ActionButton(onClick = state.onReload) { Text("\u27f3") }
+            ActionButton(onClick = state.onReload) {
+                Text("\u27f3", Modifier.padding(2.dp), fontSize = 24.sp)
+            }
         }
         LazyColumn(
             state = listState,
@@ -48,7 +51,7 @@ fun ServersPanel(state: State.ServersState) {
                         .clip(RoundedCornerShape(8.dp))
                         .background(SonaTheme.colors.AiBubble)
                         .clickable { state.onToggleServer(server.name) }
-                        .padding(vertical = 6.dp, horizontal = 8.dp),
+                        .padding(vertical = 8.dp, horizontal = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(server.name, color = SonaTheme.colors.AiText, modifier = Modifier.weight(1f))
@@ -60,7 +63,7 @@ fun ServersPanel(state: State.ServersState) {
                     }
                     Box(
                         Modifier
-                            .size(12.dp)
+                            .size(8.dp)
                             .clip(CircleShape)
                             .background(color)
                     )

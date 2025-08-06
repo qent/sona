@@ -42,7 +42,7 @@
                 class="io.qent.sona.actions.OpenServersAction"
                 text="Servers"
                 description="Show MCP servers"
-                icon="AllIcons.Nodes.Folder"/>
+                icon="AllIcons.Webreferences.Server"/>
     </actions>
 
     <extensions defaultExtensionNs="com.intellij">

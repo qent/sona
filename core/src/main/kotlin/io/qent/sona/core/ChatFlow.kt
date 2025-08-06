@@ -137,7 +137,7 @@ class ChatFlow(
                             )
 
                             else ->
-                                if (mcpManager?.hasTool(toolName) == true) {
+                                if (mcpManager.hasTool(toolName)) {
                                     ToolExecutionResultMessage(
                                         toolRequest.id(),
                                         toolName,
@@ -226,7 +226,7 @@ class ChatFlow(
     fun resolveToolPermission(allow: Boolean, always: Boolean) {
         toolContinuation?.resume(ToolDecision(allow, always))
         toolContinuation = null
-        emit(currentState.copy(toolRequest = null))
+        emit(currentState.copy(toolRequest = null, requestInProgress = true))
     }
 
     fun toggleAutoApproveTools() {
