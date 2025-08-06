@@ -125,24 +125,33 @@ class ChatFlow(
                 }
                 .onToolExecuted { exec: ToolExecution ->
                     if (ignoreCallbacks) return@onToolExecuted
-                    val toolMsg = ToolExecutionResultMessage(exec.request().id(), exec.request().name(), exec.result())
-                    val repoMsg = ChatRepositoryMessage(chatId, toolMsg, preset.model)
-                    runBlocking { chatRepository.addMessage(chatId, toolMsg, preset.model) }
-                    val msgs = currentState.messages.toMutableList()
-                    val idx = msgs.indexOfLast {
+                    val toolResultMessage = ToolExecutionResultMessage(exec.request().id(), exec.request().name(), exec.result())
+                    val repositoryMessage = ChatRepositoryMessage(chatId, toolResultMessage, preset.model)
+
+                    val messages = currentState.messages.toMutableList()
+
+                    runBlocking {
+                        messages.map { it.message }.lastOrNull { it is AiMessage }?.let { lastAiMessage ->
+                            chatRepository.addMessage(chatId, lastAiMessage, preset.model, TokenUsageInfo())
+                        }
+
+                        chatRepository.addMessage(chatId, toolResultMessage, preset.model)
+                    }
+
+                    val idx = messages.indexOfLast {
                         val m = it.message
                         m is ToolExecutionResultMessage && m.id() == exec.request().id()
                     }
                     if (idx >= 0) {
-                        msgs[idx] = repoMsg
+                        messages[idx] = repositoryMessage
                     } else {
-                        msgs += repoMsg
+                        messages += repositoryMessage
                     }
                     val placeholderAfter = ChatRepositoryMessage(chatId, AiMessage.from(""), preset.model)
                     builder.setLength(0)
                     emit(
                         currentState.copy(
-                            messages = msgs + placeholderAfter,
+                            messages = messages + placeholderAfter,
                             requestInProgress = true,
                             isStreaming = false
                         )
@@ -151,23 +160,16 @@ class ChatFlow(
                 .onCompleteResponse { response ->
                     if (ignoreCallbacks) return@onCompleteResponse
                     val totalUsage = response.metadata().tokenUsage().toInfo()
-                    val prev = currentState.tokenUsage
-                    val delta = TokenUsageInfo(
-                        totalUsage.outputTokens - prev.outputTokens,
-                        totalUsage.inputTokens - prev.inputTokens,
-                        totalUsage.cacheCreationInputTokens - prev.cacheCreationInputTokens,
-                        totalUsage.cacheReadInputTokens - prev.cacheReadInputTokens
-                    )
                     val msgs = currentState.messages.toMutableList()
                     val lastIndex = msgs.lastIndex
                     if (lastIndex >= 0) {
-                        msgs[lastIndex] = ChatRepositoryMessage(chatId, response.aiMessage(), preset.model, delta)
+                        msgs[lastIndex] = ChatRepositoryMessage(chatId, response.aiMessage(), preset.model, totalUsage)
                     }
-                    runBlocking { chatRepository.addMessage(chatId, response.aiMessage(), preset.model, delta) }
+                    runBlocking { chatRepository.addMessage(chatId, response.aiMessage(), preset.model, totalUsage) }
                     emit(
                         currentState.copy(
                             messages = msgs,
-                            tokenUsage = currentState.tokenUsage + delta,
+                            tokenUsage = currentState.tokenUsage + totalUsage,
                             requestInProgress = false,
                             isStreaming = false
                         )
