@@ -8,7 +8,12 @@ import com.intellij.openapi.wm.ToolWindowManager
 class OpenSonaAction : AnAction("Open Sona", "Open chat with Sona", null), DumbAware {
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
-        val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Sona")
-        toolWindow?.show()
+        ToolWindowManager.getInstance(project).getToolWindow("Sona")?.also { toolWindow ->
+            if (toolWindow.isVisible) {
+                toolWindow.hide()
+            } else {
+                toolWindow.show()
+            }
+        }
     }
 }
