@@ -20,6 +20,7 @@
 - A tool is available to switch the active role between Architect and Code.
 - The UI passes a list of additional `SystemMessage` values to the core. The first message describes the current
   environment (OS, IDE, Java, Python, Node.js, file extension statistics, build systems) and is prepended to every LLM request.
+- ChatFlow leverages langchain4j `AiService` and `TokenStream` to emit partial responses and tool events via streaming callbacks.
 - Run `./gradlew build` before committing any changes.
 - After completing a task, make sure `AGENTS.md` and `README.md` reflect the latest behavior.
 

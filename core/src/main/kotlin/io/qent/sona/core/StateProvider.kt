@@ -43,20 +43,6 @@ class StateProvider(
             _state.emit(createChatState(chat))
         }.launchIn(scope)
 
-        chatFlow.buffer(10).filterNot { it.isStreaming }
-            .map { it.messages.lastOrNull() }
-            .filterNotNull()
-            .distinctUntilChanged()
-            .onEach { message ->
-                chatRepository.addMessage(
-                    message.chatId,
-                    message.message,
-                    message.model,
-                    message.tokenUsage
-                )
-            }
-            .launchIn(scope)
-
         scope.launch {
             roles = rolesRepository.load()
             presets = presetsRepository.load()

@@ -4,7 +4,8 @@ Chat with various language models directly from a side panel in your IDE. The ch
 history is persisted in IDE storage so it survives restarts. Connection details are
 managed as presets where you choose a provider, model, API endpoint and token. Responses stream
 gradually so you can watch them being generated in real time and stop the stream at any moment
-to keep the partial reply.
+to keep the partial reply. Under the hood the core relies on langchain4j `AiService` and
+`TokenStream` to deliver partial responses and tool execution events via streaming callbacks.
 
 <!-- Plugin description -->
 Chat with Anthropic, OpenAI, Deepseek or Gemini models right inside your IDE. The chat history is stored persistently so
