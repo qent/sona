@@ -2,8 +2,8 @@ package io.qent.sona.tools
 
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
-import io.qent.sona.core.ExternalTools
-import io.qent.sona.core.FileInfo
+import io.qent.sona.core.tools.ExternalTools
+import io.qent.sona.core.permissions.FileInfo
 import java.nio.file.Files
 import java.nio.file.Paths
 

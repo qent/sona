@@ -1,4 +1,4 @@
-package io.qent.sona.core
+package io.qent.sona.core.tools
 
 interface Tools : InternalTools {
     fun getFocusedFileText(): String

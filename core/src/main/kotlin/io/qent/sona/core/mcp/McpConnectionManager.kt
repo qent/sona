@@ -1,4 +1,4 @@
-package io.qent.sona.core
+package io.qent.sona.core.mcp
 
 import dev.langchain4j.agent.tool.ToolExecutionRequest as AgentToolExecutionRequest
 import dev.langchain4j.mcp.client.DefaultMcpClient

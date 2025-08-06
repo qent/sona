@@ -1,4 +1,4 @@
-package io.qent.sona.core
+package io.qent.sona.core.permissions
 
 interface FilePermissionsRepository {
     val whitelist: List<String>

@@ -1,7 +1,11 @@
-package io.qent.sona.core
+package io.qent.sona.core.state
 
 import dev.langchain4j.agent.tool.ToolExecutionRequest
 import kotlinx.coroutines.flow.StateFlow
+import io.qent.sona.core.model.TokenUsageInfo
+import io.qent.sona.core.presets.Presets
+import io.qent.sona.core.presets.Preset
+import io.qent.sona.core.mcp.McpServerStatus
 
 sealed interface UiMessage {
     val text: String

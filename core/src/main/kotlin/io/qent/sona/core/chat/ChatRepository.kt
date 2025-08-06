@@ -1,6 +1,7 @@
-package io.qent.sona.core
+package io.qent.sona.core.chat
 
 import dev.langchain4j.data.message.ChatMessage
+import io.qent.sona.core.model.TokenUsageInfo
 
 /**
  * Repository for storing user chats and messages.

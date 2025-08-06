@@ -2,8 +2,8 @@ package io.qent.sona.repositories
 
 import com.intellij.openapi.project.Project
 import io.qent.sona.config.SonaConfig
-import io.qent.sona.core.McpServerConfig
-import io.qent.sona.core.McpServersRepository
+import io.qent.sona.core.mcp.McpServerConfig
+import io.qent.sona.core.mcp.McpServersRepository
 
 private val JETBRAINS_MCP_ARGS = listOf("-y", "@jetbrains/mcp-proxy")
 

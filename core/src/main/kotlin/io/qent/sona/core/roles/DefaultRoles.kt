@@ -1,4 +1,4 @@
-package io.qent.sona.core
+package io.qent.sona.core.roles
 
 enum class DefaultRoles(val displayName: String) {
     ARCHITECT("\uD83C\uDFD7\uFE0F  Architect"),

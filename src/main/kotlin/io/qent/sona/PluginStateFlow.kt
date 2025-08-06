@@ -10,8 +10,12 @@ import dev.langchain4j.model.openai.OpenAiStreamingChatModel
 import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.http.client.jdk.JdkHttpClient
 import dev.langchain4j.http.client.jdk.JdkHttpClientBuilder
-import io.qent.sona.core.*
-import io.qent.sona.core.UiMessage
+import io.qent.sona.core.model.TokenUsageInfo
+import io.qent.sona.core.presets.LlmProvider
+import io.qent.sona.core.presets.Presets
+import io.qent.sona.core.state.State
+import io.qent.sona.core.state.StateProvider
+import io.qent.sona.core.state.UiMessage
 import io.qent.sona.tools.PluginExternalTools
 import io.qent.sona.repositories.PluginChatRepository
 import io.qent.sona.repositories.PluginPresetsRepository
@@ -19,7 +23,6 @@ import io.qent.sona.repositories.PluginRolesRepository
 import io.qent.sona.repositories.PluginSettingsRepository
 import io.qent.sona.repositories.PluginFilePermissionsRepository
 import io.qent.sona.repositories.PluginMcpServersRepository
-import io.qent.sona.core.FilePermissionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow

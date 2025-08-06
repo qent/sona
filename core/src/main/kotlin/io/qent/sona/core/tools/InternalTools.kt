@@ -1,4 +1,4 @@
-package io.qent.sona.core
+package io.qent.sona.core.tools
 
 interface InternalTools {
     fun switchToArchitect(): String

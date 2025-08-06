@@ -1,7 +1,8 @@
-package io.qent.sona.core
+package io.qent.sona.core.tools
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import io.qent.sona.core.roles.DefaultRoles
 
 class DefaultInternalTools(
     private val scope: CoroutineScope,

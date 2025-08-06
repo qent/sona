@@ -4,10 +4,10 @@ import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
-import io.qent.sona.core.LlmProvider
-import io.qent.sona.core.Preset
-import io.qent.sona.core.Presets
-import io.qent.sona.core.PresetsRepository
+import io.qent.sona.core.presets.LlmProvider
+import io.qent.sona.core.presets.Preset
+import io.qent.sona.core.presets.Presets
+import io.qent.sona.core.presets.PresetsRepository
 
 @Service
 @State(name = "PluginPresets", storages = [Storage("presets.xml")])

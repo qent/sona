@@ -10,8 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import io.qent.sona.core.State.ChatState
-import io.qent.sona.core.cost
+import io.qent.sona.core.state.State.ChatState
+import io.qent.sona.core.model.cost
 import io.qent.sona.ui.SonaTheme
 import org.jetbrains.jewel.ui.component.Text
 

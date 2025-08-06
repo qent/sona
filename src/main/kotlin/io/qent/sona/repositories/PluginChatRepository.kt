@@ -8,10 +8,10 @@ import dev.langchain4j.data.message.ChatMessage
 import dev.langchain4j.data.message.ChatMessageDeserializer
 import dev.langchain4j.data.message.ChatMessageSerializer
 import dev.langchain4j.data.message.UserMessage
-import io.qent.sona.core.ChatRepository
-import io.qent.sona.core.ChatRepositoryMessage
-import io.qent.sona.core.ChatSummary
-import io.qent.sona.core.TokenUsageInfo
+import io.qent.sona.core.chat.ChatRepository
+import io.qent.sona.core.chat.ChatRepositoryMessage
+import io.qent.sona.core.chat.ChatSummary
+import io.qent.sona.core.model.TokenUsageInfo
 import java.util.*
 
 @Service

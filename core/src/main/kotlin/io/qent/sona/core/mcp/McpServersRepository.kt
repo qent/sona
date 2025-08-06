@@ -1,4 +1,4 @@
-package io.qent.sona.core
+package io.qent.sona.core.mcp
 
 data class McpServerConfig(
     val name: String,

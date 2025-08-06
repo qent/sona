@@ -1,7 +1,8 @@
-package io.qent.sona.core
+package io.qent.sona.core.repositories
 
 import dev.langchain4j.data.message.ChatMessage
 import dev.langchain4j.memory.ChatMemory
+import io.qent.sona.core.chat.ChatRepository
 import kotlinx.coroutines.runBlocking
 
 /**
