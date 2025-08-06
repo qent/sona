@@ -7,9 +7,8 @@ import io.qent.sona.core.McpServersRepository
 
 class PluginMcpServersRepository(project: Project) : McpServersRepository {
     private val root = project.basePath ?: "/"
-    private val config = SonaConfig.load(root)
-
     override suspend fun list(): List<McpServerConfig> {
+        val config = SonaConfig.load(root)
         val servers = config?.mcpServers ?: return emptyList()
         return servers.mapNotNull { server ->
             val name = server.name ?: return@mapNotNull null

@@ -85,6 +85,8 @@ sealed class State {
 
     data class ServersState(
         val servers: StateFlow<List<McpServerStatus>>,
+        val onToggleServer: (String) -> Unit,
+        val onReload: () -> Unit,
         override val onNewChat: () -> Unit,
         override val onOpenHistory: () -> Unit,
         override val onOpenRoles: () -> Unit,
