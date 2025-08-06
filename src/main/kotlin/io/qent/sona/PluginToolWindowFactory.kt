@@ -29,7 +29,7 @@ class PluginToolWindowFactory : ToolWindowFactory, DumbAware {
                 val state = pluginStateFlow.collectAsState(pluginStateFlow.lastState)
                 SonaTheme(dark = dark) {
                     when (val s = state.value) {
-                        is ChatState -> ChatPanel(s)
+                        is ChatState -> ChatPanel(project, s)
                         is ChatListState -> ChatListPanel(s)
                         is RolesState -> RolesPanel(s)
                         is PresetsState -> PresetsPanel(s)
