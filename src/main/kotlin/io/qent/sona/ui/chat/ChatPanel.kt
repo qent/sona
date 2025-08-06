@@ -243,7 +243,7 @@ fun ToolMessageBubble(
                 .shadow(2.dp, RoundedCornerShape(14.dp))
                 .background(background, RoundedCornerShape(6.dp))
                 .padding(horizontal = 12.dp, vertical = 8.dp)
-                .height(if (message.text == "executing") 40.dp else 160.dp)
+                .height(if (message.text == "executing") 20.dp else 160.dp)
                 .fillMaxWidth()
         ) {
             if (message.text == "executing") {
@@ -303,7 +303,7 @@ private fun AnimatedDots(color: Color) {
             delay(300)
         }
     }
-    Text(".".repeat(dots), color = color, fontSize = 15.sp, fontFamily = FontFamily.Monospace)
+    Text(".".repeat(dots), color = color, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
 }
 
 @Composable
