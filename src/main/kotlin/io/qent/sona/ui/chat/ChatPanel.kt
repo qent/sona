@@ -105,8 +105,7 @@ private fun Messages(project: Project, state: ChatState, modifier: Modifier = Mo
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MessageBubble(
-    project: Project,
-    message: UiMessage,
+    project: Project, message: UiMessage,
     bottomContent: (@Composable () -> Unit)? = null,
     onDelete: () -> Unit,
 ) {
