@@ -98,7 +98,9 @@ The available tools let the model read the focused file, read any file by absolu
 
 The same configuration file can also include an `mcpServers` array specifying Model Context Protocol
 servers. Each entry supports `name`, `command`, `args`, `env`, `transport`, `url`, `cwd` and `headers` fields.
-Currently `transport` may be `stdio` or `http`. Every server runs in its own coroutine so a failure does
+When `command` is `npx`, Sona resolves the absolute path to the `npx` executable by checking typical
+installation locations for the current operating system before launching the server. Currently
+`transport` may be `stdio` or `http`. Every server runs in its own coroutine so a failure does
 not affect the plugin. Tools provided by MCP servers require the same user confirmation as local tools.
 
 The tool window includes a **Servers** action listing all configured MCP servers together with their current
