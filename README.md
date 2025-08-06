@@ -128,7 +128,8 @@ that message and all following messages from both the chat view and persistent
 history.
 
 Chat messages are now selectable so you can highlight and copy any portion of
-the text directly.
+the text directly. Code blocks render using the IDE editor component, providing
+full syntax highlighting.
 
 ## Architecture Overview
 

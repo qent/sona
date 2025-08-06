@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.project.Project
 import com.mikepenz.markdown.compose.Markdown
 import com.mikepenz.markdown.compose.components.markdownComponents
 import com.mikepenz.markdown.model.rememberMarkdownState
@@ -44,7 +45,7 @@ import kotlinx.coroutines.delay
 import javax.swing.Icon
 
 @Composable
-fun ChatPanel(state: ChatState) {
+fun ChatPanel(project: Project, state: ChatState) {
     Column(
         Modifier
             .fillMaxSize()
@@ -54,14 +55,14 @@ fun ChatPanel(state: ChatState) {
         Box(
             Modifier.weight(1f)
         ) {
-            Messages(state)
+            Messages(project, state)
         }
         ChatInput(state)
     }
 }
 
 @Composable
-private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
+private fun Messages(project: Project, state: ChatState, modifier: Modifier = Modifier) {
     val listState = rememberLazyListState()
     LazyColumn(
         state = listState,
@@ -84,7 +85,7 @@ private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
                 } else null
 
                 if (message is UiMessage.Ai || message is UiMessage.User) {
-                    MessageBubble(message, bottomContent = bottom, onDelete = { state.onDeleteFrom(index) })
+                    MessageBubble(project, message, bottomContent = bottom, onDelete = { state.onDeleteFrom(index) })
                 } else if (message is UiMessage.Tool) {
                     ToolMessageBubble(message, onDelete = { state.onDeleteFrom(index) })
                 }
@@ -102,6 +103,7 @@ private fun Messages(state: ChatState, modifier: Modifier = Modifier) {
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MessageBubble(
+    project: Project,
     message: UiMessage,
     bottomContent: (@Composable () -> Unit)? = null,
     onDelete: () -> Unit,
@@ -146,8 +148,8 @@ fun MessageBubble(
                             colors = SonaTheme.markdownColors,
                             typography = SonaTheme.markdownTypography,
                             components = markdownComponents(
-                                codeFence = { CopyableCodeBlock(it, true) },
-                                codeBlock = { CopyableCodeBlock(it, false) },
+                                codeFence = { CopyableCodeBlock(project, it, true) },
+                                codeBlock = { CopyableCodeBlock(project, it, false) },
                             ),
                         )
                         if (showTools && message.toolRequests.isNotEmpty()) {
