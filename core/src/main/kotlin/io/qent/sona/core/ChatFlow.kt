@@ -252,7 +252,7 @@ class ChatFlow(
                     currentState.copy(
                         messages = currentState.messages + ChatRepositoryMessage(
                             chatId,
-                            ToolExecutionResultMessage(request.id(), name, ""),
+                            ToolExecutionResultMessage(request.id(), name, "executing"),
                             model
                         ),
                         requestInProgress = true,

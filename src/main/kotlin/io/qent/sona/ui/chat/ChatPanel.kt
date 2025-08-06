@@ -7,8 +7,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -241,18 +243,25 @@ fun ToolMessageBubble(
                 .shadow(2.dp, RoundedCornerShape(14.dp))
                 .background(background, RoundedCornerShape(6.dp))
                 .padding(horizontal = 12.dp, vertical = 8.dp)
+                .height(if (message.text == "executing") 40.dp else 160.dp)
                 .fillMaxWidth()
         ) {
-            if (message.text.isEmpty()) {
+            if (message.text == "executing") {
                 AnimatedDots(textColor)
             } else {
-                SelectionContainer {
-                    Text(
-                        message.text,
-                        color = textColor,
-                        fontSize = 15.sp,
-                        fontFamily = FontFamily.Monospace
-                    )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    SelectionContainer {
+                        Text(
+                            message.text,
+                            color = textColor,
+                            fontSize = 10.sp,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
                 }
             }
         }
