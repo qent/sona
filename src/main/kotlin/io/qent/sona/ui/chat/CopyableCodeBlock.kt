@@ -1,11 +1,7 @@
 package io.qent.sona.ui.chat
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
@@ -15,13 +11,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.SwingPanel
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.intellij.lang.Language
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.ex.EditorEx
-import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.project.Project
@@ -30,6 +24,7 @@ import com.mikepenz.markdown.compose.elements.MarkdownCodeBlock
 import com.mikepenz.markdown.compose.elements.MarkdownCodeFence
 import io.qent.sona.ui.SonaTheme
 import org.jetbrains.jewel.ui.component.IconButton
+import java.lang.Float.min
 
 /**
  * Renders a markdown code block with a copy button overlay.
@@ -67,32 +62,37 @@ fun CopyableCodeBlock(project: Project, model: MarkdownComponentModel, fence: Bo
 
 @Composable
 private fun CodeEditor(project: Project, code: String, language: String?) {
-    val fileType: FileType = remember(language) {
-        language?.let {
-            Language.findLanguageByID(it)?.associatedFileType
-                ?: FileTypeManager.getInstance().getFileTypeByExtension(it)
-        } ?: PlainTextFileType.INSTANCE
+    val fileType = language?.let {
+        Language.findLanguageByID(it)?.associatedFileType
+            ?: FileTypeManager.getInstance().getFileTypeByExtension(it)
+    } ?: PlainTextFileType.INSTANCE
+
+    val editor = remember {
+        val document = EditorFactory.getInstance().createDocument(code)
+        EditorFactory.getInstance().createEditor(document, project, fileType, true).apply {
+            (this as? EditorEx)?.settings?.apply {
+                isLineNumbersShown = false
+                isFoldingOutlineShown = false
+                isIndentGuidesShown = false
+                isRightMarginShown = false
+                additionalColumnsCount = 0
+                isUseSoftWraps = false
+            }
+        }
     }
-    val document = remember(code) { EditorFactory.getInstance().createDocument(code) }
-    val editor = remember(document, fileType) {
-        EditorFactory.getInstance().createEditor(document, project, fileType, /*isViewer=*/true)
+
+    DisposableEffect(Unit) {
+        onDispose {
+            EditorFactory.getInstance().releaseEditor(editor)
+        }
     }
-    DisposableEffect(editor) {
-        onDispose { EditorFactory.getInstance().releaseEditor(editor) }
-    }
-    val heightDp = with(LocalDensity.current) {
-        (editor.lineHeight * document.lineCount).toDp()
-    }
-    (editor as? EditorEx)?.let {
-        it.settings.isLineNumbersShown = false
-        it.settings.isFoldingOutlineShown = false
-        it.settings.isIndentGuidesShown = false
-        it.settings.isRightMarginShown = false
-        it.settings.additionalColumnsCount = 0
-        it.settings.isUseSoftWraps = false
-    }
+
+    val height: Float = min(editor.document.lineCount * 25f, 200.dp.value)
     SwingPanel(
         factory = { editor.component },
-        modifier = Modifier.fillMaxWidth().heightIn(min = heightDp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .height(height.dp)
     )
 }

@@ -89,7 +89,7 @@ private fun Messages(project: Project, state: ChatState, modifier: Modifier = Mo
                 if (message is UiMessage.Ai || message is UiMessage.User) {
                     MessageBubble(project, message, bottomContent = bottom, onDelete = { state.onDeleteFrom(index) })
                 } else if (message is UiMessage.Tool) {
-                    ToolMessageBubble(project, message, onDelete = { state.onDeleteFrom(index) })
+                    ToolMessageBubble(message, onDelete = { state.onDeleteFrom(index) })
                 }
             }
             Spacer(Modifier.height(2.dp))
