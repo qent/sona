@@ -18,6 +18,7 @@ class McpConnectionManager(
     private val clients = mutableMapOf<String, McpClient>()
     private val tools = mutableMapOf<String, McpClient>()
     private val statuses = mutableMapOf<String, McpServerStatus>()
+    private val enabled = mutableSetOf<String>()
 
     private val _servers = MutableStateFlow<List<McpServerStatus>>(emptyList())
     val servers: StateFlow<List<McpServerStatus>> = _servers.asStateFlow()
@@ -30,49 +31,118 @@ class McpConnectionManager(
     }
 
     init {
-        this.scope.launch {
+        scope.launch {
             repository.list().forEach { config ->
+                enabled += config.name
+                connect(config)
+            }
+        }
+    }
+
+    private fun connect(config: McpServerConfig) {
+        updateStatus(
+            McpServerStatus(
+                name = config.name,
+                status = McpServerStatus.Status.CONNECTING,
+                tools = emptyList()
+            )
+        )
+        scope.launch {
+            runCatching {
+                val client = createClient(config) ?: throw Exception("Invalid config")
+                val specs = client.listTools()
+                synchronized(this@McpConnectionManager) {
+                    clients[config.name] = client
+                    specs.forEach { spec ->
+                        tools[spec.name()] = client
+                    }
+                }
                 updateStatus(
                     McpServerStatus(
                         name = config.name,
-                        status = McpServerStatus.Status.CONNECTING,
+                        status = McpServerStatus.Status.CONNECTED,
+                        tools = specs
+                    )
+                )
+            }.onFailure {
+                updateStatus(
+                    McpServerStatus(
+                        name = config.name,
+                        status = McpServerStatus.Status.FAILED(it as? Exception ?: Exception(it)),
                         tools = emptyList()
                     )
                 )
-                launch {
-                    runCatching {
-                        val client = createClient(config) ?: throw Exception("Invalid config")
-                        val specs = client.listTools()
-                        synchronized(this@McpConnectionManager) {
-                            clients[config.name] = client
-                            specs.forEach { spec ->
-                                tools[spec.name()] = client
-                            }
-                        }
-                        updateStatus(
-                            McpServerStatus(
-                                name = config.name,
-                                status = McpServerStatus.Status.CONNECTED,
-                                tools = specs
-                            )
+                println("Failed to connect to MCP server ${config.name}: ${it.message}")
+            }
+        }
+    }
+
+    private fun disconnect(name: String) {
+        val client = clients.remove(name)
+        client?.close()
+        tools.entries.removeIf { it.value == client }
+    }
+
+    fun toggle(name: String) {
+        if (enabled.remove(name)) {
+            disconnect(name)
+            updateStatus(
+                McpServerStatus(
+                    name = name,
+                    status = McpServerStatus.Status.DISABLED,
+                    tools = emptyList()
+                )
+            )
+        } else {
+            enabled += name
+            scope.launch {
+                val config = repository.list().find { it.name == name }
+                if (config != null) {
+                    connect(config)
+                } else {
+                    enabled.remove(name)
+                    updateStatus(
+                        McpServerStatus(
+                            name = name,
+                            status = McpServerStatus.Status.FAILED(Exception("Config not found")),
+                            tools = emptyList()
                         )
-                    }.onFailure {
-                        updateStatus(
-                            McpServerStatus(
-                                name = config.name,
-                                status = McpServerStatus.Status.FAILED(it as? Exception ?: Exception(it)),
-                                tools = emptyList()
-                            )
-                        )
-                        println("Failed to connect to MCP server ${config.name}: ${it.message}")
-                    }
+                    )
                 }
             }
         }
     }
 
+    suspend fun reload() {
+        val wasEnabled = enabled.toSet()
+        clients.values.forEach { runCatching { it.close() } }
+        clients.clear()
+        tools.clear()
+        statuses.clear()
+        _servers.value = emptyList()
+
+        val configs = repository.list()
+        val configNames = configs.map { it.name }.toSet()
+        enabled.clear()
+        enabled.addAll(wasEnabled.intersect(configNames))
+
+        configs.forEach { config ->
+            if (enabled.contains(config.name)) {
+                connect(config)
+            } else {
+                updateStatus(
+                    McpServerStatus(
+                        name = config.name,
+                        status = McpServerStatus.Status.DISABLED,
+                        tools = emptyList()
+                    )
+                )
+            }
+        }
+    }
+
     private fun createClient(config: McpServerConfig): DefaultMcpClient? {
-        val transport = when (config.transport?.lowercase()) {
+        val transport = when (config.transport.lowercase()) {
             "stdio" -> {
                 val cmd = buildList {
                     config.command?.let { add(it) }
@@ -129,3 +199,4 @@ class McpConnectionManager(
         scope.cancel()
     }
 }
+

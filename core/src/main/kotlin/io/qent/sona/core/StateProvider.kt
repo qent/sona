@@ -276,6 +276,8 @@ class StateProvider(
 
     private fun createServersState(): State.ServersState = State.ServersState(
         servers = mcpManager.servers,
+        onToggleServer = { name -> mcpManager.toggle(name) },
+        onReload = { scope.launch { mcpManager.reload() } },
         onNewChat = { scope.launch { newChat() } },
         onOpenHistory = { scope.launch { showHistory() } },
         onOpenRoles = { scope.launch { showRoles() } },
