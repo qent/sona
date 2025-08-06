@@ -119,7 +119,9 @@ class ChatFlow(
                     val msgs = currentState.messages.toMutableList()
                     val lastIndex = msgs.lastIndex
                     if (lastIndex >= 0) {
-                        msgs[lastIndex] = msgs[lastIndex].copy(message = AiMessage.from(builder.toString()))
+                        msgs[lastIndex] = msgs[lastIndex].copy(
+                            message = AiMessage.from(builder.toString())
+                        )
                         emit(currentState.copy(messages = msgs, isStreaming = true, requestInProgress = true))
                     }
                 }
@@ -132,7 +134,10 @@ class ChatFlow(
 
                     runBlocking {
                         messages.map { it.message }.lastOrNull { it is AiMessage }?.let { lastAiMessage ->
-                            chatRepository.addMessage(chatId, lastAiMessage, preset.model, TokenUsageInfo())
+                            val tools = (lastAiMessage as AiMessage).toolExecutionRequests().toMutableList()
+                            tools.add(exec.request())
+                            val messageWithRequests = AiMessage(lastAiMessage.text(), tools)
+                            chatRepository.addMessage(chatId, messageWithRequests, preset.model, TokenUsageInfo())
                         }
 
                         chatRepository.addMessage(chatId, toolResultMessage, preset.model)
