@@ -25,6 +25,7 @@ import io.qent.sona.core.McpServerStatus
 import io.qent.sona.core.State
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
+import java.awt.Desktop
 
 @Composable
 fun ServersPanel(state: State.ServersState) {
@@ -48,14 +49,20 @@ fun ServersPanel(state: State.ServersState) {
                 .weight(1f)
         ) {
             items(servers) { server ->
+                val expanded = remember { mutableStateOf(false) }
                 Column(
                     Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .background(SonaTheme.colors.AiBubble)
-                        .clickable { state.onToggleServer(server.name) }
-                        .padding(vertical = 8.dp, horizontal = 12.dp),
+                        .clickable {
+                            if (server.status is McpServerStatus.Status.CONNECTED) {
+                                expanded.value = !expanded.value
+                            }
+                        }
+                        .padding(4.dp)
+                        .padding(start = 8.dp),
                 ) {
                     Row(
                         Modifier
@@ -71,6 +78,8 @@ fun ServersPanel(state: State.ServersState) {
                         }
                         Box(
                             Modifier
+                                .clickable { state.onToggleServer(server.name) }
+                                .padding(8.dp)
                                 .size(8.dp)
                                 .clip(CircleShape)
                                 .background(color)
@@ -81,40 +90,39 @@ fun ServersPanel(state: State.ServersState) {
                     when (status) {
                         is McpServerStatus.Status.FAILED -> {
                             Text(status.e.toString(), Modifier.padding(vertical = 8.dp), color = SonaTheme.colors.BackgroundText)
-                        }
-                        is McpServerStatus.Status.CONNECTED -> {
-                            val expanded = remember { mutableStateOf(false) }
-                            Column(
-                                Modifier
-                                    .fillMaxSize()
-                            ) {
-                                ActionButton(
-                                    onClick = { expanded.value = !expanded.value },
-                                    Modifier
-                                        .height(12.dp)
-                                        .fillMaxWidth()
+                            if (server.jetbrainsMcpProxyUnavailable()) {
+                                Box(
+                                    modifier = Modifier
+                                        .padding(vertical = 4.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(color = SonaTheme.colors.UserBubble)
+                                        .clickable {
+                                            Desktop.getDesktop().browse(java.net.URI("https://plugins.jetbrains.com/plugin/26071-mcp-server"))
+                                        }
+                                        .padding(horizontal = 10.dp, vertical = 6.dp)
                                 ) {
                                     Text(
-                                        if (expanded.value) "⏶" else "⏷",
-                                        Modifier.fillMaxWidth(),
-                                        fontSize = 12.sp,
-                                        textAlign = TextAlign.Center
+                                        "Install JetBrains MCP Server Plugin",
+                                        color = Color.White,
+                                        fontSize = 12.sp
                                     )
                                 }
-                                if (expanded.value) {
-                                    for (tool in server.tools) {
-                                        Row(
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .padding(top = 12.dp),
-                                            verticalAlignment = Alignment.Top
-                                        ) {
-                                            Text(tool.name(), Modifier.width(200.dp), fontWeight = FontWeight.Bold)
-                                            Text(
-                                                tool.description().trimIndent(),
-                                                color = SonaTheme.colors.BackgroundText
-                                            )
-                                        }
+                            }
+                        }
+                        is McpServerStatus.Status.CONNECTED -> {
+                            if (expanded.value) {
+                                for (tool in server.tools) {
+                                    Row(
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 12.dp),
+                                        verticalAlignment = Alignment.Top
+                                    ) {
+                                        Text(tool.name(), Modifier.width(200.dp), fontWeight = FontWeight.Bold)
+                                        Text(
+                                            tool.description().trimIndent(),
+                                            color = SonaTheme.colors.BackgroundText
+                                        )
                                     }
                                 }
                             }
@@ -126,3 +134,9 @@ fun ServersPanel(state: State.ServersState) {
         }
     }
 }
+
+fun McpServerStatus.jetbrainsMcpProxyUnavailable(
+
+) = name == "@jetbrains/mcp-proxy" && (status as? McpServerStatus.Status.FAILED)?.e?.toString()?.let { error ->
+    error.contains("NullPointerException") && error.contains("com.fasterxml.jackson.databind.JsonNode")
+}  ?: false
