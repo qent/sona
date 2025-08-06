@@ -11,6 +11,7 @@ import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.http.client.jdk.JdkHttpClient
 import dev.langchain4j.http.client.jdk.JdkHttpClientBuilder
 import io.qent.sona.core.*
+import io.qent.sona.core.UiMessage
 import io.qent.sona.tools.PluginExternalTools
 import io.qent.sona.repositories.PluginChatRepository
 import io.qent.sona.repositories.PluginPresetsRepository
@@ -45,7 +46,7 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
     private val externalTools = PluginExternalTools(project)
 
     var lastState: State = State.ChatState(
-        messages = emptyList(),
+        messages = emptyList<UiMessage>(),
         totalTokenUsage = TokenUsageInfo(),
         lastTokenUsage = TokenUsageInfo(),
         isSending = false,
