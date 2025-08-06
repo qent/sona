@@ -14,9 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import io.qent.sona.core.LlmProvider
-import io.qent.sona.core.Preset
-import io.qent.sona.core.State
+import io.qent.sona.core.presets.LlmProvider
+import io.qent.sona.core.presets.Preset
+import io.qent.sona.core.state.State
 import io.qent.sona.ui.DropdownSelector
 import io.qent.sona.ui.SonaTheme
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi

@@ -20,8 +20,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.qent.sona.core.McpServerStatus
-import io.qent.sona.core.State
+import io.qent.sona.core.mcp.McpServerStatus
+import io.qent.sona.core.state.State
 import io.qent.sona.ui.SonaTheme
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text

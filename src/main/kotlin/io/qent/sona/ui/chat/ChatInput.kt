@@ -40,8 +40,8 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.qent.sona.core.DefaultRoles
-import io.qent.sona.core.State.ChatState
+import io.qent.sona.core.roles.DefaultRoles
+import io.qent.sona.core.state.State.ChatState
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
 import androidx.compose.runtime.*

@@ -11,8 +11,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import io.qent.sona.core.DefaultRoles
-import io.qent.sona.core.State.RolesState
+import io.qent.sona.core.roles.DefaultRoles
+import io.qent.sona.core.state.State.RolesState
 import io.qent.sona.ui.DropdownSelector
 import io.qent.sona.ui.SonaTheme
 import org.jetbrains.jewel.ui.component.ActionButton

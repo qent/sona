@@ -1,4 +1,4 @@
-package io.qent.sona.core
+package io.qent.sona.core.mcp
 
 import dev.langchain4j.agent.tool.ToolSpecification
 

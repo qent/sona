@@ -1,6 +1,7 @@
-package io.qent.sona.core
+package io.qent.sona.core.tools
 
 import dev.langchain4j.agent.tool.Tool
+import io.qent.sona.core.permissions.FilePermissionManager
 
 class ToolsInfoDecorator(
     private val internalTools: InternalTools,

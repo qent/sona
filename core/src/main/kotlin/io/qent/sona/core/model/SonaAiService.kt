@@ -1,4 +1,4 @@
-package io.qent.sona.core
+package io.qent.sona.core.model
 
 import dev.langchain4j.service.MemoryId
 import dev.langchain4j.service.TokenStream

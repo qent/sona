@@ -4,8 +4,8 @@ import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
-import io.qent.sona.core.Settings
-import io.qent.sona.core.SettingsRepository
+import io.qent.sona.core.settings.Settings
+import io.qent.sona.core.settings.SettingsRepository
 
 @Service
 @State(name = "PluginSettings", storages = [Storage("plugin_settings.xml")])

@@ -1,4 +1,4 @@
-package io.qent.sona.core
+package io.qent.sona.core.roles
 
 data class Role(val name: String, val text: String)
 

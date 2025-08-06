@@ -1,4 +1,4 @@
-package io.qent.sona.core
+package io.qent.sona.core.presets
 
 /** Information about a specific LLM model. */
 data class LlmModel(

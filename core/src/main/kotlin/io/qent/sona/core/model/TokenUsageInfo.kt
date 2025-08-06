@@ -1,8 +1,9 @@
-package io.qent.sona.core
+package io.qent.sona.core.model
 
 import dev.langchain4j.model.anthropic.AnthropicTokenUsage
 import dev.langchain4j.model.openai.OpenAiTokenUsage
 import dev.langchain4j.model.output.TokenUsage
+import io.qent.sona.core.presets.LlmModel
 
 /**
  * Container for token usage statistics including cached tokens.

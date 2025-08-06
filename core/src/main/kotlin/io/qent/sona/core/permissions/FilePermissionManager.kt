@@ -1,4 +1,4 @@
-package io.qent.sona.core
+package io.qent.sona.core.permissions
 
 class FilePermissionManager(
     private val repository: FilePermissionsRepository,

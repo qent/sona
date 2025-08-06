@@ -1,4 +1,4 @@
-package io.qent.sona.core
+package io.qent.sona.core.chat
 
 import com.google.gson.Gson
 import dev.langchain4j.agent.tool.ToolExecutionRequest
@@ -19,6 +19,15 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.CancellableContinuation
 import kotlin.coroutines.resume
+import io.qent.sona.core.mcp.McpConnectionManager
+import io.qent.sona.core.model.TokenUsageInfo
+import io.qent.sona.core.model.SonaAiService
+import io.qent.sona.core.model.toInfo
+import io.qent.sona.core.repositories.ChatRepositoryChatMemoryStore
+import io.qent.sona.core.presets.Preset
+import io.qent.sona.core.presets.PresetsRepository
+import io.qent.sona.core.roles.RolesRepository
+import io.qent.sona.core.tools.Tools
 
 
 data class Chat(

@@ -1,4 +1,4 @@
-package io.qent.sona.core
+package io.qent.sona.core.state
 
 import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.data.message.AiMessage
@@ -9,6 +9,28 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import io.qent.sona.core.chat.Chat
+import io.qent.sona.core.chat.ChatFlow
+import io.qent.sona.core.chat.ChatRepository
+import io.qent.sona.core.chat.ChatRepositoryMessage
+import io.qent.sona.core.chat.ChatSummary
+import io.qent.sona.core.mcp.McpConnectionManager
+import io.qent.sona.core.mcp.McpServersRepository
+import io.qent.sona.core.model.TokenUsageInfo
+import io.qent.sona.core.permissions.FilePermissionManager
+import io.qent.sona.core.permissions.FilePermissionsRepository
+import io.qent.sona.core.presets.Preset
+import io.qent.sona.core.presets.Presets
+import io.qent.sona.core.presets.PresetsRepository
+import io.qent.sona.core.roles.Roles
+import io.qent.sona.core.roles.RolesRepository
+import io.qent.sona.core.roles.DefaultRoles
+import io.qent.sona.core.roles.Role
+import io.qent.sona.core.presets.LlmProvider
+import io.qent.sona.core.tools.DefaultInternalTools
+import io.qent.sona.core.tools.ExternalTools
+import io.qent.sona.core.tools.Tools
+import io.qent.sona.core.tools.ToolsInfoDecorator
 
 
 class StateProvider(

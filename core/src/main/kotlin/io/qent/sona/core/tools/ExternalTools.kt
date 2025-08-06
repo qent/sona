@@ -1,4 +1,6 @@
-package io.qent.sona.core
+package io.qent.sona.core.tools
+
+import io.qent.sona.core.permissions.FileInfo
 
 interface ExternalTools {
     fun getFocusedFileText(): FileInfo?

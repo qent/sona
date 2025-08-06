@@ -4,10 +4,10 @@ import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
-import io.qent.sona.core.Role
-import io.qent.sona.core.Roles
-import io.qent.sona.core.RolesRepository
-import io.qent.sona.core.DefaultRoles
+import io.qent.sona.core.roles.Role
+import io.qent.sona.core.roles.Roles
+import io.qent.sona.core.roles.RolesRepository
+import io.qent.sona.core.roles.DefaultRoles
 
 @Service
 @State(name = "PluginRoles", storages = [Storage("roles.xml")])

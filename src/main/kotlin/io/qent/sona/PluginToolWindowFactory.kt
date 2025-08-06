@@ -10,7 +10,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.ContentFactory
-import io.qent.sona.core.State.*
+import io.qent.sona.core.state.State.*
 import io.qent.sona.services.ThemeService
 import io.qent.sona.ui.chat.ChatPanel
 import io.qent.sona.ui.presets.PresetsPanel

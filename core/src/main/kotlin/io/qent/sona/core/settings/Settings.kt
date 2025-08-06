@@ -1,4 +1,4 @@
-package io.qent.sona.core
+package io.qent.sona.core.settings
 
 data class Settings(
     val ignoreHttpsErrors: Boolean

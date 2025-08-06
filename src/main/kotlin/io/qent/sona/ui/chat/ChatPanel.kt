@@ -34,8 +34,8 @@ import com.intellij.openapi.project.Project
 import com.mikepenz.markdown.compose.Markdown
 import com.mikepenz.markdown.compose.components.markdownComponents
 import com.mikepenz.markdown.model.rememberMarkdownState
-import io.qent.sona.core.State.ChatState
-import io.qent.sona.core.UiMessage
+import io.qent.sona.core.state.State.ChatState
+import io.qent.sona.core.state.UiMessage
 import io.qent.sona.PluginStateFlow
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
