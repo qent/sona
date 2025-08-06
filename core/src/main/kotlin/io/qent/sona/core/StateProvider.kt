@@ -2,6 +2,8 @@ package io.qent.sona.core
 
 import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.data.message.AiMessage
+import dev.langchain4j.data.message.UserMessage
+import dev.langchain4j.data.message.ToolExecutionResultMessage
 import dev.langchain4j.model.chat.StreamingChatModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -62,7 +64,7 @@ class StateProvider(
         val lastAi = chat.messages.lastOrNull { it.message is AiMessage }
         val lastUsage = lastAi?.tokenUsage ?: TokenUsageInfo()
         return State.ChatState(
-            messages = chat.messages.map { it.message },
+            messages = chat.messages.mapNotNull { it.toUiMessage() },
             totalTokenUsage = chat.tokenUsage,
             lastTokenUsage = lastUsage,
             isSending = chat.requestInProgress,
@@ -92,7 +94,7 @@ class StateProvider(
     }
 
     private fun createListState(chats: List<ChatSummary>) = State.ChatListState(
-        chats = chats.filter { it.messages != 0 },
+        chats = chats.filter { it.messages != 0 }.map { it.toUi() },
         onOpenChat = { id -> scope.launch { openChat(id) } },
         onDeleteChat = { id -> scope.launch { deleteChat(id) } },
         onNewChat = { scope.launch { newChat() } },
@@ -318,3 +320,13 @@ class StateProvider(
         _state.emit(createPresetsState())
     }
 }
+
+private fun ChatRepositoryMessage.toUiMessage(): UiMessage? = when (val m = message) {
+    is AiMessage -> UiMessage.Ai(m.text().orEmpty(), m.toolExecutionRequests())
+    is UserMessage -> UiMessage.User(m.singleText().trim())
+    is ToolExecutionResultMessage -> UiMessage.Tool(m.text())
+    else -> null
+}
+
+private fun ChatSummary.toUi(): UiChatSummary =
+    UiChatSummary(id, firstMessage, messages, createdAt)

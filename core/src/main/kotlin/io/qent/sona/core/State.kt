@@ -1,7 +1,22 @@
 package io.qent.sona.core
 
-import dev.langchain4j.data.message.ChatMessage
+import dev.langchain4j.agent.tool.ToolExecutionRequest
 import kotlinx.coroutines.flow.StateFlow
+
+sealed interface UiMessage {
+    val text: String
+
+    data class User(override val text: String) : UiMessage
+    data class Ai(override val text: String, val toolRequests: List<ToolExecutionRequest>) : UiMessage
+    data class Tool(override val text: String) : UiMessage
+}
+
+data class UiChatSummary(
+    val id: String,
+    val firstMessage: String,
+    val messages: Int,
+    val createdAt: Long,
+)
 
 sealed class State {
     abstract val onNewChat: () -> Unit
@@ -11,7 +26,7 @@ sealed class State {
     abstract val onOpenServers: () -> Unit
 
     data class ChatState(
-        val messages: List<ChatMessage>,
+        val messages: List<UiMessage>,
         val totalTokenUsage: TokenUsageInfo,
         val lastTokenUsage: TokenUsageInfo,
         val isSending: Boolean,
@@ -37,7 +52,7 @@ sealed class State {
     ) : State()
 
     data class ChatListState(
-        val chats: List<ChatSummary>,
+        val chats: List<UiChatSummary>,
         val onOpenChat: (String) -> Unit,
         val onDeleteChat: (String) -> Unit,
         override val onNewChat: () -> Unit,
