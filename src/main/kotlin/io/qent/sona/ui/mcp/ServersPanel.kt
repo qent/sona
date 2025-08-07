@@ -2,7 +2,15 @@ package io.qent.sona.ui.mcp
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -32,29 +40,31 @@ import java.net.URI
 fun ServersPanel(state: State.ServersState) {
     val servers by state.servers.collectAsState(emptyList())
     val listState = rememberLazyListState()
-    Column(
+    Box(
         Modifier
             .fillMaxSize()
             .background(SonaTheme.colors.Background)
             .padding(8.dp)
     ) {
-        Row(Modifier.fillMaxWidth()) {
-            Text(
-                "MCP Servers",
-                modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
-                style = SonaTheme.markdownTypography.h5
-            )
-            ActionButton(onClick = state.onReload, Modifier.padding(4.dp)) {
-                Text("\u27f3", Modifier.padding(4.dp), fontSize = 24.sp)
+        Column(Modifier.fillMaxSize()) {
+            Row(Modifier.fillMaxWidth()) {
+                Text(
+                    "MCP Servers",
+                    modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
+                    style = SonaTheme.markdownTypography.h5
+                )
+                ActionButton(onClick = state.onReload, Modifier.padding(4.dp)) {
+                    Text("\u27f3", Modifier.padding(4.dp), fontSize = 24.sp)
+                }
             }
-        }
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-        ) {
-            items(servers) { server ->
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentPadding = PaddingValues(bottom = 56.dp)
+            ) {
+                items(servers) { server ->
                 val expanded = remember { mutableStateOf(false) }
                 Column(
                     Modifier
@@ -141,11 +151,30 @@ fun ServersPanel(state: State.ServersState) {
                 }
             }
         }
+        }
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 8.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(color = SonaTheme.colors.UserBubble)
+                    .clickable { state.onEditConfig() }
+                    .padding(horizontal = 10.dp, vertical = 6.dp)
+            ) {
+                Text(
+                    "Редактировать конфигурацию",
+                    color = Color.White,
+                    fontSize = 12.sp
+                )
+            }
+        }
     }
 }
 
-fun McpServerStatus.jetbrainsMcpProxyUnavailable(
-
-) = name == "@jetbrains/mcp-proxy" && (status as? McpServerStatus.Status.FAILED)?.e?.toString()?.let { error ->
-    error.contains("NullPointerException") && error.contains("com.fasterxml.jackson.databind.JsonNode")
-}  ?: false
+fun McpServerStatus.jetbrainsMcpProxyUnavailable() =
+    name == "@jetbrains/mcp-proxy" && (status as? McpServerStatus.Status.FAILED)?.e?.toString()?.let { error ->
+        error.contains("NullPointerException") && error.contains("com.fasterxml.jackson.databind.JsonNode")
+    } ?: false

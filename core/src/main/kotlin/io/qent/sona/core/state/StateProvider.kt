@@ -41,6 +41,7 @@ class StateProvider(
     externalTools: ExternalTools,
     filePermissionRepository: FilePermissionsRepository,
     mcpServersRepository: McpServersRepository,
+    private val editConfig: () -> Unit,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default),
     private val systemMessages: List<SystemMessage> = emptyList(),
 ) {
@@ -292,6 +293,7 @@ class StateProvider(
         servers = mcpManager.servers,
         onToggleServer = { name -> mcpManager.toggle(name) },
         onReload = { scope.launch { mcpManager.reload() } },
+        onEditConfig = editConfig,
         onNewChat = { scope.launch { newChat() } },
         onOpenHistory = { scope.launch { showHistory() } },
         onOpenRoles = { scope.launch { showRoles() } },
