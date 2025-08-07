@@ -1,15 +1,13 @@
 package io.qent.sona.ui.chat
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.SwingPanel
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
@@ -23,15 +21,23 @@ import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.IconLoader
 import com.intellij.util.ui.ScrollUtil
+import com.intellij.util.ui.JBUI
 import com.mikepenz.markdown.compose.components.MarkdownComponentModel
 import com.mikepenz.markdown.compose.elements.MarkdownCodeBlock
 import com.mikepenz.markdown.compose.elements.MarkdownCodeFence
+import io.qent.sona.PluginStateFlow
 import io.qent.sona.Strings
-import io.qent.sona.ui.SonaTheme
-import org.jetbrains.jewel.ui.component.IconButton
+import java.awt.Cursor
+import java.awt.FlowLayout
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.lang.Float.min
 import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.OverlayLayout
 
 /**
  * Renders a markdown code block with a copy button overlay.
@@ -39,30 +45,18 @@ import javax.swing.JComponent
 @Composable
 fun CopyableCodeBlock(project: Project, model: MarkdownComponentModel, fence: Boolean, onScrollOutside: ((Float) -> Unit)) {
     val clipboard = LocalClipboardManager.current
-    val extractedCode = remember { mutableStateOf("") }
 
-    Box {
-        if (fence) {
-            MarkdownCodeFence(model.content, model.node, style = model.typography.code) { code: String, lang: String?, _ ->
-                extractedCode.value = code
-                CodeEditor(project, code, lang, onScrollOutside = onScrollOutside)
-            }
-        } else {
-            MarkdownCodeBlock(model.content, model.node, style = model.typography.code) { code: String, lang: String?, _ ->
-                extractedCode.value = code
-                CodeEditor(project, code, lang, onScrollOutside = onScrollOutside)
+    if (fence) {
+        MarkdownCodeFence(model.content, model.node, style = model.typography.code) { code: String, lang: String?, _ ->
+            CodeEditor(project, code, lang, onScrollOutside = onScrollOutside) {
+                clipboard.setText(AnnotatedString(code))
             }
         }
-        IconButton(
-            onClick = { clipboard.setText(AnnotatedString(extractedCode.value)) },
-            modifier = Modifier.align(Alignment.TopEnd).padding(top = 12.dp, end = 4.dp)
-        ) {
-            Image(
-                painter = loadIcon("/icons/copy.svg"),
-                contentDescription = Strings.copyCode,
-                colorFilter = ColorFilter.tint(SonaTheme.colors.AiText),
-                modifier = Modifier.size(12.dp)
-            )
+    } else {
+        MarkdownCodeBlock(model.content, model.node, style = model.typography.code) { code: String, lang: String?, _ ->
+            CodeEditor(project, code, lang, onScrollOutside = onScrollOutside) {
+                clipboard.setText(AnnotatedString(code))
+            }
         }
     }
 }
@@ -74,6 +68,7 @@ fun CodeEditor(
     language: String?,
     parentDisposable: Disposable = project,
     onScrollOutside: ((Float) -> Unit),
+    onCopy: () -> Unit,
 ) {
     val (editor, editorNode) = remember(project, code, language) {
         val fileType = language?.let {
@@ -118,7 +113,32 @@ fun CodeEditor(
     }
 
     SwingPanel(
-        factory = { editor.component },
+        factory = {
+            val editorComponent = editor.component
+
+            val panel = JPanel().apply { layout = OverlayLayout(this) }
+
+            val copyIcon = IconLoader.getIcon("/icons/copy.svg", PluginStateFlow::class.java)
+            val buttonPanel = JPanel(FlowLayout(FlowLayout.RIGHT)).apply {
+                isOpaque = false
+                border = JBUI.Borders.empty(12, 0, 0, 4)
+                add(JLabel(copyIcon).apply {
+                    cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+                    toolTipText = Strings.copyCode
+                    addMouseListener(object : MouseAdapter() {
+                        override fun mouseClicked(e: MouseEvent?) {
+                            onCopy()
+                        }
+                    })
+                })
+                alignmentX = 1f
+                alignmentY = 0f
+            }
+
+            panel.add(editorComponent)
+            panel.add(buttonPanel)
+            panel
+        },
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
