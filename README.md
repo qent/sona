@@ -51,8 +51,11 @@ The chat header shows token usage together with the estimated cost for the last
 message and for the entire conversation. It also displays how much of the
 model's context window is currently filled based on the active preset.
 
-The settings screen contains only a single option: **Ignore HTTPS errors**. Enable
-it to trust all HTTPS certificates when connecting to custom endpoints.
+The settings screen is split into two sections. **Plugin Settings** contains the
+original **Ignore HTTPS errors** option. Enable it to trust all HTTPS
+certificates when connecting to custom endpoints. The new **Anthropic Settings**
+section adds checkboxes to cache system prompts and tool descriptions when
+sending requests to Anthropic models.
 
 ## Model pricing
 
