@@ -23,18 +23,20 @@ import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.ui.ScrollUtil
 import com.mikepenz.markdown.compose.components.MarkdownComponentModel
 import com.mikepenz.markdown.compose.elements.MarkdownCodeBlock
 import com.mikepenz.markdown.compose.elements.MarkdownCodeFence
 import io.qent.sona.ui.SonaTheme
 import org.jetbrains.jewel.ui.component.IconButton
 import java.lang.Float.min
+import javax.swing.JComponent
 
 /**
  * Renders a markdown code block with a copy button overlay.
  */
 @Composable
-fun CopyableCodeBlock(project: Project, model: MarkdownComponentModel, fence: Boolean) {
+fun CopyableCodeBlock(project: Project, model: MarkdownComponentModel, fence: Boolean, onScrollOutside: ((Float) -> Unit)) {
     val clipboard = LocalClipboardManager.current
     val extractedCode = remember { mutableStateOf("") }
 
@@ -42,12 +44,12 @@ fun CopyableCodeBlock(project: Project, model: MarkdownComponentModel, fence: Bo
         if (fence) {
             MarkdownCodeFence(model.content, model.node, style = model.typography.code) { code: String, lang: String?, _ ->
                 extractedCode.value = code
-                CodeEditor(project, code, lang)
+                CodeEditor(project, code, lang, onScrollOutside = onScrollOutside)
             }
         } else {
             MarkdownCodeBlock(model.content, model.node, style = model.typography.code) { code: String, lang: String?, _ ->
                 extractedCode.value = code
-                CodeEditor(project, code, lang)
+                CodeEditor(project, code, lang, onScrollOutside = onScrollOutside)
             }
         }
         IconButton(
@@ -69,7 +71,8 @@ fun CodeEditor(
     project: Project,
     code: String,
     language: String?,
-    parentDisposable: Disposable = project      // можно передать свой узел
+    parentDisposable: Disposable = project,
+    onScrollOutside: ((Float) -> Unit),
 ) {
     val (editor, editorNode) = remember(project, code, language) {
         val fileType = language?.let {
@@ -95,7 +98,7 @@ fun CodeEditor(
         Disposer.register(parentDisposable, node)
 
         // Install nested scroll proxy for the editor component
-        installNestedScrollProxy(editor.component)
+        installNestedScrollProxy(editor.component, onScrollOutside)
 
         editor to node
     }
@@ -122,11 +125,10 @@ fun CodeEditor(
     )
 }
 
-private fun installNestedScrollProxy(editorComponent: java.awt.Component) {
+private fun installNestedScrollProxy(editorComponent: JComponent, onScrollOutside: (Float) -> Unit) {
     javax.swing.SwingUtilities.invokeLater {
-        val scrollPane = javax.swing.SwingUtilities.getAncestorOfClass(
-            javax.swing.JScrollPane::class.java, editorComponent
-        ) as? javax.swing.JScrollPane ?: return@invokeLater
+        val scrollPane = ScrollUtil.findScrollPane(editorComponent) ?: return@invokeLater
+
 
         scrollPane.addMouseWheelListener(object : java.awt.event.MouseWheelListener {
             override fun mouseWheelMoved(e: java.awt.event.MouseWheelEvent) {
@@ -138,7 +140,7 @@ private fun installNestedScrollProxy(editorComponent: java.awt.Component) {
 
                 if ((scrollingUp && atTop) || (scrollingDown && atBottom)) {
                     // проксировать событие наружу
-                    editorComponent.parent?.dispatchEvent(e)
+                    onScrollOutside.invoke(e.preciseWheelRotation.toFloat() * 40f)
                 }
             }
         })

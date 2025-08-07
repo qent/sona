@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -44,6 +45,7 @@ import java.awt.image.BufferedImage
 import io.qent.sona.ui.SonaTheme
 import dev.langchain4j.agent.tool.ToolExecutionRequest
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import javax.swing.Icon
 
 @Composable
@@ -66,6 +68,7 @@ fun ChatPanel(project: Project, state: ChatState) {
 @Composable
 private fun Messages(project: Project, state: ChatState, modifier: Modifier = Modifier) {
     val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
     LazyColumn(
         state = listState,
         modifier = modifier
@@ -87,7 +90,17 @@ private fun Messages(project: Project, state: ChatState, modifier: Modifier = Mo
                 } else null
 
                 if (message is UiMessage.Ai || message is UiMessage.User) {
-                    MessageBubble(project, message, bottomContent = bottom, onDelete = { state.onDeleteFrom(index) })
+                    MessageBubble(
+                        project,
+                        message,
+                        bottomContent = bottom,
+                        onDelete = { state.onDeleteFrom(index) },
+                        onScrollOutside = { delta ->
+                            coroutineScope.launch {
+                                listState.scrollBy(delta)
+                            }
+                        }
+                    )
                 } else if (message is UiMessage.Tool) {
                     ToolMessageBubble(message, onDelete = { state.onDeleteFrom(index) })
                 }
@@ -108,6 +121,7 @@ fun MessageBubble(
     project: Project, message: UiMessage,
     bottomContent: (@Composable () -> Unit)? = null,
     onDelete: () -> Unit,
+    onScrollOutside: (Float) -> Unit,
 ) {
     if (message is UiMessage.Ai && message.text.isEmpty()) return
 
@@ -149,8 +163,8 @@ fun MessageBubble(
                             colors = SonaTheme.markdownColors,
                             typography = SonaTheme.markdownTypography,
                             components = markdownComponents(
-                                codeFence = { CopyableCodeBlock(project, it, true) },
-                                codeBlock = { CopyableCodeBlock(project, it, false) },
+                                codeFence = { CopyableCodeBlock(project, it, true, onScrollOutside = onScrollOutside) },
+                                codeBlock = { CopyableCodeBlock(project, it, false, onScrollOutside = onScrollOutside) },
                             ),
                         )
                         if (showTools && message.toolRequests.isNotEmpty()) {
