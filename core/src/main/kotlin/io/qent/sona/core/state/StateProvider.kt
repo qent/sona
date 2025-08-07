@@ -55,6 +55,7 @@ class StateProvider(
     private val serversInteractor = ServersStateInteractor(object : ServersController {
         override val servers = mcpManager.servers
         override fun toggle(name: String) = mcpManager.toggle(name)
+        override fun toggleTool(server: String, tool: String) = mcpManager.toggleTool(server, tool)
         override suspend fun reload() = mcpManager.reload()
         override fun stop() = mcpManager.stop()
     })
@@ -199,6 +200,7 @@ class StateProvider(
         val state = factory.createServersState(
             servers = serversInteractor.servers,
             onToggleServer = { name -> serversInteractor.toggle(name) },
+            onToggleTool = { server, tool -> serversInteractor.toggleTool(server, tool) },
             onReload = { scope.launch { serversInteractor.reload() } },
             onEditConfig = editConfig,
             onNewChat = { scope.launch { chatInteractor.newChat() } },

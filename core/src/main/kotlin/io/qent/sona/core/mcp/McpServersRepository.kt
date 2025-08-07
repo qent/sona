@@ -15,4 +15,6 @@ interface McpServersRepository {
     suspend fun list(): List<McpServerConfig>
     suspend fun loadEnabled(): Set<String>
     suspend fun saveEnabled(enabled: Set<String>)
+    suspend fun loadDisabledTools(): Map<String, Set<String>>
+    suspend fun saveDisabledTools(disabled: Map<String, Set<String>>)
 }

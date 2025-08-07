@@ -142,6 +142,7 @@ class StateFactory {
     fun createServersState(
         servers: StateFlow<List<McpServerStatus>>,
         onToggleServer: (String) -> Unit,
+        onToggleTool: (String, String) -> Unit,
         onReload: () -> Unit,
         onEditConfig: () -> Unit,
         onNewChat: () -> Unit,
@@ -151,6 +152,7 @@ class StateFactory {
     ) = State.ServersState(
         servers = servers,
         onToggleServer = onToggleServer,
+        onToggleTool = onToggleTool,
         onReload = onReload,
         onEditConfig = onEditConfig,
         onNewChat = onNewChat,

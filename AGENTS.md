@@ -56,11 +56,12 @@ File permissions can also be adjusted by adding a `sona.json` file at the projec
 `permissions.files.whitelist` and `blacklist` arrays of regex patterns.
 `sona.json` may additionally define an `mcpServers` object keyed by server name with Model
 Context Protocol server configurations including `enabled`, `command`, `args`, environment
-variables, transport, URL, working directory and request headers. Supported transports are
-`stdio` and `http` and each server runs in its own coroutine so failures are isolated. Tools
-exposed by these servers require the same user permission prompts as local tools. Server
-enablement is stored in `sona.json` and only servers marked as enabled reconnect automatically
-on restart.
+variables, transport, URL, working directory, request headers and an optional
+`disabledTools` array listing tool names to ignore. Supported transports are `stdio` and
+`http` and each server runs in its own coroutine so failures are isolated. Tools exposed by
+these servers require the same user permission prompts as local tools. Server enablement and
+disabled tools are stored in `sona.json`; only servers marked as enabled reconnect
+automatically on restart.
 `ChatFlow` depends only on the `Tools` interface and receives the decorator from `StateProvider`.
 
 Whenever you extend the logic make sure the flow of state remains unidirectional

@@ -117,12 +117,19 @@ green once connected and exposing tools. Clicking a card toggles the server on o
 the list reloads `sona.json` and reconnects previously enabled servers. A pinned **Редактировать конфигурацию**
 button at the bottom opens `sona.json`, creating it with the current server configuration and file permission
 lists when missing. Server enablement is stored in `sona.json` so only servers marked as enabled start
-automatically after restarting the IDE.
+automatically after restarting the IDE. Connected servers expand to show their tools with a green indicator next
+to each one. Clicking the indicator disables the tool, turning it grey and excluding it from future LLM requests.
+Disabled tool names persist in `sona.json` under the server's `disabledTools` array.
 
 ```json
 {
   "mcpServers": {
-    "calc": { "enabled": true, "command": "calc-mcp", "transport": "stdio" },
+    "calc": {
+      "enabled": true,
+      "command": "calc-mcp",
+      "transport": "stdio",
+      "disabledTools": ["multiply"]
+    },
     "weather": { "enabled": false, "url": "https://example.com/mcp", "transport": "http" }
   }
 }
