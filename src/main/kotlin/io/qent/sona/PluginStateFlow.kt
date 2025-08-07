@@ -12,7 +12,6 @@ import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.http.client.jdk.JdkHttpClient
 import dev.langchain4j.http.client.jdk.JdkHttpClientBuilder
 import io.qent.sona.core.model.TokenUsageInfo
-import io.qent.sona.core.presets.LlmProvider
 import io.qent.sona.core.presets.Presets
 import io.qent.sona.core.state.State
 import io.qent.sona.core.state.StateProvider
@@ -82,8 +81,8 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
             chatRepository,
             rolesRepository,
             modelFactory = { preset ->
-                when (preset.provider) {
-                    LlmProvider.Anthropic -> {
+                when (preset.provider.name) {
+                    "Anthropic" -> {
                         val builder = AnthropicStreamingChatModel.builder()
                             .apiKey(preset.apiKey)
                             .baseUrl(preset.apiEndpoint)
@@ -104,7 +103,7 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
                         builder.build()
                     }
 
-                    LlmProvider.OpenAI -> {
+                    "OpenAI" -> {
                         val builder = OpenAiStreamingChatModel.builder()
                             .apiKey(preset.apiKey)
                             .baseUrl(preset.apiEndpoint)
@@ -115,7 +114,7 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
                         builder.build()
                     }
 
-                    LlmProvider.Deepseek -> {
+                    "Deepseek" -> {
                         val builder = OpenAiStreamingChatModel.builder()
                             .apiKey(preset.apiKey)
                             .baseUrl(preset.apiEndpoint)
@@ -126,7 +125,7 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
                         builder.build()
                     }
 
-                    LlmProvider.Gemini -> {
+                    "Gemini" -> {
                         val builder = GoogleAiGeminiStreamingChatModel.builder()
                             .apiKey(preset.apiKey)
                             .baseUrl(preset.apiEndpoint)
@@ -136,6 +135,7 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
                         }
                         builder.build()
                     }
+                    else -> throw IllegalArgumentException("Unknown provider ${preset.provider.name}")
                 }
             },
             externalTools = externalTools,

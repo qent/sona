@@ -5,6 +5,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import io.qent.sona.core.presets.LlmProvider
+import io.qent.sona.core.presets.LlmProviders
 import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.presets.Presets
 import io.qent.sona.core.presets.PresetsRepository
@@ -16,9 +17,9 @@ class PluginPresetsRepository : PresetsRepository,
 
     data class StoredPreset(
         var name: String = "",
-        var provider: String = LlmProvider.Anthropic.name,
-        var apiEndpoint: String = LlmProvider.Anthropic.defaultEndpoint,
-        var model: String = LlmProvider.Anthropic.models.first().name,
+        var provider: String = LlmProviders.default.name,
+        var apiEndpoint: String = LlmProviders.default.defaultEndpoint,
+        var model: String = LlmProviders.default.models.first().name,
         var apiKey: String = "",
     )
 
@@ -37,7 +38,7 @@ class PluginPresetsRepository : PresetsRepository,
 
     override suspend fun load(): Presets {
         val presets = state.presets.map { stored ->
-            val provider = runCatching { LlmProvider.valueOf(stored.provider) }.getOrDefault(LlmProvider.Anthropic)
+            val provider = LlmProviders.find(stored.provider) ?: LlmProviders.default
             Preset(
                 stored.name,
                 provider,

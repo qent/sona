@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import io.qent.sona.core.presets.LlmProvider
+import io.qent.sona.core.presets.LlmProviders
 import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.state.State
 import io.qent.sona.ui.DropdownSelector
@@ -176,10 +177,10 @@ private fun PresetForm(
         Text("Provider")
         Spacer(Modifier.height(2.dp))
         DropdownSelector(
-            items = LlmProvider.entries.map { it.name },
-            selectedIndex = LlmProvider.entries.indexOf(provider),
+            items = LlmProviders.entries.map { it.name },
+            selectedIndex = LlmProviders.entries.indexOfFirst { it.name == provider.name },
             expandUpwards = false,
-            onSelect = { idx -> onProviderChange(LlmProvider.entries[idx]) },
+            onSelect = { idx -> onProviderChange(LlmProviders.entries[idx]) },
             modifier = Modifier.fillMaxWidth(),
             backgroundColor = SonaTheme.colors.Background,
             buttonModifier = Modifier.fillMaxWidth()
