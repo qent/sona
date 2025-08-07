@@ -21,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -65,8 +66,8 @@ fun ServersPanel(state: State.ServersState) {
                     .weight(1f),
                 contentPadding = PaddingValues(bottom = 56.dp)
             ) {
-                items(servers) { server ->
-                val expanded = remember { mutableStateOf(false) }
+                items(servers, key = { it.name }) { server ->
+                val expanded = remember(server.name) { mutableStateOf(false) }
                 Column(
                     Modifier
                         .fillMaxWidth()
@@ -132,27 +133,29 @@ fun ServersPanel(state: State.ServersState) {
                         is McpServerStatus.Status.CONNECTED -> {
                             if (expanded.value) {
                                 for (tool in server.tools) {
-                                    val disabled = server.disabledTools.contains(tool.name())
-                                    Row(
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .padding(top = 12.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        val color = if (disabled) Color.Gray else Color(0xFF4CAF50)
-                                        Box(
+                                    key(tool.name()) {
+                                        val disabled = server.disabledTools.contains(tool.name())
+                                        Row(
                                             Modifier
-                                                .clickable { state.onToggleTool(server.name, tool.name()) }
-                                                .padding(end = 8.dp)
-                                                .size(8.dp)
-                                                .clip(CircleShape)
-                                                .background(color)
-                                        )
-                                        Text(tool.name(), Modifier.width(200.dp), fontWeight = FontWeight.Bold)
-                                        Text(
-                                            tool.description().trimIndent(),
-                                            color = SonaTheme.colors.BackgroundText
-                                        )
+                                                .fillMaxWidth()
+                                                .padding(top = 12.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            val color = if (disabled) Color.Gray else Color(0xFF4CAF50)
+                                            Box(
+                                                Modifier
+                                                    .clickable { state.onToggleTool(server.name, tool.name()) }
+                                                    .padding(end = 8.dp)
+                                                    .size(8.dp)
+                                                    .clip(CircleShape)
+                                                    .background(color)
+                                            )
+                                            Text(tool.name(), Modifier.width(200.dp), fontWeight = FontWeight.Bold)
+                                            Text(
+                                                tool.description().trimIndent(),
+                                                color = SonaTheme.colors.BackgroundText
+                                            )
+                                        }
                                     }
                                 }
                             }
