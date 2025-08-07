@@ -15,6 +15,7 @@ repositories {
 
 dependencies {
     implementation(libs.gson)
+    testImplementation(libs.junit)
     implementation(libs.langchain4j.core)
     implementation(libs.langchain4j.kotlin)
     implementation(libs.langchain4j.anthropic)
