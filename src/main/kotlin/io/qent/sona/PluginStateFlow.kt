@@ -89,6 +89,15 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
                         if (settingsRepository.state.ignoreHttpsErrors) {
                             builder.httpClientBuilder(ignoreHttpsClientBuilder())
                         }
+                        if (settingsRepository.state.cacheSystemPrompts) {
+                            builder.cacheSystemMessages(true)
+                        }
+                        if (settingsRepository.state.cacheToolDescriptions) {
+                            builder.cacheTools(true)
+                        }
+                        if (settingsRepository.state.cacheSystemPrompts || settingsRepository.state.cacheToolDescriptions) {
+                            builder.beta("prompt-caching-2024-07-31")
+                        }
                         builder.build()
                     }
 
