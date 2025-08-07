@@ -139,13 +139,13 @@ fun ServersPanel(state: State.ServersState) {
                                             Modifier
                                                 .fillMaxWidth()
                                                 .padding(top = 12.dp),
-                                            verticalAlignment = Alignment.CenterVertically
+                                            verticalAlignment = Alignment.Top
                                         ) {
                                             val color = if (disabled) Color.Gray else Color(0xFF4CAF50)
                                             Box(
                                                 Modifier
                                                     .clickable { state.onToggleTool(server.name, tool.name()) }
-                                                    .padding(end = 8.dp)
+                                                    .padding(top = 5.dp, end = 8.dp)
                                                     .size(8.dp)
                                                     .clip(CircleShape)
                                                     .background(color)
