@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.qent.sona.Strings
 import io.qent.sona.core.state.State.ChatListState
 import io.qent.sona.ui.SonaTheme
 import org.jetbrains.jewel.ui.component.ActionButton
@@ -26,11 +27,11 @@ fun ChatListPanel(state: ChatListState) {
             .background(SonaTheme.colors.Background)
             .padding(8.dp)
     ) {
-        Text(
-            "History",
-            modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
-            style = SonaTheme.markdownTypography.h5
-        )
+            Text(
+                Strings.history,
+                modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
+                style = SonaTheme.markdownTypography.h5
+            )
         LazyColumn(
             state = listState,
             modifier = Modifier
@@ -66,7 +67,7 @@ fun ChatListPanel(state: ChatListState) {
                         Spacer(modifier = Modifier.height(6.dp))
                         val date = SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date(chat.createdAt))
                         Text(
-                            text = "$date · ${chat.messages} messages",
+                            text = "$date · ${chat.messages} ${Strings.messages}",
                             fontSize = 12.sp,
                             color = SonaTheme.colors.Placeholder
                         )

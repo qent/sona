@@ -27,6 +27,7 @@ import com.intellij.util.ui.ScrollUtil
 import com.mikepenz.markdown.compose.components.MarkdownComponentModel
 import com.mikepenz.markdown.compose.elements.MarkdownCodeBlock
 import com.mikepenz.markdown.compose.elements.MarkdownCodeFence
+import io.qent.sona.Strings
 import io.qent.sona.ui.SonaTheme
 import org.jetbrains.jewel.ui.component.IconButton
 import java.lang.Float.min
@@ -58,7 +59,7 @@ fun CopyableCodeBlock(project: Project, model: MarkdownComponentModel, fence: Bo
         ) {
             Image(
                 painter = loadIcon("/icons/copy.svg"),
-                contentDescription = "Copy code",
+                contentDescription = Strings.copyCode,
                 colorFilter = ColorFilter.tint(SonaTheme.colors.AiText),
                 modifier = Modifier.size(12.dp)
             )

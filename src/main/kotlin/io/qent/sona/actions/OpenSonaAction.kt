@@ -4,8 +4,9 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.wm.ToolWindowManager
+import io.qent.sona.Strings
 
-class OpenSonaAction : AnAction("Open Sona", "Open chat with Sona", null), DumbAware {
+class OpenSonaAction : AnAction(Strings.openSonaAction, Strings.openSonaActionDescription, null), DumbAware {
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
         ToolWindowManager.getInstance(project).getToolWindow("Sona")?.also { toolWindow ->

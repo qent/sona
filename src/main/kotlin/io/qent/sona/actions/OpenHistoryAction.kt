@@ -5,8 +5,9 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.service
 import io.qent.sona.PluginStateFlow
+import io.qent.sona.Strings
 
-class OpenHistoryAction : AnAction("History", "Open chat history", AllIcons.General.History) {
+class OpenHistoryAction : AnAction(Strings.historyAction, Strings.historyActionDescription, AllIcons.General.History) {
     override fun actionPerformed(e: AnActionEvent) {
         e.project?.service<PluginStateFlow>()?.lastState?.onOpenHistory()
     }

@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import io.qent.sona.Strings
 import io.qent.sona.core.state.State.ChatState
 import io.qent.sona.core.model.cost
 import io.qent.sona.ui.SonaTheme
@@ -83,26 +84,26 @@ private fun ExpandedTokenDetails(
     maxContext: Int
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        val contextPercent = if (maxContext > 0) contextTokens * 100 / maxContext else 0
-        TwoColumnRow("Context", "$contextTokens / $maxContext ($contextPercent%)")
+          val contextPercent = if (maxContext > 0) contextTokens * 100 / maxContext else 0
+          TwoColumnRow(Strings.context, "$contextTokens / $maxContext ($contextPercent%)")
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Text("Total token usage", modifier = Modifier.padding(bottom = 4.dp), style = SonaTheme.markdownTypography.h5)
-        TwoColumnRow("Output", "${state.totalTokenUsage.outputTokens}")
-        TwoColumnRow("Input", "${state.totalTokenUsage.inputTokens}")
-        TwoColumnRow("Cache created", "${state.totalTokenUsage.cacheCreationInputTokens}")
-        TwoColumnRow("Cache read", "${state.totalTokenUsage.cacheReadInputTokens}")
-        TwoColumnRow("Total cost", formatCost(totalCost), Color(0xFF4CAF50))
+          Text(Strings.totalTokenUsage, modifier = Modifier.padding(bottom = 4.dp), style = SonaTheme.markdownTypography.h5)
+          TwoColumnRow(Strings.output, "${state.totalTokenUsage.outputTokens}")
+          TwoColumnRow(Strings.input, "${state.totalTokenUsage.inputTokens}")
+          TwoColumnRow(Strings.cacheCreated, "${state.totalTokenUsage.cacheCreationInputTokens}")
+          TwoColumnRow(Strings.cacheRead, "${state.totalTokenUsage.cacheReadInputTokens}")
+          TwoColumnRow(Strings.totalCost, formatCost(totalCost), Color(0xFF4CAF50))
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Text("Last request", modifier = Modifier.padding(bottom = 4.dp), style = SonaTheme.markdownTypography.h5)
-        TwoColumnRow("Output", "${state.lastTokenUsage.outputTokens}")
-        TwoColumnRow("Input", "${state.lastTokenUsage.inputTokens}")
-        TwoColumnRow("Cache created", "${state.lastTokenUsage.cacheCreationInputTokens}")
-        TwoColumnRow("Cache read", "${state.lastTokenUsage.cacheReadInputTokens}")
-        TwoColumnRow("Request cost", formatCost(lastCost), Color(0xFF4CAF50))
+          Text(Strings.lastRequest, modifier = Modifier.padding(bottom = 4.dp), style = SonaTheme.markdownTypography.h5)
+          TwoColumnRow(Strings.output, "${state.lastTokenUsage.outputTokens}")
+          TwoColumnRow(Strings.input, "${state.lastTokenUsage.inputTokens}")
+          TwoColumnRow(Strings.cacheCreated, "${state.lastTokenUsage.cacheCreationInputTokens}")
+          TwoColumnRow(Strings.cacheRead, "${state.lastTokenUsage.cacheReadInputTokens}")
+          TwoColumnRow(Strings.requestCost, formatCost(lastCost), Color(0xFF4CAF50))
     }
 }
 

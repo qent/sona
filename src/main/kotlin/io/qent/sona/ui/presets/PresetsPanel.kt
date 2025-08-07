@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import io.qent.sona.Strings
 import io.qent.sona.core.presets.LlmProvider
 import io.qent.sona.core.presets.LlmProviders
 import io.qent.sona.core.presets.Preset
@@ -53,7 +54,7 @@ fun PresetsPanel(state: State.PresetsState) {
         ) {
             if (state.presets.isNotEmpty()) {
                 Text(
-                    "Models presets",
+                    Strings.modelsPresets,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
                     style = SonaTheme.markdownTypography.h5
                 )
@@ -68,10 +69,10 @@ fun PresetsPanel(state: State.PresetsState) {
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("Start working with AI", style = SonaTheme.markdownTypography.h1)
+                        Text(Strings.startWorkingWithAi, style = SonaTheme.markdownTypography.h1)
                         Spacer(Modifier.height(12.dp))
                         Text(
-                            "To get started, set up access to the LLM provider",
+                            Strings.toGetStarted,
                             style = SonaTheme.markdownTypography.h4
                         )
                     }
@@ -110,7 +111,7 @@ fun PresetsPanel(state: State.PresetsState) {
                                 .padding(top = 8.dp)
                                 .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(4.dp))
                                 .padding(4.dp)
-                        ) { Text("Save") }
+                        ) { Text(Strings.save) }
                     }
                 }
             } else {
@@ -151,7 +152,7 @@ fun PresetsPanel(state: State.PresetsState) {
                         )
                     )
                 }, modifier = Modifier.fillMaxWidth()) {
-                    Text("Save")
+                    Text(Strings.save)
                 }
             }
         }
@@ -170,11 +171,11 @@ private fun PresetForm(
     tokenState: TextFieldState
 ) {
     Column(Modifier.fillMaxWidth()) {
-        Text("Name")
+          Text(Strings.name)
         Spacer(Modifier.height(6.dp))
         TextField(nameState, Modifier.fillMaxWidth())
         Spacer(Modifier.height(12.dp))
-        Text("Provider")
+          Text(Strings.provider)
         Spacer(Modifier.height(2.dp))
         DropdownSelector(
             items = LlmProviders.entries.map { it.name },
@@ -186,7 +187,7 @@ private fun PresetForm(
             buttonModifier = Modifier.fillMaxWidth()
         )
         Spacer(Modifier.height(12.dp))
-        Text("Model")
+          Text(Strings.model)
         Spacer(Modifier.height(2.dp))
         DropdownSelector(
             items = provider.models.map { it.name },
@@ -198,11 +199,11 @@ private fun PresetForm(
             buttonModifier = Modifier.fillMaxWidth()
         )
         Spacer(Modifier.height(12.dp))
-        Text("API URL")
+          Text(Strings.apiUrl)
         Spacer(Modifier.height(6.dp))
         TextField(apiState, Modifier.fillMaxWidth())
         Spacer(Modifier.height(12.dp))
-        Text("Token")
+          Text(Strings.token)
         Spacer(Modifier.height(6.dp))
         TextField(
             value = TextFieldValue("•".repeat(tokenState.text.length)),
