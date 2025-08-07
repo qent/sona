@@ -82,6 +82,10 @@ class StateProvider(
         }
     }
 
+    fun dispose() {
+        mcpManager.stop()
+    }
+
     private fun createChatState(chat: Chat): State.ChatState {
         val lastAi = chat.messages.lastOrNull { it.message is AiMessage }
         val lastUsage = lastAi?.tokenUsage ?: TokenUsageInfo()
