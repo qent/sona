@@ -138,6 +138,7 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
             externalTools = externalTools,
             filePermissionRepository = PluginFilePermissionsRepository(project),
             mcpServersRepository = project.service<PluginMcpServersRepository>(),
+            editConfig = { project.service<PluginMcpServersRepository>().openConfig() },
             scope = scope,
             systemMessages = createSystemMessages(),
         )
