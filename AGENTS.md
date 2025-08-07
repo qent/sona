@@ -39,10 +39,9 @@ IDE theme changes.
 
 ## Current structure
 
-- **core module** – contains `ChatFlow` and `StateProvider`. `ChatFlow` is a
+- **core module** – contains `ChatFlow`, a thin `StateProvider` facade, `StateFactory` and domain interactors (`ChatStateInteractor`, `RolesStateInteractor`, `PresetsStateInteractor`, `ServersStateInteractor`). `ChatFlow` is a
   `MutableStateFlow` based `Flow` that manages the conversation with the model
-  and keeps track of token usage. `StateProvider` maps that flow to a higher
-  level `State` used by the UI.
+  and keeps track of token usage while the interactors handle domain logic.
 - **Plugin module** – provides IntelliJ implementations of the repositories,
   the Compose UI and `PluginStateFlow`, a project service exposing
   `StateFlow<State>` from `StateProvider`.
