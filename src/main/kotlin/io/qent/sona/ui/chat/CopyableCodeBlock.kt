@@ -22,15 +22,16 @@ import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.IconLoader
+import com.intellij.ui.JBColor
 import com.intellij.util.ui.ScrollUtil
-import com.intellij.util.ui.JBUI
 import com.mikepenz.markdown.compose.components.MarkdownComponentModel
 import com.mikepenz.markdown.compose.elements.MarkdownCodeBlock
 import com.mikepenz.markdown.compose.elements.MarkdownCodeFence
 import io.qent.sona.PluginStateFlow
 import io.qent.sona.Strings
+import java.awt.Color
 import java.awt.Cursor
-import java.awt.FlowLayout
+import java.awt.Dimension
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.lang.Float.min
@@ -116,28 +117,39 @@ fun CodeEditor(
         factory = {
             val editorComponent = editor.component
 
-            val panel = JPanel().apply { layout = OverlayLayout(this) }
-
-            val copyIcon = IconLoader.getIcon("/icons/copy.svg", PluginStateFlow::class.java)
-            val buttonPanel = JPanel(FlowLayout(FlowLayout.RIGHT)).apply {
+            val container = JPanel().apply {
+                layout = OverlayLayout(this)
                 isOpaque = false
-                border = JBUI.Borders.empty(12, 0, 0, 4)
-                add(JLabel(copyIcon).apply {
-                    cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-                    toolTipText = Strings.copyCode
-                    addMouseListener(object : MouseAdapter() {
-                        override fun mouseClicked(e: MouseEvent?) {
-                            onCopy()
-                        }
-                    })
-                })
-                alignmentX = 1f
-                alignmentY = 0f
+                preferredSize = editorComponent.preferredSize
             }
 
-            panel.add(editorComponent)
-            panel.add(buttonPanel)
-            panel
+            // панель поверх редактора для кнопки копирования
+            val copyIcon = IconLoader.getIcon("/icons/copy.svg", PluginStateFlow::class.java)
+            val label = JLabel(copyIcon).apply {
+                cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+                toolTipText = Strings.copyCode
+                addMouseListener(object : MouseAdapter() {
+                    override fun mouseClicked(e: MouseEvent?) {
+                        onCopy()
+                    }
+                })
+            }
+            val overlayPanel = object : JPanel(null) {
+                override fun doLayout() {
+                    super.doLayout()
+                    // label всегда в правом верхнем углу с отступом 8px
+                    label.setBounds(width - 32, 4, 28, 28)
+                }
+            }.apply {
+                isOpaque = false
+                preferredSize = editorComponent.preferredSize
+                add(label)
+            }
+
+            container.add(overlayPanel)
+            container.add(editorComponent)
+
+            return@SwingPanel container
         },
         modifier = Modifier
             .fillMaxWidth()
