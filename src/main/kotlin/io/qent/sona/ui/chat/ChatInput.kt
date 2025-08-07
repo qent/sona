@@ -40,6 +40,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.qent.sona.Strings
 import io.qent.sona.core.roles.DefaultRoles
 import io.qent.sona.core.state.State.ChatState
 import org.jetbrains.jewel.ui.component.ActionButton
@@ -61,12 +62,12 @@ fun ChatInput(state: ChatState) {
     }
 
     val placeholder = if (state.messages.isNotEmpty() || state.roles.isEmpty()) {
-        "Type a message..."
+        Strings.typeMessage
     } else {
         when (state.roles[state.activeRole]) {
-            DefaultRoles.ARCHITECT.displayName -> "Describe what you'd like to plan and design..."
-            DefaultRoles.CODE.displayName -> "Describe what you'd like to implement..."
-            else -> "Describe your task..."
+            DefaultRoles.ARCHITECT.displayName -> Strings.architectPlaceholder
+            DefaultRoles.CODE.displayName -> Strings.codePlaceholder
+            else -> Strings.defaultPlaceholder
         }
     }
 

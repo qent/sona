@@ -11,44 +11,44 @@
         <module name="intellij.platform.jewel.ideLafBridge"></module>
     </dependencies>
 
-    <resource-bundle>messages.ComposeTemplate</resource-bundle>
+    <resource-bundle>messages.Strings</resource-bundle>
 
     <actions>
         <action id="CreateNewChatAction"
                 class="io.qent.sona.actions.CreateNewChatAction"
-                text="Create"
-                description="Create new chat"
+                textKey="createAction"
+                descriptionKey="createActionDescription"
                 icon="AllIcons.General.Add"/>
 
         <action id="OpenHistoryAction"
                 class="io.qent.sona.actions.OpenHistoryAction"
-                text="History"
-                description="Open history"
+                textKey="historyAction"
+                descriptionKey="historyActionDescription"
                 icon="AllIcons.General.History"/>
 
         <action id="OpenRolesAction"
                 class="io.qent.sona.actions.OpenRolesAction"
-                text="Role"
-                description="Edit system message"
+                textKey="rolesAction"
+                descriptionKey="rolesActionDescription"
                 icon="AllIcons.General.User"/>
 
         <action id="OpenPresetsAction"
                 class="io.qent.sona.actions.OpenPresetsAction"
-                text="Preset"
-                description="Edit LLM presets"
+                textKey="presetsAction"
+                descriptionKey="presetsActionDescription"
                 icon="AllIcons.General.GearPlain"/>
 
         <action id="OpenServersAction"
                 class="io.qent.sona.actions.OpenServersAction"
-                text="Servers"
-                description="Show MCP servers"
+                textKey="serversAction"
+                descriptionKey="serversActionDescription"
                 icon="AllIcons.Webreferences.Server"/>
 
 
         <action id="OpenSonaToolWindowAction"
                 class="io.qent.sona.actions.OpenSonaAction"
-                text="Open Sona"
-                description="Open chat with Sona">
+                textKey="openSonaAction"
+                descriptionKey="openSonaActionDescription">
             <keyboard-shortcut keymap="$default" first-keystroke="meta control S"/>
         </action>
     </actions>

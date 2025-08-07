@@ -5,8 +5,9 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.service
 import io.qent.sona.PluginStateFlow
+import io.qent.sona.Strings
 
-class OpenRolesAction : AnAction("Role", "Edit system message", AllIcons.General.User) {
+class OpenRolesAction : AnAction(Strings.rolesAction, Strings.rolesActionDescription, AllIcons.General.User) {
     override fun actionPerformed(e: AnActionEvent) {
         e.project?.service<PluginStateFlow>()?.lastState?.onOpenRoles?.invoke()
     }

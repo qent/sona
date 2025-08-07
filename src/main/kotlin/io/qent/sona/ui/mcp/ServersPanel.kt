@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.qent.sona.Strings
 import io.qent.sona.core.mcp.McpServerStatus
 import io.qent.sona.core.state.State
 import io.qent.sona.ui.SonaTheme
@@ -49,7 +50,7 @@ fun ServersPanel(state: State.ServersState) {
         Column(Modifier.fillMaxSize()) {
             Row(Modifier.fillMaxWidth()) {
                 Text(
-                    "MCP Servers",
+                    Strings.mcpServers,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
                     style = SonaTheme.markdownTypography.h5
                 )
@@ -121,7 +122,7 @@ fun ServersPanel(state: State.ServersState) {
                                         .padding(horizontal = 10.dp, vertical = 6.dp)
                                 ) {
                                     Text(
-                                        "Install JetBrains MCP Server Plugin",
+                                        Strings.installJetBrainsMcpServerPlugin,
                                         color = Color.White,
                                         fontSize = 12.sp
                                     )
@@ -165,7 +166,7 @@ fun ServersPanel(state: State.ServersState) {
                     .padding(horizontal = 10.dp, vertical = 6.dp)
             ) {
                 Text(
-                    "Редактировать конфигурацию",
+                    Strings.editConfiguration,
                     color = Color.White,
                     fontSize = 12.sp
                 )

@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.intellij.openapi.components.service
 import com.intellij.openapi.options.Configurable
+import io.qent.sona.Strings
 import io.qent.sona.repositories.PluginSettingsRepository
 import io.qent.sona.services.ThemeService
 import io.qent.sona.ui.SonaTheme
@@ -31,26 +32,26 @@ class PluginSettingsConfigurable : Configurable {
         LaunchedEffect(cacheToolDescriptions) { currentCacheToolDescriptions = cacheToolDescriptions }
         SonaTheme(dark = dark) {
             Column(modifier = Modifier.width(600.dp).padding(16.dp)) {
-                Text("Plugin Settings")
+                Text(Strings.pluginSettings)
                 Spacer(Modifier.height(8.dp))
                 Row {
                     Checkbox(checked = ignoreHttps, onCheckedChange = { ignoreHttps = it })
                     Spacer(Modifier.width(8.dp))
-                    Text("Ignore HTTPS errors")
+                      Text(Strings.ignoreHttpsErrors)
                 }
                 Spacer(Modifier.height(16.dp))
-                Text("Anthropic Settings")
+                Text(Strings.anthropicSettings)
                 Spacer(Modifier.height(8.dp))
                 Row {
                     Checkbox(checked = cacheSystemPrompts, onCheckedChange = { cacheSystemPrompts = it })
                     Spacer(Modifier.width(8.dp))
-                    Text("Cache system prompts")
+                      Text(Strings.cacheSystemPrompts)
                 }
                 Spacer(Modifier.height(8.dp))
                 Row {
                     Checkbox(checked = cacheToolDescriptions, onCheckedChange = { cacheToolDescriptions = it })
                     Spacer(Modifier.width(8.dp))
-                    Text("Cache tool descriptions")
+                      Text(Strings.cacheToolDescriptions)
                 }
             }
         }

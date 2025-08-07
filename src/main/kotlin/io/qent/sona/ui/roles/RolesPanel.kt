@@ -11,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import io.qent.sona.Strings
 import io.qent.sona.core.roles.DefaultRoles
 import io.qent.sona.core.state.State.RolesState
 import io.qent.sona.ui.DropdownSelector
@@ -41,7 +42,7 @@ fun RolesPanel(state: RolesState) {
                 .padding(8.dp)
         ) {
             Text(
-                "Agent roles",
+                Strings.agentRoles,
                 modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
                 style = SonaTheme.markdownTypography.h5
             )
@@ -52,7 +53,7 @@ fun RolesPanel(state: RolesState) {
                     ActionButton(onClick = {
                         state.onAddRole(nameState.text.toString(), textState.text.toString())
                         nameState.clearText()
-                    }) { Text("Save") }
+                      }) { Text(Strings.save) }
                 } else {
                     DropdownSelector(
                         items = state.roles,
@@ -71,14 +72,14 @@ fun RolesPanel(state: RolesState) {
                             textState.clearText()
                             state.onStartCreateRole()
                         }
-                    ) { Text("+") }
+                      ) { Text("+") }
 
                     Spacer(Modifier.width(8.dp))
                     ActionButton(
                         onClick = { state.onDeleteRole() },
                         enabled = state.roles.size > DefaultRoles.NAMES.size &&
                             state.roles[state.currentIndex] !in DefaultRoles.NAMES
-                    ) { Text("\uD83D\uDDD1") }
+                      ) { Text("\uD83D\uDDD1") }
                 }
             }
 
@@ -100,7 +101,7 @@ fun RolesPanel(state: RolesState) {
                     onClick = { state.onSave(textState.text.toString()) },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Save")
+                  Text(Strings.save)
                 }
             }
         }

@@ -35,6 +35,7 @@ import com.intellij.openapi.project.Project
 import com.mikepenz.markdown.compose.Markdown
 import com.mikepenz.markdown.compose.components.markdownComponents
 import com.mikepenz.markdown.model.rememberMarkdownState
+import io.qent.sona.Strings
 import io.qent.sona.core.state.State.ChatState
 import io.qent.sona.core.state.UiMessage
 import io.qent.sona.PluginStateFlow
@@ -187,7 +188,7 @@ fun MessageBubble(
             if (message is UiMessage.Ai && message.toolRequests.isNotEmpty()) {
                 Image(
                     painter = loadIcon("/icons/gear.svg"),
-                    contentDescription = "Show tool requests",
+                    contentDescription = Strings.showToolRequests,
                     colorFilter = ColorFilter.tint(textColor),
                     modifier = Modifier
                         .size(12.dp)
@@ -207,7 +208,7 @@ fun MessageBubble(
         ) {
             Image(
                 painter = loadIcon("/icons/copy.svg"),
-                contentDescription = "Copy message",
+                contentDescription = Strings.copyMessage,
                 colorFilter = ColorFilter.tint(textColor),
                 modifier = Modifier
                     .size(12.dp)
@@ -216,7 +217,7 @@ fun MessageBubble(
             Spacer(Modifier.width(8.dp))
             Image(
                 painter = loadIcon("/icons/trash.svg"),
-                contentDescription = "Delete message",
+                contentDescription = Strings.deleteMessage,
                 colorFilter = ColorFilter.tint(textColor),
                 modifier = Modifier
                     .size(12.dp)
@@ -288,7 +289,7 @@ fun ToolMessageBubble(
         ) {
             Image(
                 painter = loadIcon("/icons/copy.svg"),
-                contentDescription = "Copy message",
+                contentDescription = Strings.copyMessage,
                 colorFilter = ColorFilter.tint(textColor),
                 modifier = Modifier
                     .size(12.dp)
@@ -297,7 +298,7 @@ fun ToolMessageBubble(
             Spacer(Modifier.width(8.dp))
             Image(
                 painter = loadIcon("/icons/trash.svg"),
-                contentDescription = "Delete message",
+                contentDescription = Strings.deleteMessage,
                 colorFilter = ColorFilter.tint(textColor),
                 modifier = Modifier
                     .size(12.dp)
@@ -347,15 +348,15 @@ private fun ToolPermissionButtons(
             .padding(2.dp)
     ) {
         Row(Modifier.fillMaxWidth()) {
-            ActionButton(onClick = onOk, modifier = Modifier.weight(1f)) {
-                Text("OK", fontWeight = FontWeight.Bold)
-            }
-            ActionButton(onClick = onAlways, modifier = Modifier.weight(2f)) {
-                Text("Always in this chat")
-            }
-            ActionButton(onClick = onCancel, modifier = Modifier.weight(1f)) {
-                Text("Cancel")
-            }
+              ActionButton(onClick = onOk, modifier = Modifier.weight(1f)) {
+                  Text(Strings.ok, fontWeight = FontWeight.Bold)
+              }
+              ActionButton(onClick = onAlways, modifier = Modifier.weight(2f)) {
+                  Text(Strings.alwaysInThisChat)
+              }
+              ActionButton(onClick = onCancel, modifier = Modifier.weight(1f)) {
+                  Text(Strings.cancel)
+              }
         }
     }
 }
