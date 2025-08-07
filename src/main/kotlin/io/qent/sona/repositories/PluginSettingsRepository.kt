@@ -14,6 +14,8 @@ class PluginSettingsRepository :
     PersistentStateComponent<PluginSettingsRepository.PluginSettingsState> {
     data class PluginSettingsState(
         var ignoreHttpsErrors: Boolean = false,
+        var cacheSystemPrompts: Boolean = true,
+        var cacheToolDescriptions: Boolean = true,
     )
 
     private var pluginSettingsState = PluginSettingsState()
@@ -26,5 +28,7 @@ class PluginSettingsRepository :
 
     override suspend fun load() = Settings(
         pluginSettingsState.ignoreHttpsErrors,
+        pluginSettingsState.cacheSystemPrompts,
+        pluginSettingsState.cacheToolDescriptions,
     )
 }

@@ -53,8 +53,11 @@ The chat header shows token usage together with the estimated cost for the last
 message and for the entire conversation. It also displays how much of the
 model's context window is currently filled based on the active preset.
 
-The settings screen contains only a single option: **Ignore HTTPS errors**. Enable
-it to trust all HTTPS certificates when connecting to custom endpoints.
+The settings screen is split into two sections. **Plugin Settings** contains the
+original **Ignore HTTPS errors** option. Enable it to trust all HTTPS
+certificates when connecting to custom endpoints. The new **Anthropic Settings**
+section adds checkboxes to cache system prompts and tool descriptions when
+sending requests to Anthropic models.
 
 ## Model pricing
 
@@ -101,25 +104,27 @@ The available tools let the model read the focused file, read any file by absolu
 }
 ```
 
-The same configuration file can also include an `mcpServers` array specifying Model Context Protocol
-servers. Each entry supports `name`, `command`, `args`, `env`, `transport`, `url`, `cwd` and `headers` fields.
-When `command` is `npx`, Sona resolves the absolute path to the `npx` executable by checking typical
-installation locations for the current operating system before launching the server. Currently
-`transport` may be `stdio` or `http`. Every server runs in its own coroutine so a failure does
+The same configuration file can also include an `mcpServers` object keyed by server name specifying Model
+Context Protocol servers. Each entry supports `enabled`, `command`, `args`, `env`, `transport`, `url`, `cwd`
+and `headers` fields. When `command` is `npx`, Sona resolves the absolute path to the `npx` executable by
+checking typical installation locations for the current operating system before launching the server.
+Currently `transport` may be `stdio` or `http`. Every server runs in its own coroutine so a failure does
 not affect the plugin. Tools provided by MCP servers require the same user confirmation as local tools.
 
 The tool window includes a **Servers** action listing all configured MCP servers. Each server is shown as a card
 with a coloured status indicator – grey for disabled, red when a connection fails, yellow while connecting and
 green once connected and exposing tools. Clicking a card toggles the server on or off. A refresh button above
-the list reloads `sona.json` and reconnects previously enabled servers. Server enablement is persisted so only
-servers that were on previously start automatically after restarting the IDE.
+the list reloads `sona.json` and reconnects previously enabled servers. A pinned **Редактировать конфигурацию**
+button at the bottom opens `sona.json`, creating it with the current server configuration and file permission
+lists when missing. Server enablement is stored in `sona.json` so only servers marked as enabled start
+automatically after restarting the IDE.
 
 ```json
 {
-  "mcpServers": [
-    { "name": "calc", "command": "calc-mcp", "transport": "stdio" },
-    { "name": "weather", "url": "https://example.com/mcp", "transport": "http" }
-  ]
+  "mcpServers": {
+    "calc": { "enabled": true, "command": "calc-mcp", "transport": "stdio" },
+    "weather": { "enabled": false, "url": "https://example.com/mcp", "transport": "http" }
+  }
 }
 ```
 

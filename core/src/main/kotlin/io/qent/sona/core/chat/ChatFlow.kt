@@ -192,6 +192,11 @@ class ChatFlow(
                 }
                 .onError { t ->
                     if (ignoreCallbacks) return@onError
+                    if (t is CancellationException) {
+                        currentStream = null
+                        emit(currentState.copy(requestInProgress = false, isStreaming = false))
+                        return@onError
+                    }
                     val errMsg = ChatRepositoryMessage(chatId, AiMessage.from("Error: ${t.message}"), preset.model)
                     runBlocking { chatRepository.addMessage(chatId, errMsg.message, preset.model) }
                     emit(
@@ -204,6 +209,9 @@ class ChatFlow(
                     currentStream = null
                 }
             currentStream?.start()
+        } catch (e: CancellationException) {
+            currentStream = null
+            emit(currentState.copy(requestInProgress = false, isStreaming = false))
         } catch (e: Exception) {
             val errorMessage = ChatRepositoryMessage(
                 chatId,

@@ -1,51 +1,38 @@
 package io.qent.sona.repositories
 
-import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.State
-import com.intellij.openapi.components.Storage
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.vfs.LocalFileSystem
 import io.qent.sona.config.SonaConfig
 import io.qent.sona.core.mcp.McpServerConfig
 import io.qent.sona.core.mcp.McpServersRepository
+import java.io.File
+import kotlinx.coroutines.runBlocking
 
 private val JETBRAINS_MCP_ARGS = listOf("-y", "@jetbrains/mcp-proxy")
 
 @Service(Service.Level.PROJECT)
-@State(name = "PluginMcpServersRepository", storages = [Storage("mcp_servers.xml")])
-class PluginMcpServersRepository(private val project: Project) : McpServersRepository,
-    PersistentStateComponent<PluginMcpServersRepository.State> {
-
-    data class State(
-        var enabled: MutableSet<String> = mutableSetOf(),
-    )
-
-    private var state = State()
-
-    override fun getState(): State = state
-
-    override fun loadState(state: State) {
-        this.state = state
-    }
+class PluginMcpServersRepository(private val project: Project) : McpServersRepository {
 
     private val root = project.basePath ?: "/"
+
     override suspend fun list(): List<McpServerConfig> {
-        val servers = SonaConfig.load(root)?.mcpServers ?: emptyList()
-        val result = servers.mapNotNull { server ->
-            val name = server.name ?: return@mapNotNull null
+        val servers = SonaConfig.load(root)?.mcpServers ?: emptyMap()
+        val result = servers.map { (name, server) ->
             McpServerConfig(
                 name = name,
                 command = server.command,
                 args = server.args,
                 env = server.env,
-                transport = server.transport,
+                transport = server.transport ?: "stdio",
                 url = server.url,
                 cwd = server.cwd,
                 headers = server.headers,
             )
         }.toMutableList()
 
-        if (result.find { it.args?.joinToString() == JETBRAINS_MCP_ARGS.joinToString() } == null) {
+        if (result.none { it.args?.joinToString() == JETBRAINS_MCP_ARGS.joinToString() }) {
             result.add(
                 0, McpServerConfig(
                     name = "@jetbrains/mcp-proxy",
@@ -59,9 +46,53 @@ class PluginMcpServersRepository(private val project: Project) : McpServersRepos
         return result
     }
 
-    override suspend fun loadEnabled(): Set<String> = state.enabled
+    override suspend fun loadEnabled(): Set<String> {
+        val servers = SonaConfig.load(root)?.mcpServers ?: emptyMap()
+        return servers.filter { it.value.enabled != false }.keys.toSet()
+    }
 
     override suspend fun saveEnabled(enabled: Set<String>) {
-        state.enabled = enabled.toMutableSet()
+        val file = File(root, "sona.json")
+        if (!file.exists()) return
+        val config = SonaConfig.load(root) ?: SonaConfig()
+        val servers = config.mcpServers?.toMutableMap() ?: mutableMapOf()
+        servers.forEach { (name, server) ->
+            server.enabled = enabled.contains(name)
+        }
+        config.mcpServers = servers
+        SonaConfig.save(root, config)
+    }
+
+    fun openConfig() {
+        val file = File(root, "sona.json")
+        if (!file.exists()) {
+            val enabledSet = runBlocking { loadEnabled() }
+            val servers = runBlocking { list() }
+            val perms = PluginFilePermissionsRepository(project)
+            val config = SonaConfig()
+            config.permissions = SonaConfig.Permissions().apply {
+                files = SonaConfig.Permissions.Files().apply {
+                    whitelist = perms.whitelist
+                    blacklist = perms.blacklist
+                }
+            }
+            config.mcpServers = servers.associate { server ->
+                server.name to SonaConfig.McpServer().apply {
+                    enabled = enabledSet.contains(server.name)
+                    command = server.command
+                    args = server.args
+                    env = server.env
+                    transport = server.transport
+                    url = server.url
+                    cwd = server.cwd
+                    headers = server.headers
+                }
+            }.toMutableMap()
+            SonaConfig.save(root, config)
+        }
+        val vFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file)
+        if (vFile != null) {
+            FileEditorManager.getInstance(project).openFile(vFile, true)
+        }
     }
 }

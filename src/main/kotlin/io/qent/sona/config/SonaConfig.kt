@@ -1,11 +1,12 @@
 package io.qent.sona.config
 
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import java.io.File
 
 class SonaConfig {
     var permissions: Permissions? = null
-    var mcpServers: List<McpServer>? = null
+    var mcpServers: MutableMap<String, McpServer>? = null
 
     class Permissions {
         var files: Files? = null
@@ -17,11 +18,11 @@ class SonaConfig {
     }
 
     class McpServer {
-        var name: String? = null
+        var enabled: Boolean? = null
         var command: String? = null
         var args: List<String>? = null
         var env: Map<String, String>? = null
-        var transport: String = "stdio"
+        var transport: String? = "stdio"
         var url: String? = null
         var cwd: String? = null
         var headers: Map<String, String>? = null
@@ -33,6 +34,12 @@ class SonaConfig {
             return runCatching {
                 if (file.exists()) file.reader().use { Gson().fromJson(it, SonaConfig::class.java) } else null
             }.getOrNull()
+        }
+
+        fun save(root: String, config: SonaConfig) {
+            val file = File(root, "sona.json")
+            val gson: Gson = GsonBuilder().setPrettyPrinting().create()
+            file.writer().use { gson.toJson(config, it) }
         }
     }
 }

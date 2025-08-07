@@ -1,5 +1,6 @@
 package io.qent.sona
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
@@ -24,6 +25,7 @@ import io.qent.sona.repositories.PluginFilePermissionsRepository
 import io.qent.sona.repositories.PluginMcpServersRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.launchIn
@@ -36,7 +38,7 @@ import javax.net.ssl.*
 
 
 @Service(Service.Level.PROJECT)
-class PluginStateFlow(private val project: Project) : Flow<State> {
+class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
 
     private val settingsRepository = service<PluginSettingsRepository>()
     private val presetsRepository = service<PluginPresetsRepository>()
@@ -85,8 +87,18 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
                             .apiKey(preset.apiKey)
                             .baseUrl(preset.apiEndpoint)
                             .modelName(preset.model)
+                            .maxTokens(8000)
                         if (settingsRepository.state.ignoreHttpsErrors) {
                             builder.httpClientBuilder(ignoreHttpsClientBuilder())
+                        }
+                        if (settingsRepository.state.cacheSystemPrompts) {
+                            builder.cacheSystemMessages(true)
+                        }
+                        if (settingsRepository.state.cacheToolDescriptions) {
+                            builder.cacheTools(true)
+                        }
+                        if (settingsRepository.state.cacheSystemPrompts || settingsRepository.state.cacheToolDescriptions) {
+                            builder.beta("prompt-caching-2024-07-31")
                         }
                         builder.build()
                     }
@@ -129,6 +141,7 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
             externalTools = externalTools,
             filePermissionRepository = PluginFilePermissionsRepository(project),
             mcpServersRepository = project.service<PluginMcpServersRepository>(),
+            editConfig = { project.service<PluginMcpServersRepository>().openConfig() },
             scope = scope,
             systemMessages = createSystemMessages(),
         )
@@ -230,5 +243,10 @@ class PluginStateFlow(private val project: Project) : Flow<State> {
 
     override suspend fun collect(collector: FlowCollector<State>) {
         stateProvider.state.collect(collector)
+    }
+
+    override fun dispose() {
+        stateProvider.dispose()
+        scope.cancel()
     }
 }

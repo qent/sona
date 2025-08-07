@@ -106,6 +106,7 @@ sealed class State {
         val servers: StateFlow<List<McpServerStatus>>,
         val onToggleServer: (String) -> Unit,
         val onReload: () -> Unit,
+        val onEditConfig: () -> Unit,
         override val onNewChat: () -> Unit,
         override val onOpenHistory: () -> Unit,
         override val onOpenRoles: () -> Unit,
