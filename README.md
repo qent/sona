@@ -46,6 +46,8 @@ task..." prompt. Once messages are present, the placeholder becomes
 LLM credentials are stored as presets. Each preset defines the provider, model,
 API endpoint and token. Manage presets from the Presets screen opened via the
 tool window actions. At least one preset must exist for the chat to function.
+Supported providers and their models are listed in `core/src/main/resources/providers.json`
+so new options can be added without touching the code.
 
 The chat header shows token usage together with the estimated cost for the last
 message and for the entire conversation. It also displays how much of the
@@ -56,9 +58,9 @@ it to trust all HTTPS certificates when connecting to custom endpoints.
 
 ## Model pricing
 
-Token costs are embedded for each supported model so conversations can display
-their estimated price. The rates below are in USD per million tokens and are
-based on the official pricing pages.
+Token costs are loaded from `providers.json` so conversations can display their
+estimated price. The rates below are in USD per million tokens and are based on
+the official pricing pages.
 
 | Provider | Model | Input | Output | Source |
 | --- | --- | --- | --- | --- |

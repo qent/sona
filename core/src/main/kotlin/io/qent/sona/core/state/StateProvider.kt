@@ -27,6 +27,7 @@ import io.qent.sona.core.roles.RolesRepository
 import io.qent.sona.core.roles.DefaultRoles
 import io.qent.sona.core.roles.Role
 import io.qent.sona.core.presets.LlmProvider
+import io.qent.sona.core.presets.LlmProviders
 import io.qent.sona.core.tools.DefaultInternalTools
 import io.qent.sona.core.tools.ExternalTools
 import io.qent.sona.core.tools.Tools
@@ -257,11 +258,12 @@ class StateProvider(
     private fun createPresetsState(): State.PresetsState {
         val emptyPresets = presets.presets.isEmpty()
         val preset = if (creatingPreset || emptyPresets) {
+            val defaultProvider = LlmProviders.default
             Preset(
-                name = "Sonnet 4.0",
-                provider = LlmProvider.Anthropic,
-                apiEndpoint = LlmProvider.Anthropic.defaultEndpoint,
-                model = LlmProvider.Anthropic.models.first().name,
+                name = defaultProvider.models.first().name,
+                provider = defaultProvider,
+                apiEndpoint = defaultProvider.defaultEndpoint,
+                model = defaultProvider.models.first().name,
                 apiKey = "",
             )
         } else {

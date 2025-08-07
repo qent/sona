@@ -12,6 +12,8 @@
     Code roles cannot be deleted.
 - LLM connection details are organised as presets via `PresetsRepository`. At least one preset must exist for the chat
   to work and they are managed from the Presets screen.
+- Supported LLM providers and models are defined in `core/src/main/resources/providers.json` so new options can be
+  added without modifying the code.
 - Plugin settings contain only the "Ignore HTTPS errors" flag which, when enabled, trusts all HTTPS certificates.
 - Each chat tracks tools approved by the user so that previously allowed tools run without asking again.
 - A 🤘 button next to the send action can temporarily auto-approve all tool
