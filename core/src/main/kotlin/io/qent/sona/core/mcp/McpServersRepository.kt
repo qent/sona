@@ -13,4 +13,6 @@ data class McpServerConfig(
 
 interface McpServersRepository {
     suspend fun list(): List<McpServerConfig>
+    suspend fun loadEnabled(): Set<String>
+    suspend fun saveEnabled(enabled: Set<String>)
 }

@@ -109,7 +109,8 @@ not affect the plugin. Tools provided by MCP servers require the same user confi
 The tool window includes a **Servers** action listing all configured MCP servers. Each server is shown as a card
 with a coloured status indicator – grey for disabled, red when a connection fails, yellow while connecting and
 green once connected and exposing tools. Clicking a card toggles the server on or off. A refresh button above
-the list reloads `sona.json` and reconnects previously enabled servers.
+the list reloads `sona.json` and reconnects previously enabled servers. Server enablement is persisted so only
+servers that were on previously start automatically after restarting the IDE.
 
 ```json
 {

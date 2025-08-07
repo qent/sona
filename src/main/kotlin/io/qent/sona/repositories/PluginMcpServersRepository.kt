@@ -1,5 +1,9 @@
 package io.qent.sona.repositories
 
+import com.intellij.openapi.components.PersistentStateComponent
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.State
+import com.intellij.openapi.components.Storage
 import com.intellij.openapi.project.Project
 import io.qent.sona.config.SonaConfig
 import io.qent.sona.core.mcp.McpServerConfig
@@ -7,7 +11,23 @@ import io.qent.sona.core.mcp.McpServersRepository
 
 private val JETBRAINS_MCP_ARGS = listOf("-y", "@jetbrains/mcp-proxy")
 
-class PluginMcpServersRepository(project: Project) : McpServersRepository {
+@Service(Service.Level.PROJECT)
+@State(name = "PluginMcpServersRepository", storages = [Storage("mcp_servers.xml")])
+class PluginMcpServersRepository(private val project: Project) : McpServersRepository,
+    PersistentStateComponent<PluginMcpServersRepository.State> {
+
+    data class State(
+        var enabled: MutableSet<String> = mutableSetOf(),
+    )
+
+    private var state = State()
+
+    override fun getState(): State = state
+
+    override fun loadState(state: State) {
+        this.state = state
+    }
+
     private val root = project.basePath ?: "/"
     override suspend fun list(): List<McpServerConfig> {
         val servers = SonaConfig.load(root)?.mcpServers ?: emptyList()
@@ -37,5 +57,11 @@ class PluginMcpServersRepository(project: Project) : McpServersRepository {
         }
 
         return result
+    }
+
+    override suspend fun loadEnabled(): Set<String> = state.enabled
+
+    override suspend fun saveEnabled(enabled: Set<String>) {
+        state.enabled = enabled.toMutableSet()
     }
 }

@@ -55,7 +55,8 @@ File permissions can also be adjusted by adding a `sona.json` file at the projec
 configurations including name, command, arguments, environment variables, transport, URL,
 working directory and request headers. Supported transports are `stdio` and `http` and each
 server runs in its own coroutine so failures are isolated. Tools exposed by these servers
-require the same user permission prompts as local tools.
+require the same user permission prompts as local tools. Server enablement is persisted so only
+servers enabled previously reconnect automatically on restart.
 `ChatFlow` depends only on the `Tools` interface and receives the decorator from `StateProvider`.
 
 Whenever you extend the logic make sure the flow of state remains unidirectional

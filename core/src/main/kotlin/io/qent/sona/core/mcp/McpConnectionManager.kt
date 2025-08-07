@@ -33,9 +33,25 @@ class McpConnectionManager(
 
     init {
         scope.launch {
-            repository.list().forEach { config ->
-                enabled += config.name
-                connect(config)
+            val configs = repository.list()
+            var enabledNames = repository.loadEnabled()
+            if (enabledNames.isEmpty()) {
+                enabledNames = configs.map { it.name }.toSet()
+                repository.saveEnabled(enabledNames)
+            }
+            enabled += enabledNames
+            configs.forEach { config ->
+                if (enabled.contains(config.name)) {
+                    connect(config)
+                } else {
+                    updateStatus(
+                        McpServerStatus(
+                            name = config.name,
+                            status = McpServerStatus.Status.DISABLED,
+                            tools = emptyList(),
+                        )
+                    )
+                }
             }
         }
     }
@@ -84,6 +100,7 @@ class McpConnectionManager(
         tools.entries.removeIf { it.value == client }
     }
 
+
     fun toggle(name: String) {
         if (enabled.remove(name)) {
             disconnect(name)
@@ -91,9 +108,10 @@ class McpConnectionManager(
                 McpServerStatus(
                     name = name,
                     status = McpServerStatus.Status.DISABLED,
-                    tools = emptyList()
+                    tools = emptyList(),
                 )
             )
+            scope.launch { repository.saveEnabled(enabled) }
         } else {
             enabled += name
             scope.launch {
@@ -106,16 +124,18 @@ class McpConnectionManager(
                         McpServerStatus(
                             name = name,
                             status = McpServerStatus.Status.FAILED(Exception("Config not found")),
-                            tools = emptyList()
+                            tools = emptyList(),
                         )
                     )
                 }
+                repository.saveEnabled(enabled)
             }
         }
     }
 
+
+
     suspend fun reload() {
-        val wasEnabled = enabled.toSet()
         clients.values.forEach { runCatching { it.close() } }
         clients.clear()
         tools.clear()
@@ -123,9 +143,11 @@ class McpConnectionManager(
         _servers.value = emptyList()
 
         val configs = repository.list()
+        val stored = repository.loadEnabled()
         val configNames = configs.map { it.name }.toSet()
         enabled.clear()
-        enabled.addAll(wasEnabled.intersect(configNames))
+        enabled.addAll(stored.intersect(configNames))
+        repository.saveEnabled(enabled)
 
         configs.forEach { config ->
             if (enabled.contains(config.name)) {
@@ -135,12 +157,13 @@ class McpConnectionManager(
                     McpServerStatus(
                         name = config.name,
                         status = McpServerStatus.Status.DISABLED,
-                        tools = emptyList()
+                        tools = emptyList(),
                     )
                 )
             }
         }
     }
+
 
     private fun createClient(config: McpServerConfig): DefaultMcpClient? {
         val transport = when (config.transport.lowercase()) {
