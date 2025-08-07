@@ -13,6 +13,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.intellij.lang.Language
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.editor.EditorFactory
@@ -71,7 +72,7 @@ fun CodeEditor(
     onScrollOutside: ((Float) -> Unit),
     onCopy: () -> Unit,
 ) {
-    val (editor, editorNode) = remember(project, code, language) {
+    val (editor, editorNode) = remember(project, language) {
         val fileType = language?.let {
             Language.findLanguageByID(it)?.associatedFileType
                 ?: FileTypeManager.getInstance().getFileTypeByExtension(it)
@@ -100,6 +101,11 @@ fun CodeEditor(
         editor to node
     }
 
+    ApplicationManager.getApplication().runWriteAction {
+        editor.document.setText(code)
+        editor.component.invalidate()
+    }
+
     DisposableEffect(Unit) {
         onDispose {
             ApplicationManager.getApplication().invokeLater(
@@ -109,7 +115,7 @@ fun CodeEditor(
         }
     }
 
-    val heightPx = remember(editor) {
+    val heightPx = remember(editor.document.lineCount) {
         min(editor.document.lineCount * 25f, 200.dp.value)
     }
 
