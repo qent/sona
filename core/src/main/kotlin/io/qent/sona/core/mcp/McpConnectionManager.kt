@@ -20,6 +20,7 @@ class McpConnectionManager(
     private val tools = mutableMapOf<String, McpClient>()
     private val statuses = mutableMapOf<String, McpServerStatus>()
     private val enabled = mutableSetOf<String>()
+    private val disabled = mutableMapOf<String, MutableSet<String>>()
 
     private val _servers = MutableStateFlow<List<McpServerStatus>>(emptyList())
     val servers: StateFlow<List<McpServerStatus>> = _servers.asStateFlow()
@@ -34,8 +35,9 @@ class McpConnectionManager(
     init {
         scope.launch {
             val configs = repository.list()
-            var enabledNames = repository.loadEnabled()
+            val enabledNames = repository.loadEnabled()
             enabled += enabledNames
+            disabled.putAll(repository.loadDisabledTools().mapValues { it.value.toMutableSet() })
             configs.forEach { config ->
                 if (enabled.contains(config.name)) {
                     connect(config)
@@ -45,6 +47,7 @@ class McpConnectionManager(
                             name = config.name,
                             status = McpServerStatus.Status.DISABLED,
                             tools = emptyList(),
+                            disabledTools = disabled[config.name] ?: emptySet(),
                         )
                     )
                 }
@@ -57,24 +60,29 @@ class McpConnectionManager(
             McpServerStatus(
                 name = config.name,
                 status = McpServerStatus.Status.CONNECTING,
-                tools = emptyList()
+                tools = emptyList(),
+                disabledTools = disabled[config.name] ?: emptySet(),
             )
         )
         scope.launch {
             runCatching {
                 val client = createClient(config) ?: throw Exception("Invalid config")
                 val specs = client.listTools()
+                val disabledTools = disabled[config.name] ?: mutableSetOf()
                 synchronized(this@McpConnectionManager) {
                     clients[config.name] = client
                     specs.forEach { spec ->
-                        tools[spec.name()] = client
+                        if (!disabledTools.contains(spec.name())) {
+                            tools[spec.name()] = client
+                        }
                     }
                 }
                 updateStatus(
                     McpServerStatus(
                         name = config.name,
                         status = McpServerStatus.Status.CONNECTED,
-                        tools = specs
+                        tools = specs,
+                        disabledTools = disabledTools,
                     )
                 )
             }.onFailure {
@@ -82,7 +90,8 @@ class McpConnectionManager(
                     McpServerStatus(
                         name = config.name,
                         status = McpServerStatus.Status.FAILED(it as? Exception ?: Exception(it)),
-                        tools = emptyList()
+                        tools = emptyList(),
+                        disabledTools = disabled[config.name] ?: emptySet(),
                     )
                 )
                 println("Failed to connect to MCP server ${config.name}: ${it.message}")
@@ -105,6 +114,7 @@ class McpConnectionManager(
                     name = name,
                     status = McpServerStatus.Status.DISABLED,
                     tools = emptyList(),
+                    disabledTools = disabled[name] ?: emptySet(),
                 )
             )
             scope.launch { repository.saveEnabled(enabled) }
@@ -121,12 +131,26 @@ class McpConnectionManager(
                             name = name,
                             status = McpServerStatus.Status.FAILED(Exception("Config not found")),
                             tools = emptyList(),
+                            disabledTools = disabled[name] ?: emptySet(),
                         )
                     )
                 }
                 repository.saveEnabled(enabled)
             }
         }
+    }
+
+    fun toggleTool(server: String, tool: String) {
+        val set = disabled.getOrPut(server) { mutableSetOf() }
+        val client = clients[server]
+        if (set.remove(tool)) {
+            if (client != null) tools[tool] = client
+        } else {
+            set.add(tool)
+            tools.remove(tool)
+        }
+        statuses[server]?.let { updateStatus(it.copy(disabledTools = set.toSet())) }
+        scope.launch { repository.saveDisabledTools(disabled.mapValues { it.value.toSet() }) }
     }
 
 
@@ -144,6 +168,8 @@ class McpConnectionManager(
         enabled.clear()
         enabled.addAll(stored.intersect(configNames))
         repository.saveEnabled(enabled)
+        disabled.clear()
+        disabled.putAll(repository.loadDisabledTools().mapValues { it.value.toMutableSet() })
 
         configs.forEach { config ->
             if (enabled.contains(config.name)) {
@@ -154,6 +180,7 @@ class McpConnectionManager(
                         name = config.name,
                         status = McpServerStatus.Status.DISABLED,
                         tools = emptyList(),
+                        disabledTools = disabled[config.name] ?: emptySet(),
                     )
                 )
             }
@@ -241,7 +268,8 @@ class McpConnectionManager(
     fun hasTool(name: String): Boolean = tools.containsKey(name)
 
     fun listTools() = try {
-        clients.values.flatMap { it.listTools() }
+        statuses.values.filter { it.status is McpServerStatus.Status.CONNECTED }
+            .flatMap { status -> status.tools.filter { it.name() !in status.disabledTools } }
     } catch (_: Exception) {
         emptyList()
     }

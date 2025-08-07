@@ -63,6 +63,25 @@ class PluginMcpServersRepository(private val project: Project) : McpServersRepos
         SonaConfig.save(root, config)
     }
 
+    override suspend fun loadDisabledTools(): Map<String, Set<String>> {
+        val servers = SonaConfig.load(root)?.mcpServers ?: emptyMap()
+        return servers.mapValues { it.value.disabledTools?.toSet() ?: emptySet() }
+    }
+
+    override suspend fun saveDisabledTools(disabled: Map<String, Set<String>>) {
+        val file = File(root, "sona.json")
+        if (!file.exists()) return
+        val config = SonaConfig.load(root) ?: SonaConfig()
+        val servers = config.mcpServers?.toMutableMap() ?: mutableMapOf()
+        disabled.forEach { (name, set) ->
+            val server = servers[name] ?: SonaConfig.McpServer()
+            server.disabledTools = set.toList()
+            servers[name] = server
+        }
+        config.mcpServers = servers
+        SonaConfig.save(root, config)
+    }
+
     fun openConfig() {
         val file = File(root, "sona.json")
         if (!file.exists()) {

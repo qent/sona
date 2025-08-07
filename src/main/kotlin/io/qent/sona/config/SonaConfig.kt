@@ -26,6 +26,7 @@ class SonaConfig {
         var url: String? = null
         var cwd: String? = null
         var headers: Map<String, String>? = null
+        var disabledTools: List<String>? = null
     }
 
     companion object {

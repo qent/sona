@@ -8,7 +8,8 @@ import dev.langchain4j.agent.tool.ToolSpecification
 data class McpServerStatus(
     val name: String,
     val status: Status,
-    val tools: List<ToolSpecification>
+    val tools: List<ToolSpecification>,
+    val disabledTools: Set<String> = emptySet()
 ) {
     sealed interface Status {
         /** The server is turned off and no information is sent to the LLM. */
