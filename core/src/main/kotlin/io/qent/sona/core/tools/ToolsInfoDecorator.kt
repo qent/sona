@@ -21,6 +21,19 @@ class ToolsInfoDecorator(
         return filePermissionManager.getFileContent(fileInfo)
     }
 
+    @Tool("Apply a unified diff patch to the project")
+    override fun applyPatch(patch: String): String {
+        val regex = Regex("^[-+]{3}\\s+(?:[ab]/)?(.+)", RegexOption.MULTILINE)
+        val files = regex.findAll(patch).map { it.groupValues[1] }.toSet()
+        for (file in files) {
+            val check = filePermissionManager.getFileContent(io.qent.sona.core.permissions.FileInfo(file, ""))
+            if (check == "Access to $file denied") {
+                return check
+            }
+        }
+        return externalTools.applyPatch(patch)
+    }
+
     @Tool("Switch agent role to Architect")
     override fun switchToArchitect() = internalTools.switchToArchitect()
 

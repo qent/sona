@@ -25,6 +25,8 @@ import com.mikepenz.markdown.compose.elements.MarkdownCodeBlock
 import com.mikepenz.markdown.compose.elements.MarkdownCodeFence
 import io.qent.sona.PluginStateFlow
 import io.qent.sona.Strings
+import io.qent.sona.services.PatchService
+import com.intellij.openapi.components.service
 import java.awt.Cursor
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -42,13 +44,27 @@ fun CopyableCodeBlock(project: Project, model: MarkdownComponentModel, key: Any,
 
     if (fence) {
         MarkdownCodeFence(model.content, model.node, style = model.typography.code) { code: String, lang: String?, _ ->
-            CodeEditor(project, code, lang, key, onScrollOutside = onScrollOutside) {
+            val isPatch = remember(code, lang) {
+                val l = lang?.lowercase()
+                when {
+                    l != null && (l == "diff" || l == "patch" || l == "udiff") -> true
+                    else -> {
+                        val lines = code.lines()
+                        lines.size >= 2 && lines[0].startsWith("---") && lines[1].startsWith("+++")
+                    }
+                }
+            }
+            CodeEditor(project, code, lang, key, isPatch, onScrollOutside = onScrollOutside) {
                 clipboard.setText(AnnotatedString(code))
             }
         }
     } else {
         MarkdownCodeBlock(model.content, model.node, style = model.typography.code) { code: String, lang: String?, _ ->
-            CodeEditor(project, code, lang, key, onScrollOutside = onScrollOutside) {
+            val isPatch = remember(code) {
+                val lines = code.lines()
+                lines.size >= 2 && lines[0].startsWith("---") && lines[1].startsWith("+++")
+            }
+            CodeEditor(project, code, lang, key, isPatch, onScrollOutside = onScrollOutside) {
                 clipboard.setText(AnnotatedString(code))
             }
         }
@@ -61,6 +77,7 @@ fun CodeEditor(
     code: String,
     language: String?,
     key: Any,
+    isPatch: Boolean,
     onScrollOutside: ((Float) -> Unit),
     onCopy: () -> Unit,
 ) {
@@ -113,7 +130,7 @@ fun CodeEditor(
             }
 
             val copyIcon = IconLoader.getIcon("/icons/copy.svg", PluginStateFlow::class.java)
-            val label = JLabel(copyIcon).apply {
+            val copyLabel = JLabel(copyIcon).apply {
                 cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
                 toolTipText = Strings.copyCode
                 addMouseListener(object : MouseAdapter() {
@@ -122,15 +139,33 @@ fun CodeEditor(
                     }
                 })
             }
+            val patchLabel = if (isPatch) {
+                val patchIcon = IconLoader.getIcon("/icons/applyPatch.svg", PluginStateFlow::class.java)
+                JLabel(patchIcon).apply {
+                    cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+                    toolTipText = Strings.applyPatch
+                    addMouseListener(object : MouseAdapter() {
+                        override fun mouseClicked(e: MouseEvent?) {
+                            project.service<PatchService>().applyPatch(code)
+                        }
+                    })
+                }
+            } else null
+
             val overlayPanel = object : JPanel(null) {
                 override fun doLayout() {
                     super.doLayout()
-                    label.setBounds(width - 32, 4, 28, 28)
+                    var x = width - 32
+                    copyLabel.setBounds(x, 4, 28, 28)
+                    if (patchLabel != null) {
+                        patchLabel.setBounds(x - 32, 4, 28, 28)
+                    }
                 }
             }.apply {
                 isOpaque = false
                 preferredSize = editorComponent.preferredSize
-                add(label)
+                add(copyLabel)
+                if (patchLabel != null) add(patchLabel)
             }
 
             container.add(overlayPanel)

@@ -92,7 +92,7 @@ you switch to a different chat.
 
 Tool calls referenced by the model are hidden behind a gear icon in the top‑right corner of each AI message. Clicking the icon reveals the list of requested tools. When a tool starts running, the chat shows a dark terminal‑style bubble with animated dots that are replaced by the tool's output once it finishes.
 
-The available tools let the model read the focused file, read any file by absolute path, and switch the active role between Architect and Code. File access is guarded by a permission system with a whitelist (project root by default) and a blacklist blocking sensitive files such as `.env`. Custom lists can be supplied by creating a `sona.json` file in the project root:
+The available tools let the model read the focused file, read any file by absolute path, apply unified diff patches and switch the active role between Architect and Code. File access is guarded by a permission system with a whitelist (project root by default) and a blacklist blocking sensitive files such as `.env`. Custom lists can be supplied by creating a `sona.json` file in the project root:
 
 ```
 {
@@ -141,7 +141,7 @@ Disabled tool names persist in `sona.json` under the server's `disabledTools` ar
 When hovering a message, copy and delete icons appear beneath its bottom‑right corner.
 The clipboard button copies the entire message text while the trash icon removes
 that message and all following messages from both the chat view and persistent
-history.
+history. Code blocks additionally show an **Apply patch** button that opens the IDE's patch dialog to review and apply changes.
 
 Chat messages are now selectable so you can highlight and copy any portion of
 the text directly. Code blocks render using the IDE editor component, providing
