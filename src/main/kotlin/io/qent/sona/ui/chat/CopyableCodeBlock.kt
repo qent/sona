@@ -26,6 +26,7 @@ import com.mikepenz.markdown.compose.elements.MarkdownCodeFence
 import io.qent.sona.PluginStateFlow
 import io.qent.sona.Strings
 import io.qent.sona.services.PatchService
+import io.qent.sona.util.isPatch
 import com.intellij.openapi.components.service
 import java.awt.Cursor
 import java.awt.event.MouseAdapter
@@ -45,14 +46,7 @@ fun CopyableCodeBlock(project: Project, model: MarkdownComponentModel, key: Any,
     if (fence) {
         MarkdownCodeFence(model.content, model.node, style = model.typography.code) { code: String, lang: String?, _ ->
             val isPatch = remember(code, lang) {
-                val l = lang?.lowercase()
-                when {
-                    l != null && (l == "diff" || l == "patch" || l == "udiff") -> true
-                    else -> {
-                        val lines = code.lines()
-                        lines.size >= 2 && lines[0].startsWith("---") && lines[1].startsWith("+++")
-                    }
-                }
+                isPatch(code, lang)
             }
             CodeEditor(project, code, lang, key, isPatch, onScrollOutside = onScrollOutside) {
                 clipboard.setText(AnnotatedString(code))
@@ -61,8 +55,7 @@ fun CopyableCodeBlock(project: Project, model: MarkdownComponentModel, key: Any,
     } else {
         MarkdownCodeBlock(model.content, model.node, style = model.typography.code) { code: String, lang: String?, _ ->
             val isPatch = remember(code) {
-                val lines = code.lines()
-                lines.size >= 2 && lines[0].startsWith("---") && lines[1].startsWith("+++")
+                isPatch(code)
             }
             CodeEditor(project, code, lang, key, isPatch, onScrollOutside = onScrollOutside) {
                 clipboard.setText(AnnotatedString(code))
