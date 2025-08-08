@@ -5,8 +5,8 @@ class FilePermissionManager(
 ) {
     fun getFileContent(fileInfo: FileInfo): String {
         val path = fileInfo.path
-        val whitelisted = repository.whitelist.any { Regex(it).matches(path) }
-        val blacklisted = repository.blacklist.any { Regex(it).matches(path) }
+        val whitelisted = repository.whitelist.any { Regex(it).containsMatchIn(path) }
+        val blacklisted = repository.blacklist.any { Regex(it).containsMatchIn(path) }
         return if (whitelisted && !blacklisted) {
             fileInfo.content
         } else {
