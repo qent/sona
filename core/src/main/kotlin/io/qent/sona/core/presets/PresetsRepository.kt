@@ -25,10 +25,18 @@ object LlmProviders {
     private val gson = Gson()
     private val type = object : TypeToken<List<LlmProvider>>() {}.type
 
+    private val customOpenAi = LlmProvider(
+        name = "Custom OpenAI",
+        defaultEndpoint = "https://api.openai.com/v1/",
+        models = emptyList(),
+    )
+
     val entries: List<LlmProvider> by lazy {
-        LlmProviders::class.java.getResourceAsStream("/providers.json")!!.use { stream ->
-            gson.fromJson(stream.reader(), type)
-        }
+        val jsonProviders: List<LlmProvider> =
+            LlmProviders::class.java.getResourceAsStream("/providers.json")!!.use { stream ->
+                gson.fromJson(stream.reader(), type)
+            }
+        jsonProviders + customOpenAi
     }
 
     fun find(name: String): LlmProvider? = entries.find { it.name == name }

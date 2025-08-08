@@ -14,7 +14,8 @@
 - LLM connection details are organised as presets via `PresetsRepository`. At least one preset must exist for the chat
   to work and they are managed from the Presets screen.
 - Supported LLM providers and models are defined in `core/src/main/resources/providers.json` so new options can be
-  added without modifying the code.
+  added without modifying the code. A `Custom OpenAI` provider is registered in code for manual model entry and
+  always reports zero token cost.
 - Plugin settings contain an "Ignore HTTPS errors" flag and an "Anthropic Settings"
   section to cache system prompts and tool descriptions in requests.
 - Each chat tracks tools approved by the user so that previously allowed tools run without asking again.
