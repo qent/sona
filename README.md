@@ -47,7 +47,8 @@ LLM credentials are stored as presets. Each preset defines the provider, model,
 API endpoint and token. Manage presets from the Presets screen opened via the
 tool window actions. At least one preset must exist for the chat to function.
 Supported providers and their models are listed in `core/src/main/resources/providers.json`
-so new options can be added without touching the code.
+so new options can be added without touching the code. A `Custom OpenAI` provider is
+available for manual model entry and is defined directly in code.
 
 The chat header shows token usage together with the estimated cost for the last
 message and for the entire conversation. It also displays how much of the
@@ -62,8 +63,8 @@ sending requests to Anthropic models.
 ## Model pricing
 
 Token costs are loaded from `providers.json` so conversations can display their
-estimated price. The rates below are in USD per million tokens and are based on
-the official pricing pages.
+estimated price. The `Custom OpenAI` provider always reports zero cost. The rates
+below are in USD per million tokens and are based on the official pricing pages.
 
 | Provider | Model | Input | Output | Source |
 | --- | --- | --- | --- | --- |

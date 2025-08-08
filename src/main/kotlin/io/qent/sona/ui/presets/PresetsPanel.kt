@@ -91,7 +91,7 @@ fun PresetsPanel(state: State.PresetsState) {
                     Column {
                         PresetForm(nameState, provider, {
                             provider = it
-                            model = it.models.first().name
+                            model = it.models.firstOrNull()?.name ?: ""
                             apiState.setTextAndPlaceCursorAtEnd(it.defaultEndpoint)
                         }, model, { model = it }, apiState, tokenState)
                         Spacer(Modifier.height(12.dp))
@@ -137,7 +137,7 @@ fun PresetsPanel(state: State.PresetsState) {
                 Spacer(Modifier.height(8.dp))
                 PresetForm(nameState, provider, {
                     provider = it
-                    model = it.models.first().name
+                    model = it.models.firstOrNull()?.name ?: ""
                     apiState.setTextAndPlaceCursorAtEnd(it.defaultEndpoint)
                 }, model, { model = it }, apiState, tokenState)
                 Spacer(Modifier.height(8.dp))
@@ -189,15 +189,22 @@ private fun PresetForm(
         Spacer(Modifier.height(12.dp))
           Text(Strings.model)
         Spacer(Modifier.height(2.dp))
-        DropdownSelector(
-            items = provider.models.map { it.name },
-            selectedIndex = provider.models.indexOfFirst { it.name == model }.coerceAtLeast(0),
-            expandUpwards = false,
-            onSelect = { idx -> onModelChange(provider.models[idx].name) },
-            modifier = Modifier.fillMaxWidth(),
-            backgroundColor = SonaTheme.colors.Background,
-            buttonModifier = Modifier.fillMaxWidth()
-        )
+        if (provider.models.isEmpty()) {
+            val modelState = rememberTextFieldState(model)
+            LaunchedEffect(model) { modelState.setTextAndPlaceCursorAtEnd(model) }
+            TextField(modelState, Modifier.fillMaxWidth())
+            LaunchedEffect(modelState.text) { onModelChange(modelState.text.toString()) }
+        } else {
+            DropdownSelector(
+                items = provider.models.map { it.name },
+                selectedIndex = provider.models.indexOfFirst { it.name == model }.coerceAtLeast(0),
+                expandUpwards = false,
+                onSelect = { idx -> onModelChange(provider.models[idx].name) },
+                modifier = Modifier.fillMaxWidth(),
+                backgroundColor = SonaTheme.colors.Background,
+                buttonModifier = Modifier.fillMaxWidth(),
+            )
+        }
         Spacer(Modifier.height(12.dp))
           Text(Strings.apiUrl)
         Spacer(Modifier.height(6.dp))

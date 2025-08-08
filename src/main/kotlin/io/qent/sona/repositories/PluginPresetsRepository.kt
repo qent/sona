@@ -43,7 +43,7 @@ class PluginPresetsRepository : PresetsRepository,
                 stored.name,
                 provider,
                 stored.apiEndpoint.ifEmpty { provider.defaultEndpoint },
-                stored.model.ifEmpty { provider.models.first().name },
+                stored.model.ifEmpty { provider.models.firstOrNull()?.name ?: "" },
                 stored.apiKey,
             )
         }
