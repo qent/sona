@@ -36,7 +36,7 @@ fun TokenUsage.toInfo(): TokenUsageInfo {
     }
     val cacheReadInputTokens = when (this) {
         is AnthropicTokenUsage -> cacheReadInputTokens()
-        is OpenAiTokenUsage -> inputTokensDetails().cachedTokens()
+        is OpenAiTokenUsage -> inputTokensDetails()?.cachedTokens() ?: 0
         else -> 0
     }
 

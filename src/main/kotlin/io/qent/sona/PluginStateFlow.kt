@@ -1,28 +1,22 @@
 package io.qent.sona
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.application.ApplicationInfo
+import dev.langchain4j.data.message.SystemMessage
+import dev.langchain4j.http.client.jdk.JdkHttpClient
 import dev.langchain4j.model.anthropic.AnthropicStreamingChatModel
 import dev.langchain4j.model.googleai.GoogleAiGeminiStreamingChatModel
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel
-import dev.langchain4j.data.message.SystemMessage
-import dev.langchain4j.http.client.jdk.JdkHttpClient
-import dev.langchain4j.http.client.jdk.JdkHttpClientBuilder
 import io.qent.sona.core.model.TokenUsageInfo
 import io.qent.sona.core.presets.Presets
 import io.qent.sona.core.state.State
 import io.qent.sona.core.state.StateProvider
 import io.qent.sona.core.state.UiMessage
+import io.qent.sona.repositories.*
 import io.qent.sona.tools.PluginExternalTools
-import io.qent.sona.repositories.PluginChatRepository
-import io.qent.sona.repositories.PluginPresetsRepository
-import io.qent.sona.repositories.PluginRolesRepository
-import io.qent.sona.repositories.PluginSettingsRepository
-import io.qent.sona.repositories.PluginFilePermissionsRepository
-import io.qent.sona.repositories.PluginMcpServersRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -31,10 +25,13 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import java.io.File
+import java.net.http.HttpClient
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
-import java.net.http.HttpClient
-import javax.net.ssl.*
+import java.time.Duration.ofSeconds
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 
 @Service(Service.Level.PROJECT)
@@ -89,7 +86,9 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
                             .modelName(preset.model)
                             .maxTokens(8000)
                         if (settingsRepository.state.ignoreHttpsErrors) {
-                            builder.httpClientBuilder(ignoreHttpsClientBuilder())
+                            builder.httpClientBuilder(
+                                JdkHttpClient.builder().httpClientBuilder(ignoreHttpsClientBuilder())
+                            )
                         }
                         if (settingsRepository.state.cacheSystemPrompts) {
                             builder.cacheSystemMessages(true)
@@ -109,8 +108,26 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
                             .baseUrl(preset.apiEndpoint)
                             .modelName(preset.model)
                         if (settingsRepository.state.ignoreHttpsErrors) {
-                            builder.httpClientBuilder(ignoreHttpsClientBuilder())
+                            builder.httpClientBuilder(
+                                JdkHttpClient.builder().httpClientBuilder(ignoreHttpsClientBuilder())
+                            )
                         }
+                        builder.build()
+                    }
+
+                    "OpenAI-like API" -> {
+                        val httpClientBuilder = if (settingsRepository.state.ignoreHttpsErrors) {
+                            ignoreHttpsClientBuilder()
+                        } else {
+                            HttpClient.newBuilder()
+                        }.version(HttpClient.Version.HTTP_1_1)
+
+                        val builder = OpenAiStreamingChatModel.builder()
+                            .apiKey("none")
+                            .baseUrl(preset.apiEndpoint)
+                            .modelName(preset.model)
+                            .timeout(ofSeconds(60))
+                            .httpClientBuilder(JdkHttpClient.builder().httpClientBuilder(httpClientBuilder))
                         builder.build()
                     }
 
@@ -120,7 +137,9 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
                             .baseUrl(preset.apiEndpoint)
                             .modelName(preset.model)
                         if (settingsRepository.state.ignoreHttpsErrors) {
-                            builder.httpClientBuilder(ignoreHttpsClientBuilder())
+                            builder.httpClientBuilder(
+                                JdkHttpClient.builder().httpClientBuilder(ignoreHttpsClientBuilder())
+                            )
                         }
                         builder.build()
                     }
@@ -131,7 +150,9 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
                             .baseUrl(preset.apiEndpoint)
                             .modelName(preset.model)
                         if (settingsRepository.state.ignoreHttpsErrors) {
-                            builder.httpClientBuilder(ignoreHttpsClientBuilder())
+                            builder.httpClientBuilder(
+                                JdkHttpClient.builder().httpClientBuilder(ignoreHttpsClientBuilder())
+                            )
                         }
                         builder.build()
                     }
@@ -151,7 +172,7 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
         }.launchIn(scope)
     }
 
-    private fun ignoreHttpsClientBuilder(): JdkHttpClientBuilder {
+    private fun ignoreHttpsClientBuilder(): HttpClient.Builder {
         val trustAll: Array<TrustManager> = arrayOf(object : X509TrustManager {
             override fun checkClientTrusted(certs: Array<X509Certificate?>?, authType: String?) = Unit
             override fun checkServerTrusted(certs: Array<X509Certificate?>?, authType: String?) = Unit
@@ -160,8 +181,7 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
         val sslContext = SSLContext.getInstance("SSL").apply {
             init(null, trustAll, SecureRandom())
         }
-        val httpClientBuilder = HttpClient.newBuilder().sslContext(sslContext)
-        return JdkHttpClient.builder().httpClientBuilder(httpClientBuilder)
+        return HttpClient.newBuilder().sslContext(sslContext)
     }
 
     private fun createSystemMessages(): List<SystemMessage> {
@@ -175,7 +195,6 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
         val python = runCommand("python", "--version")
         val node = runCommand("node", "--version")
         val base = project.basePath?.let { File(it) }
-        val extensions = collectExtensionStats(base)
         val builds = detectBuildSystems(base)
         return listOf(
             "OS: $os",
@@ -183,7 +202,6 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
             "Java: $java",
             "Python: $python",
             "Node: $node",
-            "Extensions: $extensions",
             "Build: $builds",
         ).joinToString("\n")
     }
@@ -218,27 +236,6 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
         if (exists("Package.swift")) systems.add("SwiftPM")
         if (exists("pubspec.yaml")) systems.add("Flutter")
         return if (systems.isEmpty()) "Unknown" else systems.sorted().joinToString(", ")
-    }
-
-    private fun collectExtensionStats(base: File?): String {
-        if (base == null) return "Unknown"
-        val allowed = setOf(
-            "kt", "kts", "java", "py", "js", "ts", "jsx", "tsx", "rb", "go", "rs",
-            "c", "h", "cpp", "cc", "cxx", "hpp", "hh", "hxx", "cs", "php", "swift",
-            "dart", "scala", "groovy", "m", "mm", "sh", "ps1", "bat", "json", "yaml",
-            "yml", "xml", "html", "css", "scss", "less", "sql", "md"
-        )
-        val counts = mutableMapOf<String, Int>()
-        base.walkTopDown().maxDepth(4).forEach { f ->
-            if (f.isFile) {
-                val ext = f.extension.lowercase()
-                if (ext in allowed) counts[ext] = counts.getOrDefault(ext, 0) + 1
-            }
-        }
-        if (counts.isEmpty()) return "Unknown"
-        return counts.entries
-            .sortedByDescending { it.value }
-            .joinToString(", ") { "${it.key}:${it.value}" }
     }
 
     override suspend fun collect(collector: FlowCollector<State>) {

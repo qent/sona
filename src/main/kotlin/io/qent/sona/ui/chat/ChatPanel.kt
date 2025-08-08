@@ -93,6 +93,7 @@ private fun Messages(project: Project, state: ChatState, modifier: Modifier = Mo
                 if (message is UiMessage.Ai || message is UiMessage.User) {
                     MessageBubble(
                         project,
+                        index,
                         message,
                         bottomContent = bottom,
                         onDelete = { state.onDeleteFrom(index) },
@@ -119,7 +120,9 @@ private fun Messages(project: Project, state: ChatState, modifier: Modifier = Mo
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MessageBubble(
-    project: Project, message: UiMessage,
+    project: Project,
+    key: Any,
+    message: UiMessage,
     bottomContent: (@Composable () -> Unit)? = null,
     onDelete: () -> Unit,
     onScrollOutside: (Float) -> Unit,
@@ -164,8 +167,8 @@ fun MessageBubble(
                             colors = SonaTheme.markdownColors,
                             typography = SonaTheme.markdownTypography,
                             components = markdownComponents(
-                                codeFence = { CopyableCodeBlock(project, it, true, onScrollOutside = onScrollOutside) },
-                                codeBlock = { CopyableCodeBlock(project, it, false, onScrollOutside = onScrollOutside) },
+                                codeFence = { CopyableCodeBlock(project, it, key, true, onScrollOutside = onScrollOutside) },
+                                codeBlock = { CopyableCodeBlock(project, it, key, false, onScrollOutside = onScrollOutside) },
                             ),
                         )
                         if (showTools && message.toolRequests.isNotEmpty()) {
