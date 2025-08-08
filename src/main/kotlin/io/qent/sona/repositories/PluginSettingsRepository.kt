@@ -16,6 +16,7 @@ class PluginSettingsRepository :
         var ignoreHttpsErrors: Boolean = false,
         var cacheSystemPrompts: Boolean = true,
         var cacheToolDescriptions: Boolean = true,
+        var apiRetries: Int = 0,
     )
 
     private var pluginSettingsState = PluginSettingsState()
@@ -30,5 +31,6 @@ class PluginSettingsRepository :
         pluginSettingsState.ignoreHttpsErrors,
         pluginSettingsState.cacheSystemPrompts,
         pluginSettingsState.cacheToolDescriptions,
+        pluginSettingsState.apiRetries,
     )
 }

@@ -46,6 +46,7 @@ object Strings {
     val anthropicSettings: String get() = bundle.getString("anthropicSettings")
     val cacheSystemPrompts: String get() = bundle.getString("cacheSystemPrompts")
     val cacheToolDescriptions: String get() = bundle.getString("cacheToolDescriptions")
+    val apiRetries: String get() = bundle.getString("apiRetries")
     val openSonaAction: String get() = bundle.getString("openSonaAction")
     val openSonaActionDescription: String get() = bundle.getString("openSonaActionDescription")
     val createAction: String get() = bundle.getString("createAction")
