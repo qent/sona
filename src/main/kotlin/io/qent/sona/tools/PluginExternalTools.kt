@@ -1,9 +1,12 @@
 package io.qent.sona.tools
 
+import com.intellij.openapi.components.service
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
-import io.qent.sona.core.tools.ExternalTools
+import io.qent.sona.Strings
 import io.qent.sona.core.permissions.FileInfo
+import io.qent.sona.core.tools.ExternalTools
+import io.qent.sona.services.PatchService
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -22,5 +25,10 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
         } catch (_: Exception) {
             null
         }
+    }
+
+    override fun applyPatch(patch: String): String {
+        project.service<PatchService>().applyPatch(patch)
+        return Strings.patchDialogOpened
     }
 }
