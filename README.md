@@ -1,3 +1,5 @@
+[![Build](https://github.com/qent/sona/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/qent/sona/actions/workflows/build.yml)
+
 # sona
 
 Chat with various language models directly from a side panel in your IDE. The chat
