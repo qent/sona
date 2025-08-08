@@ -26,8 +26,8 @@ object LlmProviders {
     private val type = object : TypeToken<List<LlmProvider>>() {}.type
 
     private val customOpenAi = LlmProvider(
-        name = "Custom OpenAI",
-        defaultEndpoint = "https://api.openai.com/v1/",
+        name = "OpenAI-like API",
+        defaultEndpoint = "http://localhost:1234/v1",
         models = emptyList(),
     )
 
