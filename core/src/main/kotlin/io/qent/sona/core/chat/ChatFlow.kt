@@ -158,6 +158,7 @@ class ChatFlow(
 
                         runBlocking {
                             messages.map { it.message }.lastOrNull { it is AiMessage }?.let { lastAiMessage ->
+                                // fix empty lastAiMessage tools
                                 val tools = (lastAiMessage as AiMessage).toolExecutionRequests().toMutableList()
                                 tools.add(exec.request())
                                 val messageWithRequests = AiMessage(lastAiMessage.text(), tools)
@@ -249,7 +250,7 @@ class ChatFlow(
         } catch (e: Exception) {
             val errorMessage = ChatRepositoryMessage(
                 chatId,
-                AiMessage.from("Error: ${e.message}"),
+                AiMessage.from("Error: ${e.message}\n\n${e.stackTrace}"),
                 preset.model
             )
             emit(

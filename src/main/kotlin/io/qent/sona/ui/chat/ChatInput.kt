@@ -11,10 +11,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -38,6 +40,8 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.qent.sona.Strings
@@ -53,7 +57,7 @@ import io.qent.sona.ui.SonaTheme
 
 @Composable
 fun ChatInput(state: ChatState) {
-    val text = remember { mutableStateOf("") }
+    val text = remember { mutableStateOf(TextFieldValue("")) }
     var isFocused by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
 
@@ -89,7 +93,7 @@ fun ChatInput(state: ChatState) {
                     )
                     .padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
-                if (text.value.isEmpty()) {
+                if (text.value.text.isEmpty()) {
                     Text(
                         placeholder,
                         color = SonaTheme.colors.Placeholder,
@@ -102,18 +106,27 @@ fun ChatInput(state: ChatState) {
                     enabled = !state.isSending,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(80.dp)
+                        .wrapContentHeight()
+                        .heightIn(min = 100.dp, max = 300.dp)
+                        .padding(bottom = 30.dp)
                         .focusRequester(focusRequester)
                         .onFocusChanged { isFocused = it.isFocused }
                         .onPreviewKeyEvent { event ->
                             if (event.type == KeyEventType.KeyDown && event.key == Key.Enter) {
                                 if (event.isShiftPressed) {
-                                    text.value += "\n"
+                                    val oldValue = text.value
+                                    val selection = oldValue.selection
+                                    val newText = StringBuilder(oldValue.text).insert(selection.start, "\n").toString()
+                                    val newCursor = selection.start + 1
+                                    text.value = oldValue.copy(
+                                        text = newText,
+                                        selection = TextRange(newCursor)
+                                    )
                                     true
                                 } else {
-                                    if (text.value.isNotBlank()) {
-                                        state.onSendMessage(text.value)
-                                        text.value = ""
+                                    if (text.value.text.isNotBlank()) {
+                                        state.onSendMessage(text.value.text)
+                                        text.value = TextFieldValue("")
                                     }
                                     true
                                 }
@@ -212,17 +225,17 @@ fun ChatInput(state: ChatState) {
             } else {
                 ActionButton(
                     onClick = {
-                        if (text.value.isNotBlank()) {
-                            state.onSendMessage(text.value)
-                            text.value = ""
+                        if (text.value.text.isNotBlank()) {
+                            state.onSendMessage(text.value.text)
+                            text.value = TextFieldValue("")
                         }
                     },
-                    enabled = text.value.isNotBlank(),
+                    enabled = text.value.text.isNotBlank(),
                     modifier = Modifier
                         .height(30.dp)
                         .width(30.dp)
                         .clip(CircleShape)
-                        .alpha(alpha = if (text.value.isBlank()) 0.4f else 1f),
+                        .alpha(alpha = if (text.value.text.isBlank()) 0.4f else 1f),
                 ) {
                     Text("➤")
                 }
