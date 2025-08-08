@@ -3,6 +3,7 @@ package io.qent.sona.core.state
 import io.qent.sona.core.roles.Role
 import io.qent.sona.core.roles.Roles
 import io.qent.sona.core.roles.RolesRepository
+import io.qent.sona.core.roles.DefaultRoles
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -22,6 +23,48 @@ class RolesStateInteractorTest {
         interactor.addRole("B", "b")
         assertEquals(2, repo.data.roles.size)
         assertEquals(1, repo.data.active)
+    }
+
+    @Test
+    fun selectRolePersistsActive() = runBlocking {
+        val repo = FakeRolesRepository(Roles(0, listOf(Role("A", "a"), Role("B", "b"))))
+        val interactor = RolesStateInteractor(repo)
+        interactor.load()
+        interactor.selectRole(1)
+        assertEquals(1, repo.data.active)
+    }
+
+    @Test
+    fun saveRoleUpdatesText() = runBlocking {
+        val repo = FakeRolesRepository(Roles(0, listOf(Role("A", "a"))))
+        val interactor = RolesStateInteractor(repo)
+        interactor.load()
+        interactor.saveRole("new")
+        assertEquals("new", repo.data.roles[0].text)
+    }
+
+    @Test
+    fun deleteRoleSkipsDefault() = runBlocking {
+        val repo = FakeRolesRepository(
+            Roles(0, listOf(Role(DefaultRoles.ARCHITECT.displayName, "a"), Role("B", "b")))
+        )
+        val interactor = RolesStateInteractor(repo)
+        interactor.load()
+        interactor.deleteRole()
+        assertEquals(2, repo.data.roles.size)
+        interactor.selectRole(1)
+        interactor.deleteRole()
+        assertEquals(1, repo.data.roles.size)
+    }
+
+    @Test
+    fun startAndFinishCreateRoleToggleFlag() = runBlocking {
+        val repo = FakeRolesRepository(Roles(0, emptyList()))
+        val interactor = RolesStateInteractor(repo)
+        interactor.startCreateRole()
+        assertEquals(true, interactor.creatingRole)
+        interactor.finishCreateRole()
+        assertEquals(false, interactor.creatingRole)
     }
 }
 
