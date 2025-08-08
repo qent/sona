@@ -15,6 +15,7 @@ import io.qent.sona.core.presets.PresetsRepository
 import io.qent.sona.core.roles.Roles
 import io.qent.sona.core.roles.RolesRepository
 import io.qent.sona.core.roles.DefaultRoles
+import io.qent.sona.core.settings.SettingsRepository
 import io.qent.sona.core.tools.DefaultInternalTools
 import io.qent.sona.core.tools.ExternalTools
 import io.qent.sona.core.tools.Tools
@@ -32,6 +33,7 @@ class StateProvider(
     externalTools: ExternalTools,
     filePermissionRepository: FilePermissionsRepository,
     mcpServersRepository: McpServersRepository,
+    private val settingsRepository: SettingsRepository,
     private val editConfig: () -> Unit,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default),
     systemMessages: List<SystemMessage> = emptyList(),
@@ -40,7 +42,7 @@ class StateProvider(
     private val internalTools = DefaultInternalTools(scope) { role -> scope.launch { rolesInteractor.selectRole(role.ordinal) } }
     private val tools: Tools = ToolsInfoDecorator(internalTools, externalTools, filePermissionManager)
     private val mcpManager = McpConnectionManager(mcpServersRepository, scope)
-    private val chatFlow = ChatFlow(presetsRepository, rolesRepository, chatRepository, modelFactory, tools, scope, systemMessages, mcpManager)
+    private val chatFlow = ChatFlow(presetsRepository, rolesRepository, chatRepository, modelFactory, tools, scope, systemMessages, mcpManager, settingsRepository)
 
     private val chatInteractor = ChatStateInteractor(object : ChatSession, Flow<Chat> by chatFlow {
         override suspend fun loadChat(id: String) = chatFlow.loadChat(id)

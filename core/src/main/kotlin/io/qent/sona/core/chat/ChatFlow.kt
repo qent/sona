@@ -28,6 +28,7 @@ import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.presets.PresetsRepository
 import io.qent.sona.core.roles.RolesRepository
 import io.qent.sona.core.tools.Tools
+import io.qent.sona.core.settings.SettingsRepository
 
 
 data class Chat(
@@ -49,6 +50,7 @@ class ChatFlow(
     scope: CoroutineScope,
     private val systemMessages: List<SystemMessage> = emptyList(),
     private val mcpManager: McpConnectionManager,
+    private val settingsRepository: SettingsRepository,
 ) : Flow<Chat> {
 
     private val scope = scope + Dispatchers.IO
@@ -112,103 +114,135 @@ class ChatFlow(
                 }
             }
 
-            val aiService = AiServices.builder(SonaAiService::class.java)
-                .streamingChatModel(modelFactory(preset))
-                .systemMessageProvider { (systemMessages + roleMessage).joinToString("\n") }
-                .chatMemoryProvider { id -> ChatRepositoryChatMemoryStore(chatRepository, id.toString()) }
-                .tools(toolMap)
-                .build()
-
+            val maxRetries = settingsRepository.load().apiRetries
             val builder = StringBuilder()
-            ignoreCallbacks = false
-            currentStream = aiService.chat(chatId, text)
-                .onPartialResponse { token ->
-                    if (ignoreCallbacks) return@onPartialResponse
-                    builder.append(token)
-                    val msgs = currentState.messages.toMutableList()
-                    val lastIndex = msgs.lastIndex
-                    if (lastIndex >= 0) {
-                        msgs[lastIndex] = msgs[lastIndex].copy(
-                            message = AiMessage.from(builder.toString())
-                        )
-                        emit(currentState.copy(messages = msgs, isStreaming = true, requestInProgress = true))
-                    }
+            var attempt = 0
+
+            fun startStream() {
+                if (ignoreCallbacks) return
+                val aiService = AiServices.builder(SonaAiService::class.java)
+                    .streamingChatModel(modelFactory(preset))
+                    .systemMessageProvider { (systemMessages + roleMessage).joinToString("\n") }
+                    .chatMemoryProvider { id -> ChatRepositoryChatMemoryStore(chatRepository, id.toString()) }
+                    .tools(toolMap)
+                    .build()
+
+                builder.setLength(0)
+                val msgs = currentState.messages.toMutableList()
+                val lastIdx = msgs.lastIndex
+                if (lastIdx >= 0) {
+                    msgs[lastIdx] = msgs[lastIdx].copy(message = AiMessage.from(""))
+                    emit(currentState.copy(messages = msgs, isStreaming = true, requestInProgress = true))
                 }
-                .onToolExecuted { exec: ToolExecution ->
-                    if (ignoreCallbacks) return@onToolExecuted
-                    val toolResultMessage = ToolExecutionResultMessage(exec.request().id(), exec.request().name(), exec.result())
-                    val repositoryMessage = ChatRepositoryMessage(chatId, toolResultMessage, preset.model)
 
-                    val messages = currentState.messages.toMutableList()
+                ignoreCallbacks = false
+                currentStream = aiService.chat(chatId, text)
+                    .onPartialResponse { token ->
+                        if (ignoreCallbacks) return@onPartialResponse
+                        builder.append(token)
+                        val msgs = currentState.messages.toMutableList()
+                        val lastIndex = msgs.lastIndex
+                        if (lastIndex >= 0) {
+                            msgs[lastIndex] = msgs[lastIndex].copy(
+                                message = AiMessage.from(builder.toString())
+                            )
+                            emit(currentState.copy(messages = msgs, isStreaming = true, requestInProgress = true))
+                        }
+                    }
+                    .onToolExecuted { exec: ToolExecution ->
+                        if (ignoreCallbacks) return@onToolExecuted
+                        val toolResultMessage = ToolExecutionResultMessage(exec.request().id(), exec.request().name(), exec.result())
+                        val repositoryMessage = ChatRepositoryMessage(chatId, toolResultMessage, preset.model)
 
-                    runBlocking {
-                        messages.map { it.message }.lastOrNull { it is AiMessage }?.let { lastAiMessage ->
-                            val tools = (lastAiMessage as AiMessage).toolExecutionRequests().toMutableList()
-                            tools.add(exec.request())
-                            val messageWithRequests = AiMessage(lastAiMessage.text(), tools)
-                            chatRepository.addMessage(chatId, messageWithRequests, preset.model, TokenUsageInfo())
+                        val messages = currentState.messages.toMutableList()
+
+                        runBlocking {
+                            messages.map { it.message }.lastOrNull { it is AiMessage }?.let { lastAiMessage ->
+                                val tools = (lastAiMessage as AiMessage).toolExecutionRequests().toMutableList()
+                                tools.add(exec.request())
+                                val messageWithRequests = AiMessage(lastAiMessage.text(), tools)
+                                chatRepository.addMessage(chatId, messageWithRequests, preset.model, TokenUsageInfo())
+                            }
+
+                            chatRepository.addMessage(chatId, toolResultMessage, preset.model)
                         }
 
-                        chatRepository.addMessage(chatId, toolResultMessage, preset.model)
-                    }
-
-                    val idx = messages.indexOfLast {
-                        val m = it.message
-                        m is ToolExecutionResultMessage && m.id() == exec.request().id()
-                    }
-                    if (idx >= 0) {
-                        messages[idx] = repositoryMessage
-                    } else {
-                        messages += repositoryMessage
-                    }
-                    val placeholderAfter = ChatRepositoryMessage(chatId, AiMessage.from(""), preset.model)
-                    builder.setLength(0)
-                    emit(
-                        currentState.copy(
-                            messages = messages + placeholderAfter,
-                            requestInProgress = true,
-                            isStreaming = false
+                        val idx = messages.indexOfLast {
+                            val m = it.message
+                            m is ToolExecutionResultMessage && m.id() == exec.request().id()
+                        }
+                        if (idx >= 0) {
+                            messages[idx] = repositoryMessage
+                        } else {
+                            messages += repositoryMessage
+                        }
+                        val placeholderAfter = ChatRepositoryMessage(chatId, AiMessage.from(""), preset.model)
+                        builder.setLength(0)
+                        emit(
+                            currentState.copy(
+                                messages = messages + placeholderAfter,
+                                requestInProgress = true,
+                                isStreaming = false
+                            )
                         )
-                    )
-                }
-                .onCompleteResponse { response ->
-                    if (ignoreCallbacks) return@onCompleteResponse
-                    val totalUsage = response.metadata().tokenUsage().toInfo()
-                    val msgs = currentState.messages.toMutableList()
-                    val lastIndex = msgs.lastIndex
-                    if (lastIndex >= 0) {
-                        msgs[lastIndex] = ChatRepositoryMessage(chatId, response.aiMessage(), preset.model, totalUsage)
                     }
-                    runBlocking { chatRepository.addMessage(chatId, response.aiMessage(), preset.model, totalUsage) }
-                    emit(
-                        currentState.copy(
-                            messages = msgs,
-                            tokenUsage = currentState.tokenUsage + totalUsage,
-                            requestInProgress = false,
-                            isStreaming = false
+                    .onCompleteResponse { response ->
+                        if (ignoreCallbacks) return@onCompleteResponse
+                        val totalUsage = response.metadata().tokenUsage().toInfo()
+                        val msgs = currentState.messages.toMutableList()
+                        val lastIndex = msgs.lastIndex
+                        if (lastIndex >= 0) {
+                            msgs[lastIndex] = ChatRepositoryMessage(chatId, response.aiMessage(), preset.model, totalUsage)
+                        }
+                        runBlocking { chatRepository.addMessage(chatId, response.aiMessage(), preset.model, totalUsage) }
+                        emit(
+                            currentState.copy(
+                                messages = msgs,
+                                tokenUsage = currentState.tokenUsage + totalUsage,
+                                requestInProgress = false,
+                                isStreaming = false
+                            )
                         )
-                    )
-                    currentStream = null
-                }
-                .onError { t ->
-                    if (ignoreCallbacks) return@onError
-                    if (t is CancellationException) {
                         currentStream = null
-                        emit(currentState.copy(requestInProgress = false, isStreaming = false))
-                        return@onError
                     }
-                    val errMsg = ChatRepositoryMessage(chatId, AiMessage.from("Error: ${t.message}"), preset.model)
-                    runBlocking { chatRepository.addMessage(chatId, errMsg.message, preset.model) }
-                    emit(
-                        currentState.copy(
-                            messages = currentState.messages + errMsg,
-                            requestInProgress = false,
-                            isStreaming = false
-                        )
-                    )
-                    currentStream = null
-                }
-            currentStream?.start()
+                    .onError { t ->
+                        if (ignoreCallbacks) return@onError
+                        if (t is CancellationException) {
+                            currentStream = null
+                            emit(currentState.copy(requestInProgress = false, isStreaming = false))
+                            return@onError
+                        }
+                        currentStream = null
+                        if (attempt < maxRetries) {
+                            val delayMs = 1000L * (1 shl attempt)
+                            attempt++
+                            scope.launch {
+                                delay(delayMs)
+                                if (!ignoreCallbacks) startStream()
+                            }
+                            emit(currentState.copy(requestInProgress = true, isStreaming = false))
+                        } else {
+                            val errMsg = ChatRepositoryMessage(chatId, AiMessage.from("Error: ${t.message}"), preset.model)
+                            runBlocking { chatRepository.addMessage(chatId, errMsg.message, preset.model) }
+                            val messages = currentState.messages.toMutableList()
+                            if (messages.isNotEmpty()) {
+                                messages[messages.lastIndex] = errMsg
+                            } else {
+                                messages += errMsg
+                            }
+                            emit(
+                                currentState.copy(
+                                    messages = messages,
+                                    requestInProgress = false,
+                                    isStreaming = false
+                                )
+                            )
+                        }
+                    }
+                currentStream?.start()
+            }
+
+            startStream()
         } catch (e: CancellationException) {
             currentStream = null
             emit(currentState.copy(requestInProgress = false, isStreaming = false))
