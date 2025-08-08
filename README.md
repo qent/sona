@@ -18,6 +18,10 @@ you can resume conversations after restarting the IDE.
 
 Use the IDE plugin manager or download the plugin from releases.
 
+## Testing
+
+Pull requests trigger a GitHub Actions workflow that runs the test suite.
+
 ## Nightly builds
 
 A scheduled GitHub Actions workflow runs every night and builds a plugin archive if there were changes in the `main`
