@@ -28,7 +28,7 @@ private class FakePresetsRepository(private val preset: Preset) : PresetsReposit
 }
 
 private class FakeRolesRepository : RolesRepository {
-    override suspend fun load() = Roles(0, listOf(Role("r", "t")))
+    override suspend fun load() = Roles(0, listOf(Role("r", "s", "t")))
     override suspend fun save(roles: Roles) {}
 }
 
@@ -52,8 +52,8 @@ private class FakeChatRepository : ChatRepository {
 private class FakeTools : Tools {
     override fun getFocusedFileText() = ""
     override fun readFile(path: String) = ""
-    override fun switchToArchitect() = ""
-    override fun switchToCode() = ""
+    override fun applyPatch(patch: String) = ""
+    override fun switchRole(name: String) = ""
 }
 
 private class FakeSettingsRepository : SettingsRepository {

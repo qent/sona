@@ -16,18 +16,18 @@ private class FakeRolesRepository(var data: Roles = Roles(0, emptyList())) : Rol
 class RolesStateInteractorTest {
     @Test
     fun addRoleUpdatesRepository() = runBlocking {
-        val repo = FakeRolesRepository(Roles(0, listOf(Role("A", "a"))))
+        val repo = FakeRolesRepository(Roles(0, listOf(Role("A", "sa", "a"))))
         val interactor = RolesStateInteractor(repo)
         interactor.load()
         interactor.startCreateRole()
-        interactor.addRole("B", "b")
+        interactor.addRole("B", "sb", "b")
         assertEquals(2, repo.data.roles.size)
         assertEquals(1, repo.data.active)
     }
 
     @Test
     fun selectRolePersistsActive() = runBlocking {
-        val repo = FakeRolesRepository(Roles(0, listOf(Role("A", "a"), Role("B", "b"))))
+        val repo = FakeRolesRepository(Roles(0, listOf(Role("A", "sa", "a"), Role("B", "sb", "b"))))
         val interactor = RolesStateInteractor(repo)
         interactor.load()
         interactor.selectRole(1)
@@ -36,17 +36,18 @@ class RolesStateInteractorTest {
 
     @Test
     fun saveRoleUpdatesText() = runBlocking {
-        val repo = FakeRolesRepository(Roles(0, listOf(Role("A", "a"))))
+        val repo = FakeRolesRepository(Roles(0, listOf(Role("A", "sa", "a"))))
         val interactor = RolesStateInteractor(repo)
         interactor.load()
-        interactor.saveRole("new")
+        interactor.saveRole("sn", "new")
         assertEquals("new", repo.data.roles[0].text)
+        assertEquals("sn", repo.data.roles[0].short)
     }
 
     @Test
     fun deleteRoleSkipsDefault() = runBlocking {
         val repo = FakeRolesRepository(
-            Roles(0, listOf(Role(DefaultRoles.ARCHITECT.displayName, "a"), Role("B", "b")))
+            Roles(0, listOf(Role(DefaultRoles.ARCHITECT.displayName, "sa", "a"), Role("B", "sb", "b")))
         )
         val interactor = RolesStateInteractor(repo)
         interactor.load()

@@ -24,11 +24,15 @@ import org.jetbrains.jewel.ui.component.TextField
 @Composable
 fun RolesPanel(state: RolesState) {
     val textState = rememberTextFieldState(state.text)
+    val shortState = rememberTextFieldState(state.short)
     val nameState = rememberTextFieldState()
 
     LaunchedEffect(state.currentIndex) {
         if (textState.text != state.text) {
             textState.setTextAndPlaceCursorAtEnd(state.text)
+        }
+        if (shortState.text != state.short) {
+            shortState.setTextAndPlaceCursorAtEnd(state.short)
         }
     }
     Box(
@@ -51,8 +55,13 @@ fun RolesPanel(state: RolesState) {
                     TextField(nameState, Modifier.weight(1f))
                     Spacer(Modifier.width(8.dp))
                     ActionButton(onClick = {
-                        state.onAddRole(nameState.text.toString(), textState.text.toString())
+                        state.onAddRole(
+                            nameState.text.toString(),
+                            shortState.text.toString(),
+                            textState.text.toString()
+                        )
                         nameState.clearText()
+                        shortState.clearText()
                       }) { Text(Strings.save) }
                 } else {
                     DropdownSelector(
@@ -70,6 +79,7 @@ fun RolesPanel(state: RolesState) {
                         onClick = {
                             nameState.clearText()
                             textState.clearText()
+                            shortState.clearText()
                             state.onStartCreateRole()
                         }
                       ) { Text("+") }
@@ -86,7 +96,7 @@ fun RolesPanel(state: RolesState) {
             Spacer(Modifier.height(8.dp))
 
             TextArea(
-                textState,
+                shortState,
                 Modifier
                     .weight(1f)
                     .fillMaxWidth()
@@ -96,9 +106,20 @@ fun RolesPanel(state: RolesState) {
 
             Spacer(Modifier.height(8.dp))
 
+            TextArea(
+                textState,
+                Modifier
+                    .weight(3f)
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(SonaTheme.colors.InputBackground)
+            )
+
+            Spacer(Modifier.height(8.dp))
+
             if (!state.creating) {
                 ActionButton(
-                    onClick = { state.onSave(textState.text.toString()) },
+                    onClick = { state.onSave(shortState.text.toString(), textState.text.toString()) },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                   Text(Strings.save)

@@ -17,13 +17,12 @@ private class FakeExternalTools(
 ) : ExternalTools {
     override fun getFocusedFileText(): FileInfo? = focused
     override fun readFile(path: String): FileInfo? = files[path]
+    override fun applyPatch(patch: String) = ""
 }
 
 private class FakeInternalTools : InternalTools {
-    var architectCalls = 0
-    var codeCalls = 0
-    override fun switchToArchitect(): String { architectCalls++; return "A" }
-    override fun switchToCode(): String { codeCalls++; return "C" }
+    var last: String? = null
+    override fun switchRole(name: String): String { last = name; return name }
 }
 
 class ToolsInfoDecoratorTest {
@@ -50,10 +49,8 @@ class ToolsInfoDecoratorTest {
     fun `delegates role switching to internal tools`() {
         val internal = FakeInternalTools()
         val decorator = ToolsInfoDecorator(internal, FakeExternalTools(null, emptyMap()), FilePermissionManager(StubRepository(listOf(".*"), emptyList())))
-        assertEquals("A", decorator.switchToArchitect())
-        assertEquals("C", decorator.switchToCode())
-        assertEquals(1, internal.architectCalls)
-        assertEquals(1, internal.codeCalls)
+        assertEquals("R", decorator.switchRole("R"))
+        assertEquals("R", internal.last)
     }
 
     @Test

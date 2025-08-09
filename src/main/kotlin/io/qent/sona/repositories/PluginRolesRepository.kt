@@ -14,6 +14,7 @@ import io.qent.sona.core.roles.DefaultRoles
 class PluginRolesRepository : RolesRepository, PersistentStateComponent<PluginRolesRepository.RolesState> {
     data class StoredRole(
         var name: String = "Default",
+        var short: String = "IDE assistant",
         var text: String = "You are an IDE assistant plugin."
     )
 
@@ -23,10 +24,12 @@ class PluginRolesRepository : RolesRepository, PersistentStateComponent<PluginRo
             // https://github.com/RooCodeInc/Roo-Code/blob/main/packages/types/src/mode.ts
             StoredRole(
                 DefaultRoles.ARCHITECT.displayName,
+                "Plans solutions and gathers context.",
                 "You are Sona, an experienced technical leader who is inquisitive and an excellent planner. Your goal is to gather information and get context to create a detailed plan for accomplishing the user's task, which the user will review and approve before they switch into another mode to implement the solution."
             ),
             StoredRole(
                 DefaultRoles.CODE.displayName,
+                "Implements solutions in code.",
                 "You are Sona, a highly skilled software engineer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices."
             )
         )
@@ -42,13 +45,13 @@ class PluginRolesRepository : RolesRepository, PersistentStateComponent<PluginRo
 
     override suspend fun load(): Roles = Roles(
         active = state.active,
-        roles = state.roles.map { Role(it.name, it.text) }
+        roles = state.roles.map { Role(it.name, it.short, it.text) }
     )
 
     override suspend fun save(roles: Roles) {
         state = RolesState(
             active = roles.active,
-            roles = roles.roles.map { StoredRole(it.name, it.text) }.toMutableList()
+            roles = roles.roles.map { StoredRole(it.name, it.short, it.text) }.toMutableList()
         )
     }
 }

@@ -21,9 +21,16 @@ class RolesStateInteractor(private val repository: RolesRepository) {
         repository.save(roles)
     }
 
-    suspend fun saveRole(text: String) {
+    suspend fun selectRole(name: String) {
+        val idx = roles.roles.indexOfFirst { it.name == name }
+        if (idx >= 0) {
+            selectRole(idx)
+        }
+    }
+
+    suspend fun saveRole(short: String, text: String) {
         val list = roles.roles.toMutableList()
-        list[roles.active] = list[roles.active].copy(text = text)
+        list[roles.active] = list[roles.active].copy(short = short, text = text)
         roles = roles.copy(roles = list)
         repository.save(roles)
     }
@@ -36,8 +43,8 @@ class RolesStateInteractor(private val repository: RolesRepository) {
         creatingRole = false
     }
 
-    suspend fun addRole(name: String, text: String) {
-        roles = Roles(active = roles.roles.size, roles = roles.roles + Role(name, text))
+    suspend fun addRole(name: String, short: String, text: String) {
+        roles = Roles(active = roles.roles.size, roles = roles.roles + Role(name, short, text))
         creatingRole = false
         repository.save(roles)
     }

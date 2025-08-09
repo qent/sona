@@ -34,9 +34,5 @@ class ToolsInfoDecorator(
         return externalTools.applyPatch(patch)
     }
 
-    @Tool("Switch agent role to Architect")
-    override fun switchToArchitect() = internalTools.switchToArchitect()
-
-    @Tool("Switch agent role to Code")
-    override fun switchToCode() = internalTools.switchToCode()
+    override fun switchRole(name: String) = internalTools.switchRole(name)
 }
