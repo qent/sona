@@ -33,6 +33,8 @@ object Strings {
     val ok: String get() = bundle.getString("ok")
     val alwaysInThisChat: String get() = bundle.getString("alwaysInThisChat")
     val cancel: String get() = bundle.getString("cancel")
+    val addPreset: String get() = bundle.getString("addPreset")
+    val deletePresetQuestion: String get() = bundle.getString("deletePresetQuestion")
     val copyCode: String get() = bundle.getString("copyCode")
     val applyPatch: String get() = bundle.getString("applyPatch")
     val applyPatchFailed: String get() = bundle.getString("applyPatchFailed")

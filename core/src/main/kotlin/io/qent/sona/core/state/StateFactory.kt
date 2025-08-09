@@ -112,29 +112,41 @@ class StateFactory {
         onOpenServers = onOpenServers,
     )
 
-    fun createPresetsState(
+    fun createPresetsListState(
         presets: Presets,
-        creatingPreset: Boolean,
-        preset: Preset,
         onSelectPreset: (Int) -> Unit,
-        onStartCreatePreset: () -> Unit,
-        onAddPreset: (Preset) -> Unit,
-        onDeletePreset: () -> Unit,
-        onSave: (Preset) -> Unit,
+        onAddPreset: () -> Unit,
+        onEditPreset: (Int) -> Unit,
+        onDeletePreset: (Int) -> Unit,
         onNewChat: () -> Unit,
         onOpenHistory: () -> Unit,
         onOpenRoles: () -> Unit,
         onOpenServers: () -> Unit,
-    ) = State.PresetsState(
-        presets = presets.presets.map { it.name },
+    ) = State.PresetsListState(
+        presets = presets.presets,
         currentIndex = presets.active,
-        creating = creatingPreset,
-        preset = preset,
         onSelectPreset = onSelectPreset,
-        onStartCreatePreset = onStartCreatePreset,
         onAddPreset = onAddPreset,
+        onEditPreset = onEditPreset,
         onDeletePreset = onDeletePreset,
+        onNewChat = onNewChat,
+        onOpenHistory = onOpenHistory,
+        onOpenRoles = onOpenRoles,
+        onOpenServers = onOpenServers,
+    )
+
+    fun createEditPresetState(
+        preset: Preset,
+        onSave: (Preset) -> Unit,
+        onCancel: () -> Unit,
+        onNewChat: () -> Unit,
+        onOpenHistory: () -> Unit,
+        onOpenRoles: () -> Unit,
+        onOpenServers: () -> Unit,
+    ) = State.EditPresetState(
+        preset = preset,
         onSave = onSave,
+        onCancel = onCancel,
         onNewChat = onNewChat,
         onOpenHistory = onOpenHistory,
         onOpenRoles = onOpenRoles,

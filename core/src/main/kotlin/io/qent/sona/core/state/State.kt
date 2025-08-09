@@ -85,16 +85,25 @@ sealed class State {
         override val onOpenServers: () -> Unit,
     ) : State()
 
-    data class PresetsState(
-        val presets: List<String>,
+    data class PresetsListState(
+        val presets: List<Preset>,
         val currentIndex: Int,
-        val creating: Boolean,
-        val preset: Preset,
         val onSelectPreset: (Int) -> Unit,
-        val onStartCreatePreset: () -> Unit,
-        val onAddPreset: (Preset) -> Unit,
-        val onDeletePreset: () -> Unit,
+        val onAddPreset: () -> Unit,
+        val onEditPreset: (Int) -> Unit,
+        val onDeletePreset: (Int) -> Unit,
+        override val onNewChat: () -> Unit,
+        override val onOpenHistory: () -> Unit,
+        override val onOpenRoles: () -> Unit,
+        override val onOpenServers: () -> Unit,
+    ) : State() {
+        override val onOpenPresets = { }
+    }
+
+    data class EditPresetState(
+        val preset: Preset,
         val onSave: (Preset) -> Unit,
+        val onCancel: () -> Unit,
         override val onNewChat: () -> Unit,
         override val onOpenHistory: () -> Unit,
         override val onOpenRoles: () -> Unit,

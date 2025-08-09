@@ -9,7 +9,6 @@ import io.qent.sona.core.mcp.McpConnectionManager
 import io.qent.sona.core.mcp.McpServersRepository
 import io.qent.sona.core.permissions.FilePermissionManager
 import io.qent.sona.core.permissions.FilePermissionsRepository
-import io.qent.sona.core.presets.LlmProviders
 import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.presets.Presets
 import io.qent.sona.core.presets.PresetsRepository
@@ -73,7 +72,8 @@ class StateProvider(
     }, chatRepository)
     private val rolesFlow = RolesStateFlow(rolesRepository)
     private val rolesInteractor = RolesStateInteractor(rolesFlow)
-    private val presetsInteractor = PresetsStateInteractor(presetsRepository)
+    private val presetsListInteractor = PresetsListStateInteractor(presetsRepository)
+    private val editPresetInteractor = EditPresetStateInteractor(presetsListInteractor)
     private val serversInteractor = ServersStateInteractor(object : ServersController {
         override val servers = mcpManager.servers
         override fun toggle(name: String) = mcpManager.toggle(name)
@@ -94,14 +94,13 @@ class StateProvider(
 
         scope.launch {
             rolesInteractor.load()
-            presetsInteractor.load()
+            presetsListInteractor.load()
             val lastChatId = chatInteractor.listChats().firstOrNull()?.id
             when {
-                presetsInteractor.presets.presets.isEmpty() -> {
-                    presetsInteractor.startCreatePreset()
-                    emitPresetsState()
+                presetsListInteractor.presets.presets.isEmpty() -> {
+                    editPresetInteractor.startCreate()
+                    emitEditPresetState()
                 }
-
                 lastChatId == null -> chatInteractor.newChat()
                 else -> chatInteractor.openChat(lastChatId)
             }
@@ -130,7 +129,7 @@ class StateProvider(
     }
 
     private suspend fun emitChatState(chat: Chat, roles: Roles) {
-        val presets: Presets = presetsInteractor.presets
+        val presets: Presets = presetsListInteractor.presets
         val state = factory.createChatState(
             chat = chat,
             roles = roles,
@@ -138,7 +137,7 @@ class StateProvider(
             onSelectRole = { idx -> scope.launch { rolesInteractor.selectRole(idx) } },
             onSelectPreset = { idx ->
                 scope.launch {
-                    presetsInteractor.selectPreset(idx); emitChatState(
+                    presetsListInteractor.selectPreset(idx); emitChatState(
                     chat,
                     roles
                 )
@@ -146,8 +145,8 @@ class StateProvider(
             },
             onSendMessage = { text ->
                 scope.launch {
-                    if (presetsInteractor.presets.presets.isEmpty()) {
-                        presetsInteractor.startCreatePreset(); emitPresetsState()
+                    if (presetsListInteractor.presets.presets.isEmpty()) {
+                        editPresetInteractor.startCreate(); emitEditPresetState()
                     } else {
                         chatInteractor.send(text)
                     }
@@ -240,47 +239,63 @@ class StateProvider(
     private suspend fun showPresets() {
         chatScreenJob?.cancel()
         rolesScreenJob?.cancel()
-        presetsInteractor.load()
-        if (presetsInteractor.presets.presets.isEmpty()) presetsInteractor.startCreatePreset() else presetsInteractor.finishCreatePreset()
-        emitPresetsState()
+        presetsListInteractor.load()
+        if (presetsListInteractor.presets.presets.isEmpty()) {
+            editPresetInteractor.startCreate()
+            emitEditPresetState()
+        } else {
+            emitPresetsListState()
+        }
     }
 
-    private suspend fun emitPresetsState() {
-        val presets = presetsInteractor.presets
-        val creating = presetsInteractor.creatingPreset
-        val empty = presets.presets.isEmpty()
-        val preset = if (creating || empty) {
-            val defaultProvider = LlmProviders.default
-            Preset(
-                name = defaultProvider.models.first().name,
-                provider = defaultProvider,
-                apiEndpoint = defaultProvider.defaultEndpoint,
-                model = defaultProvider.models.first().name,
-                apiKey = "",
-            )
-        } else {
-            presets.presets[presets.active]
-        }
-        val state = factory.createPresetsState(
+    private suspend fun emitPresetsListState() {
+        val presets = presetsListInteractor.presets
+        val state = factory.createPresetsListState(
             presets = presets,
-            creatingPreset = creating || presets.presets.isEmpty(),
-            preset = preset,
-            onSelectPreset = { idx -> scope.launch { presetsInteractor.selectPreset(idx); emitPresetsState() } },
-            onStartCreatePreset = { presetsInteractor.startCreatePreset(); scope.launch { emitPresetsState() } },
-            onAddPreset = { p ->
-                startChatStateEmitting()
+            onSelectPreset = { idx -> scope.launch { presetsListInteractor.selectPreset(idx); emitPresetsListState() } },
+            onAddPreset = { editPresetInteractor.startCreate(); scope.launch { emitEditPresetState() } },
+            onEditPreset = { idx -> editPresetInteractor.startEdit(idx); scope.launch { emitEditPresetState() } },
+            onDeletePreset = { idx ->
                 scope.launch {
-                    presetsInteractor.addPreset(p)
-                    chatInteractor.newChat()
+                    presetsListInteractor.deletePreset(idx)
+                    if (presetsListInteractor.presets.presets.isEmpty()) {
+                        editPresetInteractor.startCreate()
+                        emitEditPresetState()
+                    } else {
+                        emitPresetsListState()
+                    }
                 }
             },
-            onDeletePreset = { scope.launch { presetsInteractor.deletePreset(); emitPresetsState() } },
-            onSave = { p -> scope.launch { presetsInteractor.savePreset(p); emitPresetsState() } },
             onNewChat = {
                 startChatStateEmitting()
+                scope.launch { chatInteractor.newChat() }
+            },
+            onOpenHistory = { scope.launch { showHistory() } },
+            onOpenRoles = { scope.launch { showRoles() } },
+            onOpenServers = { scope.launch { showServers() } },
+        )
+        _state.emit(state)
+    }
+
+    private suspend fun emitEditPresetState() {
+        val state = factory.createEditPresetState(
+            preset = editPresetInteractor.preset,
+            onSave = { p ->
                 scope.launch {
-                    chatInteractor.newChat()
+                    val isNew = editPresetInteractor.isNew
+                    editPresetInteractor.save(p)
+                    if (isNew) {
+                        startChatStateEmitting()
+                        chatInteractor.newChat()
+                    } else {
+                        emitPresetsListState()
+                    }
                 }
+            },
+            onCancel = { scope.launch { emitPresetsListState() } },
+            onNewChat = {
+                startChatStateEmitting()
+                scope.launch { chatInteractor.newChat() }
             },
             onOpenHistory = { scope.launch { showHistory() } },
             onOpenRoles = { scope.launch { showRoles() } },
