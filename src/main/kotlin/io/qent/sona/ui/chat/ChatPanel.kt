@@ -194,7 +194,7 @@ fun MessageBubble(
                     contentDescription = Strings.showToolRequests,
                     colorFilter = ColorFilter.tint(textColor),
                     modifier = Modifier
-                        .size(12.dp)
+                        .size(24.dp)
                         .align(Alignment.TopEnd)
                         .padding(4.dp)
                         .clickable { showTools = !showTools }

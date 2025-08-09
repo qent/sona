@@ -98,11 +98,11 @@ class ChatFlow(
             val roles = rolesRepository.load()
             val roleText = roles.roles[roles.active].text
             val roleMessage = SystemMessage.from(roleText)
-            val roleDescriptions = roles.roles.joinToString("; ") { "${'$'}{it.name} - ${'$'}{it.short}" }
+            val roleDescriptions = roles.roles.joinToString("\n") { "name = '${it.name}' (${it.short})" }
 
             val roleSpec = ToolSpecification.builder()
                 .name("switchRole")
-                .description("Switch agent role by name. Available roles: ${'$'}roleDescriptions")
+                .description("Switch agent role by name. Available roles: \n$roleDescriptions")
                 .parameters(
                     JsonObjectSchema.builder()
                         .addStringProperty("name", "Role name")
@@ -171,20 +171,11 @@ class ChatFlow(
                         val toolResultMessage = ToolExecutionResultMessage(exec.request().id(), exec.request().name(), exec.result())
                         val repositoryMessage = ChatRepositoryMessage(chatId, toolResultMessage, preset.model)
 
-                        val messages = currentState.messages.toMutableList()
-
                         runBlocking {
-                            messages.map { it.message }.lastOrNull { it is AiMessage }?.let { lastAiMessage ->
-                                // fix empty lastAiMessage tools
-                                val tools = (lastAiMessage as AiMessage).toolExecutionRequests().toMutableList()
-                                tools.add(exec.request())
-                                val messageWithRequests = AiMessage(lastAiMessage.text(), tools)
-                                chatRepository.addMessage(chatId, messageWithRequests, preset.model, TokenUsageInfo())
-                            }
-
                             chatRepository.addMessage(chatId, toolResultMessage, preset.model)
                         }
 
+                        val messages = currentState.messages.toMutableList()
                         val idx = messages.indexOfLast {
                             val m = it.message
                             m is ToolExecutionResultMessage && m.id() == exec.request().id()
@@ -313,6 +304,25 @@ class ChatFlow(
         private val run: (ToolExecutionRequest) -> String,
     ) : ToolExecutor {
         override fun execute(request: ToolExecutionRequest, memoryId: Any?): String {
+            runBlocking {
+                // fix empty lastAiMessage tools
+                val messages = currentState.messages.toMutableList()
+                messages.lastOrNull { it.message is AiMessage }?.let { lastAiMessage ->
+                    val tools = (lastAiMessage.message as AiMessage).toolExecutionRequests().toMutableList()
+                    tools.add(request)
+                    val messageWithRequests = AiMessage(lastAiMessage.message.text(), tools)
+                    chatRepository.addMessage(chatId, messageWithRequests, model, TokenUsageInfo())
+
+                    messages[messages.indexOf(lastAiMessage)] = ChatRepositoryMessage(
+                        lastAiMessage.chatId,
+                        messageWithRequests,
+                        lastAiMessage.model,
+                        lastAiMessage.tokenUsage
+                    )
+                    emit(currentState.copy(messages = messages))
+                }
+            }
+
             val decision = runBlocking {
                 if (currentState.autoApproveTools || chatRepository.isToolAllowed(chatId, name)) {
                     ToolDecision(true, false)
@@ -353,4 +363,6 @@ class ChatFlow(
         currentStream = null
         emit(currentState.copy(requestInProgress = false, isStreaming = false))
     }
+
+
 }

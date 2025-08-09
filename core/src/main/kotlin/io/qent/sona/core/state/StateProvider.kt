@@ -15,8 +15,8 @@ import io.qent.sona.core.presets.PresetsRepository
 import io.qent.sona.core.roles.Roles
 import io.qent.sona.core.roles.RolesRepository
 import io.qent.sona.core.settings.SettingsRepository
-import io.qent.sona.core.tools.DefaultInternalTools
 import io.qent.sona.core.tools.ExternalTools
+import io.qent.sona.core.tools.InternalTools
 import io.qent.sona.core.tools.Tools
 import io.qent.sona.core.tools.ToolsInfoDecorator
 import kotlinx.coroutines.CoroutineScope
@@ -38,7 +38,14 @@ class StateProvider(
     systemMessages: List<SystemMessage> = emptyList(),
 ) {
     private val filePermissionManager = FilePermissionManager(filePermissionRepository)
-    private val internalTools = DefaultInternalTools(scope) { name -> scope.launch { rolesInteractor.selectRole(name) } }
+    private val internalTools = object : InternalTools {
+        override fun switchRole(name: String): String {
+            scope.launch {
+                rolesInteractor.selectRole(name)
+            }
+            return "$name role active"
+        }
+    }
     private val tools: Tools = ToolsInfoDecorator(internalTools, externalTools, filePermissionManager)
     private val mcpManager = McpConnectionManager(mcpServersRepository, scope)
     private val chatFlow = ChatFlow(presetsRepository, rolesRepository, chatRepository, modelFactory, tools, scope, systemMessages, mcpManager, settingsRepository)
