@@ -13,7 +13,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.clip
@@ -25,6 +24,7 @@ import io.qent.sona.ui.SonaTheme
 import io.qent.sona.ui.common.DeleteConfirmationDialog
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
+import io.qent.sona.ui.common.TwoLineItem
 import org.jetbrains.jewel.ui.component.TextArea
 import org.jetbrains.jewel.ui.component.TextField
 
@@ -44,27 +44,14 @@ fun RolesListPanel(state: State.RolesListState) {
             contentPadding = PaddingValues(bottom = 56.dp)
         ) {
             itemsIndexed(state.roles) { idx, role ->
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (idx == state.currentIndex) SonaTheme.colors.UserBubble else SonaTheme.colors.AiBubble)
-                        .clickable { state.onSelectRole(idx) }
-                        .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(role.name, fontWeight = FontWeight.Bold, color = SonaTheme.colors.AiText)
-                        Text(role.short, color = SonaTheme.colors.BackgroundText, fontSize = 12.sp)
-                    }
-                    ActionButton(onClick = { state.onEditRole(idx) }) { Text("✏") }
-                    Spacer(Modifier.width(8.dp))
-                    ActionButton(
-                        onClick = { deleteIndex = idx },
-                        enabled = role.name !in DefaultRoles.NAMES
-                    ) { Text("\uD83D\uDDD1") }
-                }
+                TwoLineItem(
+                    title = role.name,
+                    subtitle = role.short,
+                    selected = idx == state.currentIndex,
+                    onClick = { state.onSelectRole(idx) },
+                    onEdit = { state.onEditRole(idx) },
+                    onDelete = if (role.name !in DefaultRoles.NAMES) { { deleteIndex = idx } } else null
+                )
             }
         }
         Box(

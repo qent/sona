@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,6 +30,7 @@ import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
+import io.qent.sona.ui.common.TwoLineItem
 
 @Composable
 fun PresetsPanel(state: State.PresetsListState) {
@@ -48,28 +48,14 @@ fun PresetsPanel(state: State.PresetsListState) {
             contentPadding = PaddingValues(bottom = 56.dp)
         ) {
             itemsIndexed(state.presets) { idx, preset ->
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (idx == state.currentIndex) SonaTheme.colors.UserBubble else SonaTheme.colors.AiBubble)
-                        .clickable { state.onSelectPreset(idx) }
-                        .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(preset.name, fontWeight = FontWeight.Bold, color = SonaTheme.colors.AiText)
-                        Text(
-                            "${preset.provider.name} / ${preset.model}",
-                            color = SonaTheme.colors.BackgroundText,
-                            fontSize = 12.sp
-                        )
-                    }
-                    ActionButton(onClick = { state.onEditPreset(idx) }) { Text("✏") }
-                    Spacer(Modifier.width(8.dp))
-                    ActionButton(onClick = { deleteIndex = idx }) { Text("\uD83D\uDDD1") }
-                }
+                TwoLineItem(
+                    title = preset.name,
+                    subtitle = "${preset.provider.name} / ${preset.model}",
+                    selected = idx == state.currentIndex,
+                    onClick = { state.onSelectPreset(idx) },
+                    onEdit = { state.onEditPreset(idx) },
+                    onDelete = { deleteIndex = idx }
+                )
             }
         }
         Box(

@@ -20,9 +20,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
@@ -30,7 +27,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.project.Project
 import com.mikepenz.markdown.compose.Markdown
 import com.mikepenz.markdown.compose.components.markdownComponents
@@ -38,16 +34,13 @@ import com.mikepenz.markdown.model.rememberMarkdownState
 import io.qent.sona.Strings
 import io.qent.sona.core.state.State.ChatState
 import io.qent.sona.core.state.UiMessage
-import io.qent.sona.PluginStateFlow
+import io.qent.sona.ui.common.loadIcon
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
-import java.awt.image.BufferedImage
-
 import io.qent.sona.ui.SonaTheme
 import dev.langchain4j.agent.tool.ToolExecutionRequest
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import javax.swing.Icon
 
 @Composable
 fun ChatPanel(project: Project, state: ChatState) {
@@ -65,7 +58,6 @@ fun ChatPanel(project: Project, state: ChatState) {
         ChatInput(state)
     }
 }
-
 @Composable
 private fun Messages(project: Project, state: ChatState, modifier: Modifier = Modifier) {
     val listState = rememberLazyListState()
@@ -309,10 +301,9 @@ fun ToolMessageBubble(
             )
         }
     }
-}
-
-@Composable
-private fun AnimatedDots(color: Color) {
+  }
+  @Composable
+  private fun AnimatedDots(color: Color) {
     var dots by remember { mutableStateOf(0) }
     LaunchedEffect(Unit) {
         while (true) {
@@ -321,10 +312,9 @@ private fun AnimatedDots(color: Color) {
         }
     }
     Text(".".repeat(dots), color = color, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
-}
-
-@Composable
-private fun ToolRequests(requests: List<ToolExecutionRequest>) {
+  }
+  @Composable
+  private fun ToolRequests(requests: List<ToolExecutionRequest>) {
     Column(
         Modifier
             .fillMaxWidth()
@@ -336,9 +326,8 @@ private fun ToolRequests(requests: List<ToolExecutionRequest>) {
         }
     }
 }
-
-@Composable
-private fun ToolPermissionButtons(
+  @Composable
+  private fun ToolPermissionButtons(
     onOk: () -> Unit,
     onAlways: () -> Unit,
     onCancel: () -> Unit,
@@ -364,17 +353,3 @@ private fun ToolPermissionButtons(
     }
 }
 
-@Composable
-fun loadIcon(path: String): Painter {
-    val icon = IconLoader.getIcon(path, PluginStateFlow::class.java)
-    val bufferedImage = iconToImage(icon)
-    return BitmapPainter(bufferedImage.toComposeImageBitmap())
-}
-
-fun iconToImage(icon: Icon): BufferedImage {
-    val image = BufferedImage(icon.iconWidth, icon.iconHeight, BufferedImage.TYPE_INT_ARGB)
-    val g = image.createGraphics()
-    icon.paintIcon(null, g, 0, 0)
-    g.dispose()
-    return image
-}

@@ -67,6 +67,7 @@ object Strings {
     val serversActionDescription: String get() = bundle.getString("serversActionDescription")
     val addRole: String get() = bundle.getString("addRole")
     val deleteRoleQuestion: String get() = bundle.getString("deleteRoleQuestion")
+    val deleteChatQuestion: String get() = bundle.getString("deleteChatQuestion")
     val shortDescription: String get() = bundle.getString("shortDescription")
 }
 
