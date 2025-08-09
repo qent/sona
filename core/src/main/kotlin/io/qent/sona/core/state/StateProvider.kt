@@ -14,7 +14,6 @@ import io.qent.sona.core.presets.Presets
 import io.qent.sona.core.presets.PresetsRepository
 import io.qent.sona.core.roles.Roles
 import io.qent.sona.core.roles.RolesRepository
-import io.qent.sona.core.roles.DefaultRoles
 import io.qent.sona.core.settings.SettingsRepository
 import io.qent.sona.core.tools.DefaultInternalTools
 import io.qent.sona.core.tools.ExternalTools
@@ -39,7 +38,7 @@ class StateProvider(
     systemMessages: List<SystemMessage> = emptyList(),
 ) {
     private val filePermissionManager = FilePermissionManager(filePermissionRepository)
-    private val internalTools = DefaultInternalTools(scope) { role -> scope.launch { rolesInteractor.selectRole(role.ordinal) } }
+    private val internalTools = DefaultInternalTools(scope) { name -> scope.launch { rolesInteractor.selectRole(name) } }
     private val tools: Tools = ToolsInfoDecorator(internalTools, externalTools, filePermissionManager)
     private val mcpManager = McpConnectionManager(mcpServersRepository, scope)
     private val chatFlow = ChatFlow(presetsRepository, rolesRepository, chatRepository, modelFactory, tools, scope, systemMessages, mcpManager, settingsRepository)
@@ -141,16 +140,18 @@ class StateProvider(
     private suspend fun emitRolesState() {
         val roles = rolesInteractor.roles
         val creating = rolesInteractor.creatingRole
+        val short = if (creating) "" else roles.roles[roles.active].short
         val text = if (creating) "" else roles.roles[roles.active].text
         val state = factory.createRolesState(
             roles = roles,
             creatingRole = creating,
+            short = short,
             text = text,
             onSelectRole = { idx -> scope.launch { rolesInteractor.selectRole(idx); emitRolesState() } },
             onStartCreateRole = { rolesInteractor.startCreateRole(); scope.launch { emitRolesState() } },
-            onAddRole = { name, t -> scope.launch { rolesInteractor.addRole(name, t); emitRolesState() } },
+            onAddRole = { name, s, t -> scope.launch { rolesInteractor.addRole(name, s, t); emitRolesState() } },
             onDeleteRole = { scope.launch { rolesInteractor.deleteRole(); emitRolesState() } },
-            onSave = { t -> scope.launch { rolesInteractor.saveRole(t); emitRolesState() } },
+            onSave = { s, t -> scope.launch { rolesInteractor.saveRole(s, t); emitRolesState() } },
             onNewChat = { scope.launch { chatInteractor.newChat() } },
             onOpenHistory = { scope.launch { showHistory() } },
             onOpenPresets = { scope.launch { showPresets() } },

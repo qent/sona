@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import dev.langchain4j.agent.tool.ToolExecutionRequest
 import dev.langchain4j.agent.tool.ToolSpecification
 import dev.langchain4j.agent.tool.ToolSpecifications
+import dev.langchain4j.model.chat.request.json.JsonObjectSchema
 import dev.langchain4j.service.tool.ToolExecutor
 import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.data.message.SystemMessage
@@ -94,10 +95,23 @@ class ChatFlow(
                 )
             )
 
-            val roleText = rolesRepository.load().let { it.roles[it.active].text }
+            val roles = rolesRepository.load()
+            val roleText = roles.roles[roles.active].text
             val roleMessage = SystemMessage.from(roleText)
+            val roleDescriptions = roles.roles.joinToString("; ") { "${'$'}{it.name} - ${'$'}{it.short}" }
 
-            val toolSpecs = ToolSpecifications.toolSpecificationsFrom(tools).toMutableList() + mcpManager.listTools()
+            val roleSpec = ToolSpecification.builder()
+                .name("switchRole")
+                .description("Switch agent role by name. Available roles: ${'$'}roleDescriptions")
+                .parameters(
+                    JsonObjectSchema.builder()
+                        .addStringProperty("name", "Role name")
+                        .required("name")
+                        .build()
+                )
+                .build()
+
+            val toolSpecs = ToolSpecifications.toolSpecificationsFrom(tools).toMutableList().apply { add(roleSpec) } + mcpManager.listTools()
             val toolMap = toolSpecs.associateWith { spec: ToolSpecification ->
                 PermissionedToolExecutor(chatId, preset.model, spec.name()) { req ->
                     when (spec.name()) {
@@ -107,8 +121,11 @@ class ChatFlow(
                             val path = args["arg0"]?.toString() ?: ""
                             tools.readFile(path)
                         }
-                        "switchToArchitect" -> tools.switchToArchitect()
-                        "switchToCode" -> tools.switchToCode()
+                        "switchRole" -> {
+                            val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
+                            val name = args["name"]?.toString() ?: ""
+                            tools.switchRole(name)
+                        }
                         else -> runBlocking { mcpManager.execute(req.id(), spec.name(), req.arguments()) }
                     }
                 }

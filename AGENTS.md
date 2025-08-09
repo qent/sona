@@ -10,8 +10,9 @@
 - Individual messages can be copied via a clipboard icon or removed via a trash icon. Deleting a message truncates the chat history from that point.
   - Code blocks display Copy and Apply Patch icons. The latter opens the IDE patch dialog.
   - System prompts (roles) are stored in `RolesRepository` and can be managed from
-    the Roles screen. Each role has a name and text. The default Architect and
-    Code roles cannot be deleted.
+    the Roles screen. Each role has a name, a short description for tool usage,
+    and a detailed system prompt. The default Architect and Code roles cannot be
+    deleted.
 - LLM connection details are organised as presets via `PresetsRepository`. At least one preset must exist for the chat
   to work and they are managed from the Presets screen.
 - Supported LLM providers and models are defined in `core/src/main/resources/providers.json` so new options can be
@@ -25,7 +26,8 @@
 - A 🤘 button next to the send action can temporarily auto-approve all tool
   requests in the current chat. The setting resets when switching chats and is
   not persisted.
-- A tool is available to switch the active role between Architect and Code.
+- A tool is available to switch the active role by name using the roles' short
+  descriptions.
 - The UI passes a list of additional `SystemMessage` values to the core. The first message describes the current
   environment (OS, IDE, Java, Python, Node.js, file extension statistics, build systems) and is prepended to every LLM request.
 - ChatFlow leverages langchain4j `AiService` and `TokenStream` to emit partial responses and tool events via streaming callbacks.
