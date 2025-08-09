@@ -32,11 +32,12 @@ fun TwoLineItem(
             .clip(RoundedCornerShape(8.dp))
             .background(if (selected) SonaTheme.colors.UserBubble else SonaTheme.colors.AiBubble)
             .clickable { onClick() }
-            .padding(8.dp),
+            .padding(vertical = 8.dp, horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f)) {
             Text(title, fontWeight = FontWeight.Bold, color = SonaTheme.colors.AiText, maxLines = 1)
+            Spacer(Modifier.height(4.dp))
             Text(subtitle, color = SonaTheme.colors.BackgroundText, fontSize = 12.sp)
         }
         onEdit?.let {
@@ -50,7 +51,7 @@ fun TwoLineItem(
             )
         }
         if (onEdit != null && onDelete != null) {
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(12.dp))
         }
         onDelete?.let {
             Image(

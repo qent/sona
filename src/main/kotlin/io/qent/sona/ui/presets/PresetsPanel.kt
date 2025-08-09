@@ -50,7 +50,7 @@ fun PresetsPanel(state: State.PresetsListState) {
             itemsIndexed(state.presets) { idx, preset ->
                 TwoLineItem(
                     title = preset.name,
-                    subtitle = "${preset.provider.name} / ${preset.model}",
+                    subtitle = "${preset.provider.name} · ${preset.model}",
                     selected = idx == state.currentIndex,
                     onClick = { state.onSelectPreset(idx) },
                     onEdit = { state.onEditPreset(idx) },

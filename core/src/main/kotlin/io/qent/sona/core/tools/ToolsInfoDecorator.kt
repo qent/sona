@@ -28,7 +28,7 @@ class ToolsInfoDecorator(
         return filePermissionManager.getFileContent(fileInfo)
     }
 
-    @Tool("Apply a unified diff patch to the project")
+    @Tool("Apply a unified diff patch text content to the project")
     override fun applyPatch(patch: String): String {
         val regex = Regex("^[-+]{3}\\s+(?:[ab]/)?(.+)", RegexOption.MULTILINE)
         val files = regex.findAll(patch).map { it.groupValues[1] }.toSet()
