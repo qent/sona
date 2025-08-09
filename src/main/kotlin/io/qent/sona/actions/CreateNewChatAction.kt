@@ -15,7 +15,8 @@ class CreateNewChatAction : AnAction(Strings.createAction, Strings.createActionD
                 is State.ChatListState -> onNewChat()
                 is State.ChatState -> if (messages.isNotEmpty()) onNewChat()
                 is State.RolesState -> onNewChat()
-                is State.PresetsState -> onNewChat()
+                is State.PresetsListState -> onNewChat()
+                is State.EditPresetState -> onNewChat()
                 is State.ServersState -> onNewChat()
             }
         }

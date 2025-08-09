@@ -32,7 +32,8 @@ class PluginToolWindowFactory : ToolWindowFactory, DumbAware {
                         is ChatState -> ChatPanel(project, s)
                         is ChatListState -> ChatListPanel(s)
                         is RolesState -> RolesPanel(s)
-                        is PresetsState -> PresetsPanel(s)
+                        is PresetsListState -> PresetsPanel(s)
+                        is EditPresetState -> PresetsPanel(s)
                         is ServersState -> ServersPanel(s)
                     }
                 }
