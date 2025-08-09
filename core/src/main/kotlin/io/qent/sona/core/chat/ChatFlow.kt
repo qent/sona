@@ -24,7 +24,7 @@ import io.qent.sona.core.mcp.McpConnectionManager
 import io.qent.sona.core.model.TokenUsageInfo
 import io.qent.sona.core.model.SonaAiService
 import io.qent.sona.core.model.toInfo
-import io.qent.sona.core.repositories.ChatRepositoryChatMemoryStore
+import io.qent.sona.core.chat.ChatRepositoryChatMemoryStore
 import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.presets.PresetsRepository
 import io.qent.sona.core.roles.RolesRepository

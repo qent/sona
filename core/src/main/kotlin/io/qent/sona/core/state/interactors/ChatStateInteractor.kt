@@ -1,4 +1,4 @@
-package io.qent.sona.core.state
+package io.qent.sona.core.state.interactors
 
 import io.qent.sona.core.chat.Chat
 import io.qent.sona.core.chat.ChatRepository

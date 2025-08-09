@@ -1,4 +1,4 @@
-package io.qent.sona.core.state
+package io.qent.sona.core.state.interactors
 
 import io.qent.sona.core.mcp.McpServerStatus
 import kotlinx.coroutines.flow.StateFlow

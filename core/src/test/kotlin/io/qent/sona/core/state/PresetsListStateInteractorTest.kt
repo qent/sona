@@ -4,7 +4,8 @@ import io.qent.sona.core.presets.LlmProvider
 import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.presets.Presets
 import io.qent.sona.core.presets.PresetsRepository
-import io.qent.sona.core.state.PresetsStateFlow
+import io.qent.sona.core.presets.PresetsStateFlow
+import io.qent.sona.core.state.interactors.PresetsListStateInteractor
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test

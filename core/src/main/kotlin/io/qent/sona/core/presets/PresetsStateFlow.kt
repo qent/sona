@@ -1,10 +1,8 @@
-package io.qent.sona.core.state
+package io.qent.sona.core.presets
 
-import io.qent.sona.core.presets.Presets
-import io.qent.sona.core.presets.PresetsRepository
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.FlowCollector
 
 class PresetsStateFlow(private val repository: PresetsRepository) : StateFlow<Presets> {
     private val _presets = MutableStateFlow(Presets(0, emptyList()))

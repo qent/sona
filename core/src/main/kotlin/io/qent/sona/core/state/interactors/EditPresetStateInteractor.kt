@@ -1,8 +1,9 @@
-package io.qent.sona.core.state
+package io.qent.sona.core.state.interactors
 
 import io.qent.sona.core.presets.LlmProviders
 import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.presets.Presets
+import io.qent.sona.core.presets.PresetsStateFlow
 
 class EditPresetStateInteractor(private val flow: PresetsStateFlow) {
     private var editingIndex: Int? = null

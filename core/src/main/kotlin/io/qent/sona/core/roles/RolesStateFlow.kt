@@ -1,10 +1,8 @@
-package io.qent.sona.core.state
+package io.qent.sona.core.roles
 
-import io.qent.sona.core.roles.Roles
-import io.qent.sona.core.roles.RolesRepository
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.FlowCollector
 
 class RolesStateFlow(private val repository: RolesRepository) : StateFlow<Roles> {
     private val _roles = MutableStateFlow(Roles(0, emptyList()))

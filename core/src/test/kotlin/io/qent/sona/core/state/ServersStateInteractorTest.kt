@@ -1,6 +1,8 @@
 package io.qent.sona.core.state
 
 import io.qent.sona.core.mcp.McpServerStatus
+import io.qent.sona.core.state.interactors.ServersController
+import io.qent.sona.core.state.interactors.ServersStateInteractor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertTrue

@@ -1,7 +1,8 @@
-package io.qent.sona.core.state
+package io.qent.sona.core.state.interactors
 
 import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.presets.Presets
+import io.qent.sona.core.presets.PresetsStateFlow
 
 class PresetsListStateInteractor(private val flow: PresetsStateFlow) {
 

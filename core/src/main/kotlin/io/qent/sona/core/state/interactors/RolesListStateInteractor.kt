@@ -1,8 +1,9 @@
-package io.qent.sona.core.state
+package io.qent.sona.core.state.interactors
 
 import io.qent.sona.core.roles.Role
 import io.qent.sona.core.roles.Roles
 import io.qent.sona.core.roles.DefaultRoles
+import io.qent.sona.core.roles.RolesStateFlow
 
 class RolesListStateInteractor(private val flow: RolesStateFlow) {
     val roles: Roles
