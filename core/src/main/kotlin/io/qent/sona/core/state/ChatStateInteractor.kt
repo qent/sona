@@ -26,10 +26,9 @@ class ChatStateInteractor(
             return
         }
         if (chatRepository.loadMessages(lastChat).isEmpty()) {
-            chatFlow.loadChat(lastChat)
-        } else {
-            chatFlow.loadChat(chatRepository.createChat())
+            chatRepository.deleteChat(lastChat)
         }
+        chatFlow.loadChat(chatRepository.createChat())
     }
 
     suspend fun openChat(id: String) = chatFlow.loadChat(id)

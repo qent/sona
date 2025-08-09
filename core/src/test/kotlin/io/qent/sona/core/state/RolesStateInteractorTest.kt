@@ -50,7 +50,7 @@ class RolesStateInteractorTest {
     @Test
     fun deleteRoleSkipsDefault() = runBlocking {
         val repo = FakeRolesRepository(
-            Roles(0, listOf(Role(DefaultRoles.ARCHITECT.displayName, "sa", "a"), Role("B", "sb", "b")))
+            Roles(0, listOf(Role(DefaultRoles.ARCHITECTOR.displayName, "sa", "a"), Role("B", "sb", "b")))
         )
         val flow = RolesStateFlow(repo)
         val interactor = RolesStateInteractor(flow)

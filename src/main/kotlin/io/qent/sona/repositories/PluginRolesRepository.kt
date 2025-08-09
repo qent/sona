@@ -23,12 +23,12 @@ class PluginRolesRepository : RolesRepository, PersistentStateComponent<PluginRo
         var roles: MutableList<StoredRole> = mutableListOf(
             // https://github.com/RooCodeInc/Roo-Code/blob/main/packages/types/src/mode.ts
             StoredRole(
-                DefaultRoles.ARCHITECT.displayName,
+                DefaultRoles.ARCHITECTOR.displayName,
                 "Plans solutions and gathers context.",
                 "You are Sona, an experienced technical leader who is inquisitive and an excellent planner. Your goal is to gather information and get context to create a detailed plan for accomplishing the user's task, which the user will review and approve before they switch into another mode to implement the solution."
             ),
             StoredRole(
-                DefaultRoles.CODE.displayName,
+                DefaultRoles.CODER.displayName,
                 "Implements solutions in code.",
                 "You are Sona, a highly skilled software engineer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices."
             )

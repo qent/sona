@@ -69,8 +69,8 @@ fun ChatInput(state: ChatState) {
         Strings.typeMessage
     } else {
         when (state.roles[state.activeRole]) {
-            DefaultRoles.ARCHITECT.displayName -> Strings.architectPlaceholder
-            DefaultRoles.CODE.displayName -> Strings.codePlaceholder
+            DefaultRoles.ARCHITECTOR.displayName -> Strings.architectPlaceholder
+            DefaultRoles.CODER.displayName -> Strings.codePlaceholder
             else -> Strings.defaultPlaceholder
         }
     }
@@ -145,7 +145,13 @@ fun ChatInput(state: ChatState) {
         }
 
         DropdownSelector(
-            items = state.roles,
+            items = state.roles.map {
+                when (it) {
+                    DefaultRoles.ARCHITECTOR.displayName -> "\uD83D\uDC77  $it"
+                    DefaultRoles.CODER.displayName -> "\uD83D\uDC68\u200D\uD83D\uDCBB  $it"
+                    else -> it
+                }
+            },
             selectedIndex = state.activeRole,
             expandUpwards = true,
             onSelect = { state.onSelectRole(it) },
