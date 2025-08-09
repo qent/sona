@@ -17,7 +17,8 @@ class RolesStateInteractorTest {
     @Test
     fun addRoleUpdatesRepository() = runBlocking {
         val repo = FakeRolesRepository(Roles(0, listOf(Role("A", "sa", "a"))))
-        val interactor = RolesStateInteractor(repo)
+        val flow = RolesStateFlow(repo)
+        val interactor = RolesStateInteractor(flow)
         interactor.load()
         interactor.startCreateRole()
         interactor.addRole("B", "sb", "b")
@@ -28,7 +29,8 @@ class RolesStateInteractorTest {
     @Test
     fun selectRolePersistsActive() = runBlocking {
         val repo = FakeRolesRepository(Roles(0, listOf(Role("A", "sa", "a"), Role("B", "sb", "b"))))
-        val interactor = RolesStateInteractor(repo)
+        val flow = RolesStateFlow(repo)
+        val interactor = RolesStateInteractor(flow)
         interactor.load()
         interactor.selectRole(1)
         assertEquals(1, repo.data.active)
@@ -37,7 +39,8 @@ class RolesStateInteractorTest {
     @Test
     fun saveRoleUpdatesText() = runBlocking {
         val repo = FakeRolesRepository(Roles(0, listOf(Role("A", "sa", "a"))))
-        val interactor = RolesStateInteractor(repo)
+        val flow = RolesStateFlow(repo)
+        val interactor = RolesStateInteractor(flow)
         interactor.load()
         interactor.saveRole("sn", "new")
         assertEquals("new", repo.data.roles[0].text)
@@ -49,7 +52,8 @@ class RolesStateInteractorTest {
         val repo = FakeRolesRepository(
             Roles(0, listOf(Role(DefaultRoles.ARCHITECT.displayName, "sa", "a"), Role("B", "sb", "b")))
         )
-        val interactor = RolesStateInteractor(repo)
+        val flow = RolesStateFlow(repo)
+        val interactor = RolesStateInteractor(flow)
         interactor.load()
         interactor.deleteRole()
         assertEquals(2, repo.data.roles.size)
@@ -61,7 +65,8 @@ class RolesStateInteractorTest {
     @Test
     fun startAndFinishCreateRoleToggleFlag() = runBlocking {
         val repo = FakeRolesRepository(Roles(0, emptyList()))
-        val interactor = RolesStateInteractor(repo)
+        val flow = RolesStateFlow(repo)
+        val interactor = RolesStateInteractor(flow)
         interactor.startCreateRole()
         assertEquals(true, interactor.creatingRole)
         interactor.finishCreateRole()
