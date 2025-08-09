@@ -52,8 +52,8 @@ import org.jetbrains.jewel.ui.component.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import io.qent.sona.ui.DropdownSelector
-import io.qent.sona.ui.SonaTheme
+import io.qent.sona.ui.common.DropdownSelector
+import io.qent.sona.ui.common.SonaTheme
 
 @Composable
 fun ChatInput(state: ChatState) {

@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.qent.sona.ui.SonaTheme
 import org.jetbrains.jewel.ui.component.Text
 
 @Composable

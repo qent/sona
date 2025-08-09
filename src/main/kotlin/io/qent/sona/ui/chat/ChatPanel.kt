@@ -37,7 +37,7 @@ import io.qent.sona.core.state.UiMessage
 import io.qent.sona.ui.common.loadIcon
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
-import io.qent.sona.ui.SonaTheme
+import io.qent.sona.ui.common.SonaTheme
 import dev.langchain4j.agent.tool.ToolExecutionRequest
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

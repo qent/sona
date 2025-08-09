@@ -1,4 +1,4 @@
-package io.qent.sona.ui
+package io.qent.sona.ui.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*

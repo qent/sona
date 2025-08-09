@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.sp
 import io.qent.sona.Strings
 import io.qent.sona.core.mcp.McpServerStatus
 import io.qent.sona.core.state.State
-import io.qent.sona.ui.SonaTheme
+import io.qent.sona.ui.common.SonaTheme
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
 import java.awt.Desktop

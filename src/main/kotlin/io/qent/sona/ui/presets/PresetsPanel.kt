@@ -23,8 +23,8 @@ import io.qent.sona.core.presets.LlmProvider
 import io.qent.sona.core.presets.LlmProviders
 import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.state.State
-import io.qent.sona.ui.DropdownSelector
-import io.qent.sona.ui.SonaTheme
+import io.qent.sona.ui.common.DropdownSelector
+import io.qent.sona.ui.common.SonaTheme
 import io.qent.sona.ui.common.DeleteConfirmationDialog
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.ui.component.ActionButton

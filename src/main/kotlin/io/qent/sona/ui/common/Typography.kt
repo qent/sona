@@ -1,10 +1,11 @@
-package io.qent.sona.ui
+package io.qent.sona.ui.common
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.sp
@@ -90,7 +91,7 @@ object Typography {
         quote = TextStyle(
             fontSize = 14.sp,
             color = MarkdownDarkQuoteColor,
-            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+            fontStyle = FontStyle.Italic
         ),
         paragraph = TextStyle(
             fontSize = 14.sp,
@@ -157,7 +158,7 @@ object Typography {
         quote = TextStyle(
             fontSize = 14.sp,
             color = MarkdownLightQuoteColor,
-            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+            fontStyle = FontStyle.Italic
         ),
         paragraph = TextStyle(fontSize = 14.sp, color = MarkdownLightTextColor),
         ordered = TextStyle(fontSize = 14.sp, color = MarkdownLightTextColor),

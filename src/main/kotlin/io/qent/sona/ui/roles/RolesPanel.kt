@@ -20,7 +20,7 @@ import io.qent.sona.Strings
 import io.qent.sona.core.roles.DefaultRoles
 import io.qent.sona.core.roles.Role
 import io.qent.sona.core.state.State
-import io.qent.sona.ui.SonaTheme
+import io.qent.sona.ui.common.SonaTheme
 import io.qent.sona.ui.common.DeleteConfirmationDialog
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text

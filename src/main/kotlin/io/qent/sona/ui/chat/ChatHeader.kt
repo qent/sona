@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import io.qent.sona.Strings
 import io.qent.sona.core.state.State.ChatState
 import io.qent.sona.core.model.cost
-import io.qent.sona.ui.SonaTheme
+import io.qent.sona.ui.common.SonaTheme
 import org.jetbrains.jewel.ui.component.Text
 
 @Composable

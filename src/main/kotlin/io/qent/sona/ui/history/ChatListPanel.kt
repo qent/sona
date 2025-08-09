@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.qent.sona.Strings
 import io.qent.sona.core.state.State.ChatListState
-import io.qent.sona.ui.SonaTheme
+import io.qent.sona.ui.common.SonaTheme
 import io.qent.sona.ui.common.DeleteConfirmationDialog
 import io.qent.sona.ui.common.TwoLineItem
 import org.jetbrains.jewel.ui.component.Text

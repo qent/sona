@@ -17,7 +17,7 @@ import io.qent.sona.ui.presets.PresetsPanel
 import io.qent.sona.ui.roles.RolesListPanel
 import io.qent.sona.ui.roles.EditRolePanel
 import io.qent.sona.ui.mcp.ServersPanel
-import io.qent.sona.ui.SonaTheme
+import io.qent.sona.ui.common.SonaTheme
 import org.jetbrains.jewel.bridge.JewelComposePanel
 
 class PluginToolWindowFactory : ToolWindowFactory, DumbAware {
