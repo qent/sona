@@ -67,34 +67,52 @@ sealed class State {
         override val onOpenHistory = { }
     }
 
-    data class RolesState(
-        val roles: List<String>,
+    data class RolesListState(
+        val roles: List<io.qent.sona.core.roles.Role>,
         val currentIndex: Int,
-        val creating: Boolean,
-        val short: String,
-        val text: String,
         val onSelectRole: (Int) -> Unit,
-        val onStartCreateRole: () -> Unit,
-        val onAddRole: (String, String, String) -> Unit,
-        val onDeleteRole: () -> Unit,
-        val onSave: (String, String) -> Unit,
+        val onAddRole: () -> Unit,
+        val onEditRole: (Int) -> Unit,
+        val onDeleteRole: (Int) -> Unit,
+        override val onNewChat: () -> Unit,
+        override val onOpenHistory: () -> Unit,
+        override val onOpenPresets: () -> Unit,
+        override val onOpenServers: () -> Unit,
+    ) : State() {
+        override val onOpenRoles = { }
+    }
+
+    data class EditRoleState(
+        val role: io.qent.sona.core.roles.Role,
+        val onSave: (io.qent.sona.core.roles.Role) -> Unit,
+        val onCancel: () -> Unit,
+        override val onNewChat: () -> Unit,
+        override val onOpenHistory: () -> Unit,
+        override val onOpenPresets: () -> Unit,
+        override val onOpenServers: () -> Unit,
+    ) : State() {
+        override val onOpenRoles = { }
+    }
+
+    data class PresetsListState(
+        val presets: List<Preset>,
+        val currentIndex: Int,
+        val onSelectPreset: (Int) -> Unit,
+        val onAddPreset: () -> Unit,
+        val onEditPreset: (Int) -> Unit,
+        val onDeletePreset: (Int) -> Unit,
         override val onNewChat: () -> Unit,
         override val onOpenHistory: () -> Unit,
         override val onOpenRoles: () -> Unit,
-        override val onOpenPresets: () -> Unit,
         override val onOpenServers: () -> Unit,
-    ) : State()
+    ) : State() {
+        override val onOpenPresets = { }
+    }
 
-    data class PresetsState(
-        val presets: List<String>,
-        val currentIndex: Int,
-        val creating: Boolean,
+    data class EditPresetState(
         val preset: Preset,
-        val onSelectPreset: (Int) -> Unit,
-        val onStartCreatePreset: () -> Unit,
-        val onAddPreset: (Preset) -> Unit,
-        val onDeletePreset: () -> Unit,
         val onSave: (Preset) -> Unit,
+        val onCancel: () -> Unit,
         override val onNewChat: () -> Unit,
         override val onOpenHistory: () -> Unit,
         override val onOpenRoles: () -> Unit,

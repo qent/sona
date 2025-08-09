@@ -9,6 +9,7 @@ import io.qent.sona.core.chat.ChatSummary
 import io.qent.sona.core.model.TokenUsageInfo
 import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.presets.Presets
+import io.qent.sona.core.roles.Role
 import io.qent.sona.core.roles.Roles
 import io.qent.sona.core.mcp.McpServerStatus
 import kotlinx.coroutines.flow.StateFlow
@@ -80,61 +81,82 @@ class StateFactory {
         onOpenServers = onOpenServers,
     )
 
-    fun createRolesState(
+    fun createRolesListState(
         roles: Roles,
-        creatingRole: Boolean,
-        short: String,
-        text: String,
         onSelectRole: (Int) -> Unit,
-        onStartCreateRole: () -> Unit,
-        onAddRole: (String, String, String) -> Unit,
-        onDeleteRole: () -> Unit,
-        onSave: (String, String) -> Unit,
+        onAddRole: () -> Unit,
+        onEditRole: (Int) -> Unit,
+        onDeleteRole: (Int) -> Unit,
         onNewChat: () -> Unit,
         onOpenHistory: () -> Unit,
         onOpenPresets: () -> Unit,
         onOpenServers: () -> Unit,
-    ) = State.RolesState(
-        roles = roles.roles.map { it.name },
+    ) = State.RolesListState(
+        roles = roles.roles,
         currentIndex = roles.active,
-        creating = creatingRole,
-        short = short,
-        text = text,
         onSelectRole = onSelectRole,
-        onStartCreateRole = onStartCreateRole,
         onAddRole = onAddRole,
+        onEditRole = onEditRole,
         onDeleteRole = onDeleteRole,
-        onSave = onSave,
         onNewChat = onNewChat,
         onOpenHistory = onOpenHistory,
-        onOpenRoles = {},
         onOpenPresets = onOpenPresets,
         onOpenServers = onOpenServers,
     )
 
-    fun createPresetsState(
+    fun createEditRoleState(
+        role: Role,
+        onSave: (Role) -> Unit,
+        onCancel: () -> Unit,
+        onNewChat: () -> Unit,
+        onOpenHistory: () -> Unit,
+        onOpenPresets: () -> Unit,
+        onOpenServers: () -> Unit,
+    ) = State.EditRoleState(
+        role = role,
+        onSave = onSave,
+        onCancel = onCancel,
+        onNewChat = onNewChat,
+        onOpenHistory = onOpenHistory,
+        onOpenPresets = onOpenPresets,
+        onOpenServers = onOpenServers,
+    )
+
+    fun createPresetsListState(
         presets: Presets,
-        creatingPreset: Boolean,
-        preset: Preset,
         onSelectPreset: (Int) -> Unit,
-        onStartCreatePreset: () -> Unit,
-        onAddPreset: (Preset) -> Unit,
-        onDeletePreset: () -> Unit,
-        onSave: (Preset) -> Unit,
+        onAddPreset: () -> Unit,
+        onEditPreset: (Int) -> Unit,
+        onDeletePreset: (Int) -> Unit,
         onNewChat: () -> Unit,
         onOpenHistory: () -> Unit,
         onOpenRoles: () -> Unit,
         onOpenServers: () -> Unit,
-    ) = State.PresetsState(
-        presets = presets.presets.map { it.name },
+    ) = State.PresetsListState(
+        presets = presets.presets,
         currentIndex = presets.active,
-        creating = creatingPreset,
-        preset = preset,
         onSelectPreset = onSelectPreset,
-        onStartCreatePreset = onStartCreatePreset,
         onAddPreset = onAddPreset,
+        onEditPreset = onEditPreset,
         onDeletePreset = onDeletePreset,
+        onNewChat = onNewChat,
+        onOpenHistory = onOpenHistory,
+        onOpenRoles = onOpenRoles,
+        onOpenServers = onOpenServers,
+    )
+
+    fun createEditPresetState(
+        preset: Preset,
+        onSave: (Preset) -> Unit,
+        onCancel: () -> Unit,
+        onNewChat: () -> Unit,
+        onOpenHistory: () -> Unit,
+        onOpenRoles: () -> Unit,
+        onOpenServers: () -> Unit,
+    ) = State.EditPresetState(
+        preset = preset,
         onSave = onSave,
+        onCancel = onCancel,
         onNewChat = onNewChat,
         onOpenHistory = onOpenHistory,
         onOpenRoles = onOpenRoles,

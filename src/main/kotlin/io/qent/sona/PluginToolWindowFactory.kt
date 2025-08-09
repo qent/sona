@@ -14,7 +14,8 @@ import io.qent.sona.core.state.State.*
 import io.qent.sona.services.ThemeService
 import io.qent.sona.ui.chat.ChatPanel
 import io.qent.sona.ui.presets.PresetsPanel
-import io.qent.sona.ui.roles.RolesPanel
+import io.qent.sona.ui.roles.RolesListPanel
+import io.qent.sona.ui.roles.EditRolePanel
 import io.qent.sona.ui.mcp.ServersPanel
 import io.qent.sona.ui.SonaTheme
 import org.jetbrains.jewel.bridge.JewelComposePanel
@@ -31,8 +32,10 @@ class PluginToolWindowFactory : ToolWindowFactory, DumbAware {
                     when (val s = state.value) {
                         is ChatState -> ChatPanel(project, s)
                         is ChatListState -> ChatListPanel(s)
-                        is RolesState -> RolesPanel(s)
-                        is PresetsState -> PresetsPanel(s)
+                        is RolesListState -> RolesListPanel(s)
+                        is EditRoleState -> EditRolePanel(s)
+                        is PresetsListState -> PresetsPanel(s)
+                        is EditPresetState -> PresetsPanel(s)
                         is ServersState -> ServersPanel(s)
                     }
                 }

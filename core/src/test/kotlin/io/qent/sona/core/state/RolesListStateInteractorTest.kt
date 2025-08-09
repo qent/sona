@@ -13,15 +13,14 @@ private class FakeRolesRepository(var data: Roles = Roles(0, emptyList())) : Rol
     override suspend fun save(roles: Roles) { data = roles }
 }
 
-class RolesStateInteractorTest {
+class RolesListStateInteractorTest {
     @Test
     fun addRoleUpdatesRepository() = runBlocking {
         val repo = FakeRolesRepository(Roles(0, listOf(Role("A", "sa", "a"))))
         val flow = RolesStateFlow(repo)
-        val interactor = RolesStateInteractor(flow)
+        val interactor = RolesListStateInteractor(flow)
         interactor.load()
-        interactor.startCreateRole()
-        interactor.addRole("B", "sb", "b")
+        interactor.addRole(Role("B", "sb", "b"))
         assertEquals(2, repo.data.roles.size)
         assertEquals(1, repo.data.active)
     }
@@ -30,19 +29,19 @@ class RolesStateInteractorTest {
     fun selectRolePersistsActive() = runBlocking {
         val repo = FakeRolesRepository(Roles(0, listOf(Role("A", "sa", "a"), Role("B", "sb", "b"))))
         val flow = RolesStateFlow(repo)
-        val interactor = RolesStateInteractor(flow)
+        val interactor = RolesListStateInteractor(flow)
         interactor.load()
         interactor.selectRole(1)
         assertEquals(1, repo.data.active)
     }
 
     @Test
-    fun saveRoleUpdatesText() = runBlocking {
+    fun updateRoleChangesData() = runBlocking {
         val repo = FakeRolesRepository(Roles(0, listOf(Role("A", "sa", "a"))))
         val flow = RolesStateFlow(repo)
-        val interactor = RolesStateInteractor(flow)
+        val interactor = RolesListStateInteractor(flow)
         interactor.load()
-        interactor.saveRole("sn", "new")
+        interactor.updateRole(0, Role("A", "sn", "new"))
         assertEquals("new", repo.data.roles[0].text)
         assertEquals("sn", repo.data.roles[0].short)
     }
@@ -53,24 +52,37 @@ class RolesStateInteractorTest {
             Roles(0, listOf(Role(DefaultRoles.ARCHITECTOR.displayName, "sa", "a"), Role("B", "sb", "b")))
         )
         val flow = RolesStateFlow(repo)
-        val interactor = RolesStateInteractor(flow)
+        val interactor = RolesListStateInteractor(flow)
         interactor.load()
-        interactor.deleteRole()
+        interactor.deleteRole(0)
         assertEquals(2, repo.data.roles.size)
-        interactor.selectRole(1)
-        interactor.deleteRole()
+        interactor.deleteRole(1)
         assertEquals(1, repo.data.roles.size)
+    }
+}
+
+class EditRoleStateInteractorTest {
+    @Test
+    fun startEditLoadsRole() = runBlocking {
+        val repo = FakeRolesRepository(Roles(0, listOf(Role("A", "sa", "a"), Role("B", "sb", "b"))))
+        val flow = RolesStateFlow(repo)
+        val listInteractor = RolesListStateInteractor(flow)
+        listInteractor.load()
+        val editInteractor = EditRoleStateInteractor(listInteractor)
+        editInteractor.startEdit(1)
+        assertEquals("B", editInteractor.role.name)
     }
 
     @Test
-    fun startAndFinishCreateRoleToggleFlag() = runBlocking {
-        val repo = FakeRolesRepository(Roles(0, emptyList()))
+    fun saveUpdatesListInteractor() = runBlocking {
+        val repo = FakeRolesRepository(Roles(0, listOf(Role("A", "sa", "a"))))
         val flow = RolesStateFlow(repo)
-        val interactor = RolesStateInteractor(flow)
-        interactor.startCreateRole()
-        assertEquals(true, interactor.creatingRole)
-        interactor.finishCreateRole()
-        assertEquals(false, interactor.creatingRole)
+        val listInteractor = RolesListStateInteractor(flow)
+        listInteractor.load()
+        val editInteractor = EditRoleStateInteractor(listInteractor)
+        editInteractor.startCreate()
+        editInteractor.save(Role("B", "sb", "b"))
+        assertEquals(2, repo.data.roles.size)
     }
 }
 
