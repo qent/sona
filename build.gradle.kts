@@ -85,6 +85,7 @@ dependencies {
             "intellij.platform.jewel.ui",
             "intellij.platform.jewel.ideLafBridge",
             "intellij.platform.vcs.impl",
+            "org.jetbrains.kotlin",
         )
 
         // Plugin Dependencies. Uses `platformBundledPlugins` property from the gradle.properties file for bundled IntelliJ Platform plugins.

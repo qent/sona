@@ -1,6 +1,7 @@
 package io.qent.sona.tools
 
 import com.intellij.openapi.components.service
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiManager
@@ -28,22 +29,24 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
     override fun getFocusedFileInfo(): FileStructureInfo? {
         val editor = FileEditorManager.getInstance(project).selectedTextEditor ?: return null
         val file = editor.virtualFile ?: return null
-        val psiFile = PsiManager.getInstance(project).findFile(file) ?: return null
-        val document = editor.document
 
-        val provider = when (psiFile) {
-            is KtFile -> kotlinProvider
-            else -> when (psiFile.language.id.lowercase()) {
-                "java" -> javaProvider
-                "python" -> pythonProvider
-                "typescript" -> tsProvider
-                "javascript" -> jsProvider
-                else -> null
+        return runReadAction {
+            val psiFile = PsiManager.getInstance(project).findFile(file) ?: return@runReadAction null
+            val document = editor.document
+
+            val provider = when (psiFile) {
+                is KtFile -> kotlinProvider
+                else -> when (psiFile.language.id.lowercase()) {
+                    "java" -> javaProvider
+                    "python" -> pythonProvider
+                    "typescript" -> tsProvider
+                    "javascript" -> jsProvider
+                    else -> null
+                }
             }
+            val elements = provider?.collect(psiFile, document).orEmpty()
+            FileStructureInfo(file.path, elements)
         }
-        val elements = provider?.collect(psiFile, document).orEmpty()
-
-        return FileStructureInfo(file.path, elements)
     }
 
     override fun getFileLines(path: String, fromLine: Int, toLine: Int): FileInfo? {

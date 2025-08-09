@@ -11,6 +11,8 @@
         <module name="intellij.platform.jewel.ideLafBridge"></module>
     </dependencies>
 
+    <depends optional="true" config-file="kotlin.xml">org.jetbrains.kotlin</depends>
+
     <resource-bundle>messages.Strings</resource-bundle>
 
     <actions>
