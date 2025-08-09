@@ -2,6 +2,7 @@ package io.qent.sona.core.tools
 
 import dev.langchain4j.agent.tool.Tool
 import io.qent.sona.core.permissions.FilePermissionManager
+import io.qent.sona.core.permissions.FileStructureInfo
 
 class ToolsInfoDecorator(
     private val internalTools: InternalTools,
@@ -9,9 +10,15 @@ class ToolsInfoDecorator(
     private val filePermissionManager: FilePermissionManager,
 ) : Tools {
 
-    @Tool("Return source of file opened at current focused editor")
-    override fun getFocusedFileText(): String {
-        val fileInfo = externalTools.getFocusedFileText() ?: return ""
+    @Tool("Return structure of file opened at current focused editor")
+    override fun getFocusedFileInfo(): FileStructureInfo {
+        val info = externalTools.getFocusedFileInfo() ?: return FileStructureInfo("", emptyList())
+        return if (filePermissionManager.isFileAllowed(info.path)) info else FileStructureInfo("", emptyList())
+    }
+
+    @Tool("Return content of file at given absolute path and line range")
+    override fun getFileLines(path: String, fromLine: Int, toLine: Int): String {
+        val fileInfo = externalTools.getFileLines(path, fromLine, toLine) ?: return "File not found"
         return filePermissionManager.getFileContent(fileInfo)
     }
 
@@ -26,9 +33,8 @@ class ToolsInfoDecorator(
         val regex = Regex("^[-+]{3}\\s+(?:[ab]/)?(.+)", RegexOption.MULTILINE)
         val files = regex.findAll(patch).map { it.groupValues[1] }.toSet()
         for (file in files) {
-            val check = filePermissionManager.getFileContent(io.qent.sona.core.permissions.FileInfo(file, ""))
-            if (check == "Access to $file denied") {
-                return check
+            if (!filePermissionManager.isFileAllowed(file)) {
+                return "Access to $file denied"
             }
         }
         return externalTools.applyPatch(patch)

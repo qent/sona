@@ -115,7 +115,14 @@ class ChatFlow(
             val toolMap = toolSpecs.associateWith { spec: ToolSpecification ->
                 PermissionedToolExecutor(chatId, preset.model, spec.name()) { req ->
                     when (spec.name()) {
-                        "getFocusedFileText" -> tools.getFocusedFileText()
+                        "getFocusedFileInfo" -> gson.toJson(tools.getFocusedFileInfo())
+                        "getFileLines" -> {
+                            val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
+                            val path = args["arg0"]?.toString() ?: return@PermissionedToolExecutor "Empty file path"
+                            val from = (args["arg1"] as? Number)?.toInt() ?: 0
+                            val to = (args["arg2"] as? Number)?.toInt() ?: 0
+                            tools.getFileLines(path, from, to)
+                        }
                         "readFile" -> {
                             val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
                             val path = args["arg0"]?.toString() ?: return@PermissionedToolExecutor "Empty file path"
