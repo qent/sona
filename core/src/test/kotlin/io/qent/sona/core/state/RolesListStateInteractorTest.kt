@@ -66,9 +66,8 @@ class EditRoleStateInteractorTest {
     fun startEditLoadsRole() = runBlocking {
         val repo = FakeRolesRepository(Roles(0, listOf(Role("A", "sa", "a"), Role("B", "sb", "b"))))
         val flow = RolesStateFlow(repo)
-        val listInteractor = RolesListStateInteractor(flow)
-        listInteractor.load()
-        val editInteractor = EditRoleStateInteractor(listInteractor)
+        flow.load()
+        val editInteractor = EditRoleStateInteractor(flow)
         editInteractor.startEdit(1)
         assertEquals("B", editInteractor.role.name)
     }
@@ -77,9 +76,8 @@ class EditRoleStateInteractorTest {
     fun saveUpdatesListInteractor() = runBlocking {
         val repo = FakeRolesRepository(Roles(0, listOf(Role("A", "sa", "a"))))
         val flow = RolesStateFlow(repo)
-        val listInteractor = RolesListStateInteractor(flow)
-        listInteractor.load()
-        val editInteractor = EditRoleStateInteractor(listInteractor)
+        flow.load()
+        val editInteractor = EditRoleStateInteractor(flow)
         editInteractor.startCreate()
         editInteractor.save(Role("B", "sb", "b"))
         assertEquals(2, repo.data.roles.size)

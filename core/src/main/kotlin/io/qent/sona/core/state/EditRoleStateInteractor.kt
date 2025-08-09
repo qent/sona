@@ -1,8 +1,9 @@
 package io.qent.sona.core.state
 
 import io.qent.sona.core.roles.Role
+import io.qent.sona.core.roles.Roles
 
-class EditRoleStateInteractor(private val listInteractor: RolesListStateInteractor) {
+class EditRoleStateInteractor(private val flow: RolesStateFlow) {
     private var editingIndex: Int? = null
     var role: Role = Role("", "", "")
         private set
@@ -17,14 +18,19 @@ class EditRoleStateInteractor(private val listInteractor: RolesListStateInteract
 
     fun startEdit(idx: Int) {
         editingIndex = idx
-        role = listInteractor.roles.roles[idx]
+        role = flow.value.roles[idx]
     }
 
     suspend fun save(r: Role) {
+        val current = flow.value
         if (editingIndex == null) {
-            listInteractor.addRole(r)
+            flow.save(Roles(active = current.roles.size, roles = current.roles + r))
         } else {
-            listInteractor.updateRole(editingIndex!!, r)
+            val list = current.roles.toMutableList()
+            if (editingIndex!! in list.indices) {
+                list[editingIndex!!] = r
+                flow.save(current.copy(roles = list))
+            }
         }
     }
 }

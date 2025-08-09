@@ -2,8 +2,9 @@ package io.qent.sona.core.state
 
 import io.qent.sona.core.presets.LlmProviders
 import io.qent.sona.core.presets.Preset
+import io.qent.sona.core.presets.Presets
 
-class EditPresetStateInteractor(private val listInteractor: PresetsListStateInteractor) {
+class EditPresetStateInteractor(private val flow: PresetsStateFlow) {
     private var editingIndex: Int? = null
     var preset: Preset = defaultPreset()
         private set
@@ -30,14 +31,19 @@ class EditPresetStateInteractor(private val listInteractor: PresetsListStateInte
 
     fun startEdit(idx: Int) {
         editingIndex = idx
-        preset = listInteractor.presets.presets[idx]
+        preset = flow.value.presets[idx]
     }
 
     suspend fun save(p: Preset) {
+        val current = flow.value
         if (editingIndex == null) {
-            listInteractor.addPreset(p)
+            flow.save(Presets(active = current.presets.size, presets = current.presets + p))
         } else {
-            listInteractor.updatePreset(editingIndex!!, p)
+            val list = current.presets.toMutableList()
+            if (editingIndex!! in list.indices) {
+                list[editingIndex!!] = p
+                flow.save(current.copy(presets = list))
+            }
         }
     }
 }

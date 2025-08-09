@@ -2,41 +2,38 @@ package io.qent.sona.core.state
 
 import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.presets.Presets
-import io.qent.sona.core.presets.PresetsRepository
 
-class PresetsListStateInteractor(private val repository: PresetsRepository) {
-    var presets: Presets = Presets(0, emptyList())
-        private set
+class PresetsListStateInteractor(private val flow: PresetsStateFlow) {
 
     suspend fun load(): Presets {
-        presets = repository.load()
-        return presets
+        flow.load()
+        return flow.value
     }
 
     suspend fun selectPreset(idx: Int) {
-        presets = presets.copy(active = idx)
-        repository.save(presets)
+        flow.save(flow.value.copy(active = idx))
     }
 
     suspend fun addPreset(preset: Preset) {
-        presets = Presets(active = presets.presets.size, presets = presets.presets + preset)
-        repository.save(presets)
+        val current = flow.value
+        flow.save(Presets(active = current.presets.size, presets = current.presets + preset))
     }
 
     suspend fun updatePreset(idx: Int, preset: Preset) {
-        val list = presets.presets.toMutableList()
+        val current = flow.value
+        val list = current.presets.toMutableList()
         if (idx in list.indices) {
             list[idx] = preset
-            presets = presets.copy(presets = list)
-            repository.save(presets)
+            flow.save(current.copy(presets = list))
         }
     }
 
     suspend fun deletePreset(idx: Int) {
-        if (presets.presets.isEmpty() || idx !in presets.presets.indices) return
-        val list = presets.presets.toMutableList()
+        val current = flow.value
+        if (current.presets.isEmpty() || idx !in current.presets.indices) return
+        val list = current.presets.toMutableList()
         list.removeAt(idx)
-        var active = presets.active
+        var active = current.active
         if (idx == active) {
             active = idx.coerceAtMost(list.lastIndex)
         } else if (idx < active) {
@@ -45,8 +42,7 @@ class PresetsListStateInteractor(private val repository: PresetsRepository) {
         if (list.isEmpty()) {
             active = 0
         }
-        presets = Presets(active, list)
-        repository.save(presets)
+        flow.save(Presets(active, list))
     }
 }
 

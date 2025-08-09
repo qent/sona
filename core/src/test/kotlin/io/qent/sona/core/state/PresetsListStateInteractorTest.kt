@@ -4,6 +4,7 @@ import io.qent.sona.core.presets.LlmProvider
 import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.presets.Presets
 import io.qent.sona.core.presets.PresetsRepository
+import io.qent.sona.core.state.PresetsStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -18,7 +19,8 @@ class PresetsListStateInteractorTest {
     fun addPresetUpdatesRepository() = runBlocking {
         val provider = LlmProvider("p", "e", emptyList())
         val repo = FakePresetsRepository(Presets(0, emptyList()))
-        val interactor = PresetsListStateInteractor(repo)
+        val flow = PresetsStateFlow(repo)
+        val interactor = PresetsListStateInteractor(flow)
         interactor.load()
         interactor.addPreset(Preset("n", provider, "e", "m", "k"))
         assertEquals(1, repo.data.presets.size)
@@ -31,7 +33,8 @@ class PresetsListStateInteractorTest {
         val p1 = Preset("a", provider, "e", "m", "k")
         val p2 = Preset("b", provider, "e", "m", "k")
         val repo = FakePresetsRepository(Presets(0, listOf(p1, p2)))
-        val interactor = PresetsListStateInteractor(repo)
+        val flow = PresetsStateFlow(repo)
+        val interactor = PresetsListStateInteractor(flow)
         interactor.load()
         interactor.selectPreset(1)
         assertEquals(1, repo.data.active)
@@ -41,7 +44,8 @@ class PresetsListStateInteractorTest {
     fun updatePresetUpdatesRepository() = runBlocking {
         val provider = LlmProvider("p", "e", emptyList())
         val repo = FakePresetsRepository(Presets(0, listOf(Preset("a", provider, "e", "m", "k"))))
-        val interactor = PresetsListStateInteractor(repo)
+        val flow = PresetsStateFlow(repo)
+        val interactor = PresetsListStateInteractor(flow)
         interactor.load()
         interactor.updatePreset(0, Preset("a", provider, "e", "m2", "k"))
         assertEquals("m2", repo.data.presets[0].model)
@@ -53,7 +57,8 @@ class PresetsListStateInteractorTest {
         val repo = FakePresetsRepository(
             Presets(0, listOf(Preset("a", provider, "e", "m", "k"), Preset("b", provider, "e", "m", "k")))
         )
-        val interactor = PresetsListStateInteractor(repo)
+        val flow = PresetsStateFlow(repo)
+        val interactor = PresetsListStateInteractor(flow)
         interactor.load()
         interactor.deletePreset(0)
         assertEquals(1, repo.data.presets.size)
