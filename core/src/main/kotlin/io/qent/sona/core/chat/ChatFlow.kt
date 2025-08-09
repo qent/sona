@@ -118,13 +118,18 @@ class ChatFlow(
                         "getFocusedFileText" -> tools.getFocusedFileText()
                         "readFile" -> {
                             val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
-                            val path = args["arg0"]?.toString() ?: ""
+                            val path = args["arg0"]?.toString() ?: return@PermissionedToolExecutor "Empty file path"
                             tools.readFile(path)
                         }
                         "switchRole" -> {
                             val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
-                            val name = args["name"]?.toString() ?: ""
+                            val name = args["name"]?.toString() ?: return@PermissionedToolExecutor "Empty role name"
                             tools.switchRole(name)
+                        }
+                        "applyPatch" -> {
+                            val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
+                            val path = args["arg0"]?.toString() ?: return@PermissionedToolExecutor " Empty patch"
+                            tools.applyPatch(path)
                         }
                         else -> runBlocking { mcpManager.execute(req.id(), spec.name(), req.arguments()) }
                     }
