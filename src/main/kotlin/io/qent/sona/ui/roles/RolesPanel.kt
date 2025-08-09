@@ -29,7 +29,7 @@ import org.jetbrains.jewel.ui.component.TextArea
 import org.jetbrains.jewel.ui.component.TextField
 
 @Composable
-fun RolesPanel(state: State.RolesListState) {
+fun RolesListPanel(state: State.RolesListState) {
     var deleteIndex by remember { mutableStateOf<Int?>(null) }
     val listState = rememberLazyListState()
     Box(
@@ -96,7 +96,7 @@ fun RolesPanel(state: State.RolesListState) {
 }
 
 @Composable
-fun RolesPanel(state: State.EditRoleState) {
+fun EditRolePanel(state: State.EditRoleState) {
     val nameState = rememberTextFieldState(state.role.name)
     val shortState = rememberTextFieldState(state.role.short)
     val textState = rememberTextFieldState(state.role.text)

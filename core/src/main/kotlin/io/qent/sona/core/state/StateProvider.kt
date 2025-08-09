@@ -33,7 +33,7 @@ class StateProvider(
     externalTools: ExternalTools,
     filePermissionRepository: FilePermissionsRepository,
     mcpServersRepository: McpServersRepository,
-    private val settingsRepository: SettingsRepository,
+    settingsRepository: SettingsRepository,
     private val editConfig: () -> Unit,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default),
     systemMessages: List<SystemMessage> = emptyList(),
@@ -88,7 +88,6 @@ class StateProvider(
     val state: Flow<State> = _state
 
     private var chatScreenJob: Job? = null
-    private var rolesScreenJob: Job? = null
 
     init {
         startChatStateEmitting()
@@ -113,9 +112,6 @@ class StateProvider(
     }
 
     private fun startChatStateEmitting() {
-        rolesScreenJob?.cancel()
-        rolesScreenJob = null
-
         chatScreenJob?.cancel()
         chatScreenJob = combine(chatFlow, rolesFlow) { chat, roles ->
             emitChatState(chat, roles)
@@ -163,7 +159,6 @@ class StateProvider(
 
     private suspend fun showHistory() {
         chatScreenJob?.cancel()
-        rolesScreenJob?.cancel()
 
         val chats = chatInteractor.listChats()
         val state = factory.createChatListState(
@@ -195,7 +190,6 @@ class StateProvider(
 
     private suspend fun showRoles() {
         chatScreenJob?.cancel()
-        rolesScreenJob?.cancel()
         rolesListInteractor.load()
         emitRolesListState()
     }
@@ -242,7 +236,6 @@ class StateProvider(
 
     private suspend fun showPresets() {
         chatScreenJob?.cancel()
-        rolesScreenJob?.cancel()
         presetsListInteractor.load()
         if (presetsListInteractor.presets.presets.isEmpty()) {
             editPresetInteractor.startCreate()
@@ -310,7 +303,6 @@ class StateProvider(
 
     private suspend fun showServers() {
         chatScreenJob?.cancel()
-        rolesScreenJob?.cancel()
         val state = factory.createServersState(
             servers = serversInteractor.servers,
             onToggleServer = { name -> serversInteractor.toggle(name) },
