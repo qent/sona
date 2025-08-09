@@ -15,6 +15,7 @@ import io.qent.sona.core.roles.Roles
 import io.qent.sona.core.roles.RolesRepository
 import io.qent.sona.core.settings.Settings
 import io.qent.sona.core.settings.SettingsRepository
+import io.qent.sona.core.permissions.FileStructureInfo
 import io.qent.sona.core.tools.Tools
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -50,7 +51,8 @@ private class FakeChatRepository : ChatRepository {
 }
 
 private class FakeTools : Tools {
-    override fun getFocusedFileText() = ""
+    override fun getFocusedFileInfo() = FileStructureInfo("", emptyList())
+    override fun getFileLines(path: String, fromLine: Int, toLine: Int) = ""
     override fun readFile(path: String) = ""
     override fun applyPatch(patch: String) = ""
     override fun switchRole(name: String) = ""

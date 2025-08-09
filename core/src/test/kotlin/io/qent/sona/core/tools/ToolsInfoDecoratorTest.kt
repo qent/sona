@@ -1,8 +1,11 @@
 package io.qent.sona.core.tools
 
+import io.qent.sona.core.permissions.FileElement
+import io.qent.sona.core.permissions.FileElementType
 import io.qent.sona.core.permissions.FileInfo
 import io.qent.sona.core.permissions.FilePermissionManager
 import io.qent.sona.core.permissions.FilePermissionsRepository
+import io.qent.sona.core.permissions.FileStructureInfo
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -12,10 +15,11 @@ private class StubRepository(
 ) : FilePermissionsRepository
 
 private class FakeExternalTools(
-    private val focused: FileInfo?,
+    private val focused: FileStructureInfo?,
     private val files: Map<String, FileInfo?>
 ) : ExternalTools {
-    override fun getFocusedFileText(): FileInfo? = focused
+    override fun getFocusedFileInfo(): FileStructureInfo? = focused
+    override fun getFileLines(path: String, fromLine: Int, toLine: Int): FileInfo? = files[path]
     override fun readFile(path: String): FileInfo? = files[path]
     override fun applyPatch(patch: String) = ""
 }
@@ -28,12 +32,13 @@ private class FakeInternalTools : InternalTools {
 class ToolsInfoDecoratorTest {
 
     @Test
-    fun `focused file text passes through permission check`() {
+    fun `focused file info passes through permission check`() {
         val repo = StubRepository(listOf(".*"), emptyList())
         val manager = FilePermissionManager(repo)
-        val info = FileInfo("/a", "ok")
+        val elem = FileElement("C", FileElementType.CLASS, true, 1 to 2)
+        val info = FileStructureInfo("/a", listOf(elem))
         val decorator = ToolsInfoDecorator(FakeInternalTools(), FakeExternalTools(info, emptyMap()), manager)
-        assertEquals("ok", decorator.getFocusedFileText())
+        assertEquals(info, decorator.getFocusedFileInfo())
     }
 
     @Test
