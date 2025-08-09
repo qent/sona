@@ -65,5 +65,8 @@ object Strings {
     val presetsActionDescription: String get() = bundle.getString("presetsActionDescription")
     val serversAction: String get() = bundle.getString("serversAction")
     val serversActionDescription: String get() = bundle.getString("serversActionDescription")
+    val addRole: String get() = bundle.getString("addRole")
+    val deleteRoleQuestion: String get() = bundle.getString("deleteRoleQuestion")
+    val shortDescription: String get() = bundle.getString("shortDescription")
 }
 

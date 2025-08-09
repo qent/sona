@@ -31,7 +31,8 @@ class PluginToolWindowFactory : ToolWindowFactory, DumbAware {
                     when (val s = state.value) {
                         is ChatState -> ChatPanel(project, s)
                         is ChatListState -> ChatListPanel(s)
-                        is RolesState -> RolesPanel(s)
+                        is RolesListState -> RolesPanel(s)
+                        is EditRoleState -> RolesPanel(s)
                         is PresetsListState -> PresetsPanel(s)
                         is EditPresetState -> PresetsPanel(s)
                         is ServersState -> ServersPanel(s)
