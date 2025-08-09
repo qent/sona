@@ -1,7 +1,6 @@
 package io.qent.sona.ui.presets
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,7 +18,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.draw.clip
 import io.qent.sona.Strings
 import io.qent.sona.core.presets.LlmProvider
@@ -28,6 +26,7 @@ import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.state.State
 import io.qent.sona.ui.DropdownSelector
 import io.qent.sona.ui.SonaTheme
+import io.qent.sona.ui.common.DeleteConfirmationDialog
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
@@ -89,27 +88,14 @@ fun PresetsPanel(state: State.PresetsListState) {
             }
         }
         deleteIndex?.let { idx ->
-            Dialog(onDismissRequest = { deleteIndex = null }) {
-                Box(
-                    Modifier
-                        .background(SonaTheme.colors.AiBubble, RoundedCornerShape(8.dp))
-                        .border(1.dp, SonaTheme.colors.BorderDefault, RoundedCornerShape(8.dp))
-                        .padding(16.dp)
-                ) {
-                    Column {
-                        Text(Strings.deletePresetQuestion)
-                        Spacer(Modifier.height(12.dp))
-                        Row {
-                            ActionButton(onClick = {
-                                state.onDeletePreset(idx)
-                                deleteIndex = null
-                            }, modifier = Modifier.weight(1f)) { Text(Strings.ok) }
-                            Spacer(Modifier.width(8.dp))
-                            ActionButton(onClick = { deleteIndex = null }, modifier = Modifier.weight(1f)) { Text(Strings.cancel) }
-                        }
-                    }
-                }
-            }
+            DeleteConfirmationDialog(
+                text = Strings.deletePresetQuestion,
+                onConfirm = {
+                    state.onDeletePreset(idx)
+                    deleteIndex = null
+                },
+                onCancel = { deleteIndex = null }
+            )
         }
     }
 }

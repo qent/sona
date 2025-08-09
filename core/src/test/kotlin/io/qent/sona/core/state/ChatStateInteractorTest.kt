@@ -54,13 +54,13 @@ private class FakeChatFlow : ChatSession {
 
 class ChatStateInteractorTest {
     @Test
-    fun newChatLoadsExistingWhenEmpty() = runBlocking {
+    fun newChatCreatesWhenEmpty() = runBlocking {
         val repo = FakeChatRepository()
         val chatId = repo.createChat()
         val flow = FakeChatFlow()
         val interactor = ChatStateInteractor(flow, repo)
         interactor.newChat()
-        assertEquals(chatId, flow.lastLoaded)
+        assertNotEquals(chatId, flow.lastLoaded)
     }
 
     @Test

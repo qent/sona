@@ -9,6 +9,7 @@ import io.qent.sona.core.chat.ChatSummary
 import io.qent.sona.core.model.TokenUsageInfo
 import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.presets.Presets
+import io.qent.sona.core.roles.Role
 import io.qent.sona.core.roles.Roles
 import io.qent.sona.core.mcp.McpServerStatus
 import kotlinx.coroutines.flow.StateFlow
@@ -80,34 +81,43 @@ class StateFactory {
         onOpenServers = onOpenServers,
     )
 
-    fun createRolesState(
+    fun createRolesListState(
         roles: Roles,
-        creatingRole: Boolean,
-        short: String,
-        text: String,
         onSelectRole: (Int) -> Unit,
-        onStartCreateRole: () -> Unit,
-        onAddRole: (String, String, String) -> Unit,
-        onDeleteRole: () -> Unit,
-        onSave: (String, String) -> Unit,
+        onAddRole: () -> Unit,
+        onEditRole: (Int) -> Unit,
+        onDeleteRole: (Int) -> Unit,
         onNewChat: () -> Unit,
         onOpenHistory: () -> Unit,
         onOpenPresets: () -> Unit,
         onOpenServers: () -> Unit,
-    ) = State.RolesState(
-        roles = roles.roles.map { it.name },
+    ) = State.RolesListState(
+        roles = roles.roles,
         currentIndex = roles.active,
-        creating = creatingRole,
-        short = short,
-        text = text,
         onSelectRole = onSelectRole,
-        onStartCreateRole = onStartCreateRole,
         onAddRole = onAddRole,
+        onEditRole = onEditRole,
         onDeleteRole = onDeleteRole,
-        onSave = onSave,
         onNewChat = onNewChat,
         onOpenHistory = onOpenHistory,
-        onOpenRoles = {},
+        onOpenPresets = onOpenPresets,
+        onOpenServers = onOpenServers,
+    )
+
+    fun createEditRoleState(
+        role: Role,
+        onSave: (Role) -> Unit,
+        onCancel: () -> Unit,
+        onNewChat: () -> Unit,
+        onOpenHistory: () -> Unit,
+        onOpenPresets: () -> Unit,
+        onOpenServers: () -> Unit,
+    ) = State.EditRoleState(
+        role = role,
+        onSave = onSave,
+        onCancel = onCancel,
+        onNewChat = onNewChat,
+        onOpenHistory = onOpenHistory,
         onOpenPresets = onOpenPresets,
         onOpenServers = onOpenServers,
     )
