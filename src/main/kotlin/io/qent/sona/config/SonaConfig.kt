@@ -2,6 +2,7 @@ package io.qent.sona.config
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonObject
 import java.io.File
 
 class SonaConfig {
@@ -40,7 +41,29 @@ class SonaConfig {
         fun save(root: String, config: SonaConfig) {
             val file = File(root, "sona.json")
             val gson: Gson = GsonBuilder().setPrettyPrinting().create()
-            file.writer().use { gson.toJson(config, it) }
+
+            val newJson = gson.toJsonTree(config).asJsonObject
+            val merged = if (file.exists()) {
+                file.reader().use { reader ->
+                    val existing = Gson().fromJson(reader, JsonObject::class.java) ?: JsonObject()
+                    existing.deepMerge(newJson)
+                }
+            } else {
+                newJson
+            }
+
+            file.writer().use { gson.toJson(merged, it) }
+        }
+
+        private fun JsonObject.deepMerge(other: JsonObject): JsonObject {
+            other.entrySet().forEach { (key, value) ->
+                if (this[key]?.isJsonObject == true && value.isJsonObject) {
+                    this[key].asJsonObject.deepMerge(value.asJsonObject)
+                } else {
+                    this.add(key, value)
+                }
+            }
+            return this
         }
     }
 }

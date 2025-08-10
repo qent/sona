@@ -66,6 +66,8 @@ variables, transport, URL, working directory, request headers and an optional
 these servers require the same user permission prompts as local tools. Server enablement and
 disabled tools are stored in `sona.json`; only servers marked as enabled reconnect
 automatically on restart.
+When updating the configuration, merge new values into `sona.json` to preserve any
+user-provided fields instead of overwriting the file.
 `ChatController` receives a `Tools` decorator from `StateProvider` via its injected `ChatAgentFactory`.
 
 Whenever you extend the logic make sure the flow of state remains unidirectional

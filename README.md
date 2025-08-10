@@ -112,6 +112,8 @@ The available tools let the model read the focused file, read any file by absolu
 }
 ```
 
+Sona merges updates into this file to preserve any custom entries the user may have added.
+
 The same configuration file can also include an `mcpServers` object keyed by server name specifying Model
 Context Protocol servers. Each entry supports `enabled`, `command`, `args`, `env`, `transport`, `url`, `cwd`
 and `headers` fields. When `command` is `npx`, Sona resolves the absolute path to the `npx` executable by
