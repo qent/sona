@@ -1,55 +1,43 @@
 package io.qent.sona.core.chat
 
 import dev.langchain4j.data.message.AiMessage
-import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.data.message.ToolExecutionResultMessage
 import dev.langchain4j.data.message.UserMessage
-import dev.langchain4j.model.chat.StreamingChatModel
 import dev.langchain4j.service.TokenStream
 import dev.langchain4j.service.tool.ToolExecution
-import io.qent.sona.core.mcp.McpConnectionManager
 import io.qent.sona.core.model.toInfo
-import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.presets.PresetsRepository
-import io.qent.sona.core.roles.RolesRepository
 import io.qent.sona.core.settings.SettingsRepository
-import io.qent.sona.core.tools.Tools
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
+import kotlinx.coroutines.runBlocking
 
-
-class ChatFlow(
+/**
+ * Handles chat operations such as sending messages and managing streaming state.
+ *
+ * The actual chat state is provided by [ChatStateFlow].
+ */
+class ChatController(
     private val presetsRepository: PresetsRepository,
-    rolesRepository: RolesRepository,
     private val chatRepository: ChatRepository,
-    modelFactory: (Preset) -> StreamingChatModel,
-    tools: Tools,
-    scope: CoroutineScope,
-    systemMessages: List<SystemMessage> = emptyList(),
-    mcpManager: McpConnectionManager,
     private val settingsRepository: SettingsRepository,
-) : Flow<Chat> {
+    private val chatStateFlow: ChatStateFlow,
+    private val chatAgentFactory: ChatAgentFactory,
+    scope: CoroutineScope,
+) : ChatSession {
 
     private val scope = scope + Dispatchers.IO
-
-    private val chatStateFlow = ChatStateFlow(chatRepository, scope)
-    private val permissionedToolExecutor = PermissionedToolExecutor(chatStateFlow, chatRepository)
-    private val toolsMapFactory = ToolsMapFactory(chatStateFlow, tools, mcpManager, permissionedToolExecutor, rolesRepository, presetsRepository)
-    private val chatAgentFactory = ChatAgentFactory(modelFactory, systemMessages, toolsMapFactory, presetsRepository, rolesRepository, chatRepository)
 
     private val currentState get() = chatStateFlow.currentState
 
     private var currentStream: TokenStream? = null
     private var ignoreCallbacks = false
 
-    suspend fun loadChat(chatId: String) = chatStateFlow.loadChat(chatId)
-
-    fun resolveToolPermission(allow: Boolean, always: Boolean) {
-        permissionedToolExecutor.resolveToolPermission(allow, always)
-    }
-
-    suspend fun send(text: String) {
+    override suspend fun send(text: String) {
         val chatId = currentState.chatId
         val preset = presetsRepository.load().let { it.presets[it.active] }
 
@@ -101,7 +89,11 @@ class ChatFlow(
                     }
                     .onToolExecuted { exec: ToolExecution ->
                         if (ignoreCallbacks) return@onToolExecuted
-                        val toolResultMessage = ToolExecutionResultMessage(exec.request().id(), exec.request().name(), exec.result())
+                        val toolResultMessage = ToolExecutionResultMessage(
+                            exec.request().id(),
+                            exec.request().name(),
+                            exec.result()
+                        )
                         val repositoryMessage = ChatRepositoryMessage(chatId, toolResultMessage, preset.model)
 
                         runBlocking {
@@ -134,7 +126,12 @@ class ChatFlow(
                         val msgs = currentState.messages.toMutableList()
                         val lastIndex = msgs.lastIndex
                         if (lastIndex >= 0) {
-                            msgs[lastIndex] = ChatRepositoryMessage(chatId, response.aiMessage(), preset.model, totalUsage)
+                            msgs[lastIndex] = ChatRepositoryMessage(
+                                chatId,
+                                response.aiMessage(),
+                                preset.model,
+                                totalUsage
+                            )
                         }
                         runBlocking { chatRepository.addMessage(chatId, response.aiMessage(), preset.model, totalUsage) }
                         chatStateFlow.emit(
@@ -164,7 +161,11 @@ class ChatFlow(
                             }
                             chatStateFlow.emit(currentState.copy(requestInProgress = true, isStreaming = false))
                         } else {
-                            val errMsg = ChatRepositoryMessage(chatId, AiMessage.from("Error: ${t.message}"), preset.model)
+                            val errMsg = ChatRepositoryMessage(
+                                chatId,
+                                AiMessage.from("Error: ${t.message}"),
+                                preset.model
+                            )
                             runBlocking { chatRepository.addMessage(chatId, errMsg.message, preset.model) }
                             val messages = currentState.messages.toMutableList()
                             if (messages.isNotEmpty()) {
@@ -204,25 +205,22 @@ class ChatFlow(
         }
     }
 
-    override suspend fun collect(collector: FlowCollector<Chat>) {
-        chatStateFlow.collect(collector)
-    }
-
-    fun toggleAutoApproveTools() {
+    override fun toggleAutoApproveTools() {
         chatStateFlow.emit(currentState.copy(autoApproveTools = !currentState.autoApproveTools))
     }
 
-    suspend fun deleteFrom(index: Int) {
+    override suspend fun deleteFrom(index: Int) {
         stop()
         val chatId = currentState.chatId
         chatRepository.deleteMessagesFrom(chatId, index)
         chatStateFlow.loadChat(chatId)
     }
 
-    fun stop() {
+    override fun stop() {
         ignoreCallbacks = true
         currentStream?.ignoreErrors()
         currentStream = null
         chatStateFlow.emit(currentState.copy(requestInProgress = false, isStreaming = false))
     }
 }
+

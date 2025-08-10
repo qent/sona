@@ -165,9 +165,10 @@ The project is split into two modules:
 ### Core module
 
 The `core` module defines a small MVI style state container. The main
-entry point is `ChatFlow`, a `Flow<Chat>` backed by a `MutableStateFlow`.
-It orchestrates message exchange with the language model and exposes the
-current conversation state:
+entry point is a pair of `ChatController` and `ChatStateFlow`. The
+`ChatStateFlow` is a `Flow<Chat>` that holds the current conversation,
+while `ChatController` orchestrates message exchange with the language
+model:
 
 ```
 data class Chat(
@@ -179,9 +180,9 @@ data class Chat(
 )
 ```
 
-`StateProvider` consumes `ChatFlow` and maps it to a higher level
-`State` model used by the UI. Both `ChatFlow` and `StateProvider`
-operate purely on Kotlin flows without any IntelliJ types.
+`StateProvider` consumes `ChatStateFlow` and maps it to a higher level
+`State` model used by the UI. Both `ChatController` and
+`StateProvider` operate purely on Kotlin flows without any IntelliJ types.
 
 `tokenUsage` represents the cumulative input, output and cached tokens
 spent for all AI responses in the chat. Each AI message also
@@ -218,7 +219,7 @@ automatically switches between light and dark palettes.
 
 All state propagation relies on Kotlin `Flow`/`StateFlow`:
 
-* `ChatFlow` implements `Flow<Chat>` and exposes conversation updates.
+* `ChatStateFlow` exposes conversation updates as `Flow<Chat>`.
 * `StateProvider` provides a `StateFlow<State>` for the UI.
 * `PluginStateFlow` exposes the same `StateFlow` as a project level
   service.

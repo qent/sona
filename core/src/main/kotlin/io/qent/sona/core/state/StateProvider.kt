@@ -3,8 +3,12 @@ package io.qent.sona.core.state
 import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.model.chat.StreamingChatModel
 import io.qent.sona.core.chat.Chat
-import io.qent.sona.core.chat.ChatFlow
+import io.qent.sona.core.chat.ChatAgentFactory
+import io.qent.sona.core.chat.ChatController
 import io.qent.sona.core.chat.ChatRepository
+import io.qent.sona.core.chat.ChatStateFlow
+import io.qent.sona.core.chat.PermissionedToolExecutor
+import io.qent.sona.core.chat.ToolsMapFactory
 import io.qent.sona.core.mcp.McpConnectionManager
 import io.qent.sona.core.mcp.McpServersRepository
 import io.qent.sona.core.permissions.FilePermissionManager
@@ -17,7 +21,6 @@ import io.qent.sona.core.roles.Roles
 import io.qent.sona.core.roles.RolesRepository
 import io.qent.sona.core.roles.RolesStateFlow
 import io.qent.sona.core.settings.SettingsRepository
-import io.qent.sona.core.state.interactors.ChatSession
 import io.qent.sona.core.state.interactors.ChatStateInteractor
 import io.qent.sona.core.state.interactors.EditPresetStateInteractor
 import io.qent.sona.core.state.interactors.EditRoleStateInteractor
@@ -59,27 +62,34 @@ class StateProvider(
     }
     private val tools: Tools = ToolsInfoDecorator(internalTools, externalTools, filePermissionManager)
     private val mcpManager = McpConnectionManager(mcpServersRepository, scope)
-    private val chatFlow = ChatFlow(
+    private val chatStateFlow = ChatStateFlow(chatRepository, scope)
+    private val permissionedToolExecutor = PermissionedToolExecutor(chatStateFlow, chatRepository)
+    private val toolsMapFactory = ToolsMapFactory(
+        chatStateFlow,
+        tools,
+        mcpManager,
+        permissionedToolExecutor,
+        rolesRepository,
+        presetsRepository
+    )
+    private val chatAgentFactory = ChatAgentFactory(
+        modelFactory,
+        systemMessages,
+        toolsMapFactory,
         presetsRepository,
         rolesRepository,
+        chatRepository
+    )
+    private val chatController = ChatController(
+        presetsRepository,
         chatRepository,
-        modelFactory,
-        tools,
-        scope,
-        systemMessages,
-        mcpManager,
-        settingsRepository
+        settingsRepository,
+        chatStateFlow,
+        chatAgentFactory,
+        scope
     )
 
-    private val chatInteractor = ChatStateInteractor(object : ChatSession, Flow<Chat> by chatFlow {
-        override suspend fun loadChat(id: String) = chatFlow.loadChat(id)
-        override suspend fun send(text: String) = chatFlow.send(text)
-        override fun stop() = chatFlow.stop()
-        override suspend fun deleteFrom(idx: Int) = chatFlow.deleteFrom(idx)
-        override fun toggleAutoApproveTools() = chatFlow.toggleAutoApproveTools()
-        override suspend fun resolveToolPermission(allow: Boolean, always: Boolean) =
-            chatFlow.resolveToolPermission(allow, always)
-    }, chatRepository)
+    private val chatInteractor = ChatStateInteractor(chatController, chatRepository, chatStateFlow)
     private val rolesFlow = RolesStateFlow(rolesRepository)
     private val rolesListInteractor = RolesListStateInteractor(rolesFlow)
     private val editRoleInteractor = EditRoleStateInteractor(rolesFlow)
@@ -124,7 +134,7 @@ class StateProvider(
 
     private fun startChatStateEmitting() {
         chatScreenJob?.cancel()
-        chatScreenJob = combine(chatFlow, rolesFlow, presetsFlow) { chat, roles, presets ->
+        chatScreenJob = combine(chatStateFlow, rolesFlow, presetsFlow) { chat, roles, presets ->
             emitChatState(chat, roles, presets)
         }.launchIn(scope)
     }
@@ -152,9 +162,9 @@ class StateProvider(
             onStop = { chatInteractor.stop() },
             onDeleteFrom = { idx -> scope.launch { chatInteractor.deleteFrom(idx) } },
             onToggleAutoApprove = { scope.launch { chatInteractor.toggleAutoApproveTools() } },
-            onAllowTool = { scope.launch { chatInteractor.resolveToolPermission(true, false) } },
-            onAlwaysAllowTool = { scope.launch { chatInteractor.resolveToolPermission(true, true) } },
-            onDenyTool = { scope.launch { chatInteractor.resolveToolPermission(false, false) } },
+            onAllowTool = { scope.launch { permissionedToolExecutor.resolveToolPermission(true, false) } },
+            onAlwaysAllowTool = { scope.launch { permissionedToolExecutor.resolveToolPermission(true, true) } },
+            onDenyTool = { scope.launch { permissionedToolExecutor.resolveToolPermission(false, false) } },
             onNewChat = { scope.launch { chatInteractor.newChat() } },
             onOpenHistory = { scope.launch { showHistory() } },
             onOpenRoles = { scope.launch { showRoles() } },

@@ -6,7 +6,7 @@ import kotlinx.coroutines.runBlocking
 
 /**
  * ChatMemory backed by [ChatRepository]. It loads existing messages
- * synchronously and stores new ones only in memory. ChatFlow persists
+ * synchronously and stores new ones only in memory. ChatController persists
  * messages explicitly so this memory primarily serves the AI service
  * during a request.
  */

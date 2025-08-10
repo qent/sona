@@ -70,7 +70,15 @@ private class EmptyMcpRepository : McpServersRepository {
     override suspend fun saveDisabledTools(disabled: Map<String, Set<String>>) {}
 }
 
-private fun buildChatFlow(repo: FakeChatRepository): Triple<ChatFlow, CoroutineScope, McpConnectionManager> {
+private data class ChatDeps(
+    val controller: ChatController,
+    val stateFlow: ChatStateFlow,
+    val permissionedToolExecutor: PermissionedToolExecutor,
+    val scope: CoroutineScope,
+    val mcp: McpConnectionManager,
+)
+
+private fun buildChatController(repo: FakeChatRepository): ChatDeps {
     val provider = LlmProvider("p", "e", emptyList())
     val preset = Preset("n", provider, "e", "m", "k")
     val presetsRepo = FakePresetsRepository(preset)
@@ -79,24 +87,28 @@ private fun buildChatFlow(repo: FakeChatRepository): Triple<ChatFlow, CoroutineS
     val scope = CoroutineScope(Dispatchers.Unconfined)
     val mcpManager = McpConnectionManager(EmptyMcpRepository(), scope)
     val settingsRepo = FakeSettingsRepository()
-    val flow = ChatFlow(presetsRepo, rolesRepo, repo, { throw UnsupportedOperationException() }, tools, scope, emptyList(), mcpManager, settingsRepo)
-    return Triple(flow, scope, mcpManager)
+    val stateFlow = ChatStateFlow(repo, scope)
+    val permissioned = PermissionedToolExecutor(stateFlow, repo)
+    val toolsMapFactory = ToolsMapFactory(stateFlow, tools, mcpManager, permissioned, rolesRepo, presetsRepo)
+    val agentFactory = ChatAgentFactory({ throw UnsupportedOperationException() }, emptyList(), toolsMapFactory, presetsRepo, rolesRepo, repo)
+    val controller = ChatController(presetsRepo, repo, settingsRepo, stateFlow, agentFactory, scope)
+    return ChatDeps(controller, stateFlow, permissioned, scope, mcpManager)
 }
 
-class ChatFlowTest {
+class ChatControllerTest {
     @Test
     fun loadChatEmitsState() = runBlocking {
         val repo = FakeChatRepository()
         repo.messages["1"] = mutableListOf(ChatRepositoryMessage("1", UserMessage.from("hi"), "m"))
-        val (flow, scope, mcp) = buildChatFlow(repo)
+        val deps = buildChatController(repo)
         val channel = Channel<Chat>(1)
-        val job = launch { flow.collect { channel.send(it) } }
+        val job = launch { deps.stateFlow.collect { channel.send(it) } }
         yield()
-        flow.loadChat("1")
+        deps.stateFlow.loadChat("1")
         val chat = withTimeout(1000) { channel.receive() }
         job.cancel()
-        scope.cancel()
-        mcp.stop()
+        deps.scope.cancel()
+        deps.mcp.stop()
         assertEquals("1", chat.chatId)
         assertEquals(1, chat.messages.size)
     }
@@ -104,39 +116,39 @@ class ChatFlowTest {
     @Test
     fun toggleAutoApproveToolsFlipsFlag() = runBlocking {
         val repo = FakeChatRepository()
-        val (flow, scope, mcp) = buildChatFlow(repo)
+        val deps = buildChatController(repo)
         val channel = Channel<Chat>(2)
-        val job = launch { flow.collect { channel.send(it) } }
+        val job = launch { deps.stateFlow.collect { channel.send(it) } }
         yield()
-        flow.loadChat("1")
+        deps.stateFlow.loadChat("1")
         channel.receive() // initial state
-        flow.toggleAutoApproveTools()
+        deps.controller.toggleAutoApproveTools()
         val toggled = withTimeout(1000) { channel.receive() }
         job.cancel()
-        scope.cancel()
-        mcp.stop()
+        deps.scope.cancel()
+        deps.mcp.stop()
         assertTrue(toggled.autoApproveTools)
     }
 
     @Test
     fun toolExecutionRequestsPermission() = runBlocking {
         val repo = FakeChatRepository()
-        val (flow, scope, mcp) = buildChatFlow(repo)
+        val deps = buildChatController(repo)
         val channel = Channel<Chat>(Channel.UNLIMITED)
-        val job = launch { flow.collect { channel.send(it) } }
+        val job = launch { deps.stateFlow.collect { channel.send(it) } }
         yield()
-        flow.loadChat("1")
+        deps.stateFlow.loadChat("1")
         channel.receive() // initial state
-        val executor = flow.PermissionedToolExecutor("1", "m", "tool") { "done" }
+        val executor = deps.permissionedToolExecutor.create("1", "m", "tool") { "done" }
         val req = ToolExecutionRequest.builder().id("x").name("tool").arguments("{}" ).build()
         val deferred = async { executor.execute(req, null) }
         val toolState = withTimeout(1000) { channel.receive() }
         assertEquals("tool", toolState.toolRequest)
-        flow.resolveToolPermission(true, true)
+        deps.permissionedToolExecutor.resolveToolPermission(true, true)
         assertEquals("done", deferred.await())
         assertTrue(repo.allowed.contains("tool"))
         job.cancel()
-        scope.cancel()
-        mcp.stop()
+        deps.scope.cancel()
+        deps.mcp.stop()
     }
 }
