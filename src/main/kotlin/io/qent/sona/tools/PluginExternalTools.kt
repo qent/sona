@@ -74,6 +74,6 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
 
     override fun applyPatch(patch: String): String {
         project.service<PatchService>().applyPatch(patch)
-        return Strings.patchDialogOpened
+        return Strings.patchDiffOpened
     }
 }

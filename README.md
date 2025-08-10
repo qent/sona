@@ -148,7 +148,7 @@ Disabled tool names persist in `sona.json` under the server's `disabledTools` ar
 When hovering a message, copy and delete icons appear beneath its bottom‑right corner.
 The clipboard button copies the entire message text while the trash icon removes
 that message and all following messages from both the chat view and persistent
-history. Code blocks additionally show an **Apply patch** button that opens the IDE's patch dialog to review and apply changes.
+history. Code blocks additionally show an **Apply patch** button that opens a diff view to review and apply changes.
 
 Chat messages are now selectable so you can highlight and copy any portion of
 the text directly. Code blocks render using the IDE editor component, providing
