@@ -1,46 +1,29 @@
 package io.qent.sona.core.chat
 
 import com.google.gson.Gson
-import dev.langchain4j.agent.tool.ToolExecutionRequest
 import dev.langchain4j.agent.tool.ToolSpecification
 import dev.langchain4j.agent.tool.ToolSpecifications
-import dev.langchain4j.model.chat.request.json.JsonObjectSchema
-import dev.langchain4j.service.tool.ToolExecutor
 import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.data.message.ToolExecutionResultMessage
 import dev.langchain4j.data.message.UserMessage
 import dev.langchain4j.model.chat.StreamingChatModel
+import dev.langchain4j.model.chat.request.json.JsonObjectSchema
 import dev.langchain4j.service.AiServices
 import dev.langchain4j.service.TokenStream
 import dev.langchain4j.service.tool.ToolExecution
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.CancellableContinuation
-import kotlin.coroutines.resume
 import io.qent.sona.core.mcp.McpConnectionManager
-import io.qent.sona.core.model.TokenUsageInfo
 import io.qent.sona.core.model.SonaAiService
 import io.qent.sona.core.model.toInfo
-import io.qent.sona.core.chat.ChatRepositoryChatMemoryStore
 import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.presets.PresetsRepository
 import io.qent.sona.core.roles.RolesRepository
-import io.qent.sona.core.tools.Tools
 import io.qent.sona.core.settings.SettingsRepository
+import io.qent.sona.core.tools.Tools
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 
-
-data class Chat(
-    val chatId: String,
-    val tokenUsage: TokenUsageInfo,
-    val messages: List<ChatRepositoryMessage> = emptyList(),
-    val requestInProgress: Boolean = false,
-    val isStreaming: Boolean = false,
-    val toolRequest: String? = null,
-    val autoApproveTools: Boolean = false,
-)
 
 class ChatFlow(
     private val presetsRepository: PresetsRepository,
@@ -55,24 +38,17 @@ class ChatFlow(
 ) : Flow<Chat> {
 
     private val scope = scope + Dispatchers.IO
+    private val chatStateFlow = ChatStateFlow(chatRepository, scope)
+    private val permissionedToolExecutor = PermissionedToolExecutor(chatStateFlow, chatRepository)
+    private val currentState get() = chatStateFlow.currentState
 
-    private val mutableSharedState = MutableSharedFlow<Chat>()
-    private var currentState = Chat("", TokenUsageInfo())
     private var currentStream: TokenStream? = null
     private var ignoreCallbacks = false
-    private var toolContinuation: CancellableContinuation<ToolDecision>? = null
 
-    suspend fun loadChat(chatId: String) {
-        val messages = chatRepository.loadMessages(chatId)
-        val usage = chatRepository.loadTokenUsage(chatId)
-        emit(Chat(chatId, usage, messages))
-    }
+    suspend fun loadChat(chatId: String) = chatStateFlow.loadChat(chatId)
 
-    private fun emit(chat: Chat) {
-        currentState = chat // BEFORE SCOPE LAUNCH!
-        scope.launch {
-            mutableSharedState.emit(chat)
-        }
+    fun resolveToolPermission(allow: Boolean, always: Boolean) {
+        permissionedToolExecutor.resolveToolPermission(allow, always)
     }
 
     suspend fun send(text: String) {
@@ -84,10 +60,10 @@ class ChatFlow(
             chatRepository.addMessage(chatId, userMsg, preset.model)
             val userRepoMsg = ChatRepositoryMessage(chatId, userMsg, preset.model)
             val baseMessages = currentState.messages + userRepoMsg
-            emit(currentState.copy(messages = baseMessages))
+            chatStateFlow.emit(currentState.copy(messages = baseMessages))
 
             val placeholder = ChatRepositoryMessage(chatId, AiMessage.from(""), preset.model)
-            emit(
+            chatStateFlow.emit(
                 currentState.copy(
                     requestInProgress = true,
                     messages = baseMessages + placeholder,
@@ -113,29 +89,29 @@ class ChatFlow(
 
             val toolSpecs = ToolSpecifications.toolSpecificationsFrom(tools).toMutableList().apply { add(roleSpec) } + mcpManager.listTools()
             val toolMap = toolSpecs.associateWith { spec: ToolSpecification ->
-                PermissionedToolExecutor(chatId, preset.model, spec.name()) { req ->
+                permissionedToolExecutor.create(chatId, preset.model, spec.name()) { req ->
                     when (spec.name()) {
                         "getFocusedFileInfo" -> gson.toJson(tools.getFocusedFileInfo())
                         "getFileLines" -> {
                             val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
-                            val path = args["arg0"]?.toString() ?: return@PermissionedToolExecutor "Empty file path"
+                            val path = args["arg0"]?.toString() ?: return@create "Empty file path"
                             val from = (args["arg1"] as? Number)?.toInt() ?: 0
                             val to = (args["arg2"] as? Number)?.toInt() ?: 0
                             tools.getFileLines(path, from, to)
                         }
                         "readFile" -> {
                             val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
-                            val path = args["arg0"]?.toString() ?: return@PermissionedToolExecutor "Empty file path"
+                            val path = args["arg0"]?.toString() ?: return@create "Empty file path"
                             tools.readFile(path)
                         }
                         "switchRole" -> {
                             val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
-                            val name = args["name"]?.toString() ?: return@PermissionedToolExecutor "Empty role name"
+                            val name = args["name"]?.toString() ?: return@create "Empty role name"
                             tools.switchRole(name)
                         }
                         "applyPatch" -> {
                             val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
-                            val path = args["arg0"]?.toString() ?: return@PermissionedToolExecutor " Empty patch"
+                            val path = args["arg0"]?.toString() ?: return@create " Empty patch"
                             tools.applyPatch(path)
                         }
                         else -> runBlocking { mcpManager.execute(req.id(), spec.name(), req.arguments()) }
@@ -161,7 +137,7 @@ class ChatFlow(
                 val lastIdx = msgs.lastIndex
                 if (lastIdx >= 0) {
                     msgs[lastIdx] = msgs[lastIdx].copy(message = AiMessage.from(""))
-                    emit(currentState.copy(messages = msgs, isStreaming = true, requestInProgress = true))
+                    chatStateFlow.emit(currentState.copy(messages = msgs, isStreaming = true, requestInProgress = true))
                 }
 
                 ignoreCallbacks = false
@@ -175,7 +151,7 @@ class ChatFlow(
                             msgs[lastIndex] = msgs[lastIndex].copy(
                                 message = AiMessage.from(builder.toString())
                             )
-                            emit(currentState.copy(messages = msgs, isStreaming = true, requestInProgress = true))
+                            chatStateFlow.emit(currentState.copy(messages = msgs, isStreaming = true, requestInProgress = true))
                         }
                     }
                     .onToolExecuted { exec: ToolExecution ->
@@ -199,7 +175,7 @@ class ChatFlow(
                         }
                         val placeholderAfter = ChatRepositoryMessage(chatId, AiMessage.from(""), preset.model)
                         builder.setLength(0)
-                        emit(
+                        chatStateFlow.emit(
                             currentState.copy(
                                 messages = messages + placeholderAfter,
                                 requestInProgress = true,
@@ -216,7 +192,7 @@ class ChatFlow(
                             msgs[lastIndex] = ChatRepositoryMessage(chatId, response.aiMessage(), preset.model, totalUsage)
                         }
                         runBlocking { chatRepository.addMessage(chatId, response.aiMessage(), preset.model, totalUsage) }
-                        emit(
+                        chatStateFlow.emit(
                             currentState.copy(
                                 messages = msgs,
                                 tokenUsage = currentState.tokenUsage + totalUsage,
@@ -230,7 +206,7 @@ class ChatFlow(
                         if (ignoreCallbacks) return@onError
                         if (t is CancellationException) {
                             currentStream = null
-                            emit(currentState.copy(requestInProgress = false, isStreaming = false))
+                            chatStateFlow.emit(currentState.copy(requestInProgress = false, isStreaming = false))
                             return@onError
                         }
                         currentStream = null
@@ -241,7 +217,7 @@ class ChatFlow(
                                 delay(delayMs)
                                 if (!ignoreCallbacks) startStream()
                             }
-                            emit(currentState.copy(requestInProgress = true, isStreaming = false))
+                            chatStateFlow.emit(currentState.copy(requestInProgress = true, isStreaming = false))
                         } else {
                             val errMsg = ChatRepositoryMessage(chatId, AiMessage.from("Error: ${t.message}"), preset.model)
                             runBlocking { chatRepository.addMessage(chatId, errMsg.message, preset.model) }
@@ -251,7 +227,7 @@ class ChatFlow(
                             } else {
                                 messages += errMsg
                             }
-                            emit(
+                            chatStateFlow.emit(
                                 currentState.copy(
                                     messages = messages,
                                     requestInProgress = false,
@@ -266,14 +242,14 @@ class ChatFlow(
             startStream()
         } catch (e: CancellationException) {
             currentStream = null
-            emit(currentState.copy(requestInProgress = false, isStreaming = false))
+            chatStateFlow.emit(currentState.copy(requestInProgress = false, isStreaming = false))
         } catch (e: Exception) {
             val errorMessage = ChatRepositoryMessage(
                 chatId,
                 AiMessage.from("Error: ${e.message}\n\n${e.stackTrace}"),
                 preset.model
             )
-            emit(
+            chatStateFlow.emit(
                 currentState.copy(
                     messages = currentState.messages + errorMessage,
                     requestInProgress = false,
@@ -284,97 +260,24 @@ class ChatFlow(
     }
 
     override suspend fun collect(collector: FlowCollector<Chat>) {
-        mutableSharedState.collect(collector)
-    }
-
-    private data class ToolDecision(val allow: Boolean, val always: Boolean)
-
-    private suspend fun requestToolPermission(toolName: String): ToolDecision {
-        return suspendCancellableCoroutine { cont ->
-            toolContinuation = cont
-            emit(currentState.copy(
-                toolRequest = toolName,
-                requestInProgress = false
-            ))
-        }
-    }
-
-    fun resolveToolPermission(allow: Boolean, always: Boolean) {
-        toolContinuation?.resume(ToolDecision(allow, always))
-        toolContinuation = null
-        emit(currentState.copy(toolRequest = null, requestInProgress = true))
+        chatStateFlow.collect(collector)
     }
 
     fun toggleAutoApproveTools() {
-        emit(currentState.copy(autoApproveTools = !currentState.autoApproveTools))
-    }
-
-    inner class PermissionedToolExecutor(
-        private val chatId: String,
-        private val model: String,
-        private val name: String,
-        private val run: (ToolExecutionRequest) -> String,
-    ) : ToolExecutor {
-        override fun execute(request: ToolExecutionRequest, memoryId: Any?): String {
-            runBlocking {
-                // fix empty lastAiMessage tools
-                val messages = currentState.messages.toMutableList()
-                messages.lastOrNull { it.message is AiMessage }?.let { lastAiMessage ->
-                    val tools = (lastAiMessage.message as AiMessage).toolExecutionRequests().toMutableList()
-                    tools.add(request)
-                    val messageWithRequests = AiMessage(lastAiMessage.message.text(), tools)
-                    chatRepository.addMessage(chatId, messageWithRequests, model, TokenUsageInfo())
-
-                    messages[messages.indexOf(lastAiMessage)] = ChatRepositoryMessage(
-                        lastAiMessage.chatId,
-                        messageWithRequests,
-                        lastAiMessage.model,
-                        lastAiMessage.tokenUsage
-                    )
-                    emit(currentState.copy(messages = messages))
-                }
-            }
-
-            val decision = runBlocking {
-                if (currentState.autoApproveTools || chatRepository.isToolAllowed(chatId, name)) {
-                    ToolDecision(true, false)
-                } else {
-                    requestToolPermission(name)
-                }
-            }
-            if (decision.always) {
-                runBlocking { chatRepository.addAllowedTool(chatId, name) }
-            }
-            return if (decision.allow) {
-                emit(
-                    currentState.copy(
-                        messages = currentState.messages + ChatRepositoryMessage(
-                            chatId,
-                            ToolExecutionResultMessage(request.id(), name, "executing"),
-                            model
-                        ),
-                        requestInProgress = true,
-                        isStreaming = false
-                    )
-                )
-                run(request)
-            } else "Tool execution cancelled"
-        }
+        chatStateFlow.emit(currentState.copy(autoApproveTools = !currentState.autoApproveTools))
     }
 
     suspend fun deleteFrom(index: Int) {
         stop()
         val chatId = currentState.chatId
         chatRepository.deleteMessagesFrom(chatId, index)
-        loadChat(chatId)
+        chatStateFlow.loadChat(chatId)
     }
 
     fun stop() {
         ignoreCallbacks = true
         currentStream?.ignoreErrors()
         currentStream = null
-        emit(currentState.copy(requestInProgress = false, isStreaming = false))
+        chatStateFlow.emit(currentState.copy(requestInProgress = false, isStreaming = false))
     }
-
-
 }
