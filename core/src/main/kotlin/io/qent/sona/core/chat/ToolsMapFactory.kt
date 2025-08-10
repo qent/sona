@@ -6,26 +6,30 @@ import dev.langchain4j.agent.tool.ToolSpecifications
 import dev.langchain4j.model.chat.request.json.JsonObjectSchema
 import dev.langchain4j.service.tool.ToolExecutor
 import io.qent.sona.core.mcp.McpConnectionManager
+import io.qent.sona.core.presets.PresetsRepository
 import io.qent.sona.core.roles.RolesRepository
 import io.qent.sona.core.tools.Tools
 import kotlinx.coroutines.runBlocking
 
 class ToolsMapFactory(
+    private val chatStateFlow: ChatStateFlow,
     private val tools: Tools,
     private val mcpManager: McpConnectionManager,
     private val permissionedToolExecutor: PermissionedToolExecutor,
     private val rolesRepository: RolesRepository,
+    private val presetsRepository: PresetsRepository,
 ) {
 
     private val gson = Gson()
 
-    suspend fun create(chatId: String, model: String): Map<ToolSpecification, ToolExecutor> {
+    suspend fun create(): Map<ToolSpecification, ToolExecutor> {
+        val preset = presetsRepository.load().let { it.presets[it.active] }
         val specifications = ToolSpecifications.toolSpecificationsFrom(tools).toMutableList().apply {
             add(createSwitchRolesToolSpecification())
         } + mcpManager.listTools()
 
         return specifications.associateWith { spec: ToolSpecification ->
-            permissionedToolExecutor.create(chatId, model, spec.name()) { req ->
+            permissionedToolExecutor.create(chatStateFlow.currentState.chatId, preset.model, spec.name()) { req ->
                 when (spec.name()) {
                     "getFocusedFileInfo" -> gson.toJson(tools.getFocusedFileInfo())
                     "getFileLines" -> {

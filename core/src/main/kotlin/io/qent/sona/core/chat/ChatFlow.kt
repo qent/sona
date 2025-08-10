@@ -1,19 +1,13 @@
 package io.qent.sona.core.chat
 
-import com.google.gson.Gson
-import dev.langchain4j.agent.tool.ToolSpecification
-import dev.langchain4j.agent.tool.ToolSpecifications
 import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.data.message.ToolExecutionResultMessage
 import dev.langchain4j.data.message.UserMessage
 import dev.langchain4j.model.chat.StreamingChatModel
-import dev.langchain4j.model.chat.request.json.JsonObjectSchema
-import dev.langchain4j.service.AiServices
 import dev.langchain4j.service.TokenStream
 import dev.langchain4j.service.tool.ToolExecution
 import io.qent.sona.core.mcp.McpConnectionManager
-import io.qent.sona.core.model.SonaAiService
 import io.qent.sona.core.model.toInfo
 import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.presets.PresetsRepository
@@ -27,13 +21,13 @@ import kotlinx.coroutines.flow.FlowCollector
 
 class ChatFlow(
     private val presetsRepository: PresetsRepository,
-    private val rolesRepository: RolesRepository,
+    rolesRepository: RolesRepository,
     private val chatRepository: ChatRepository,
-    private val modelFactory: (Preset) -> StreamingChatModel,
-    private val tools: Tools,
+    modelFactory: (Preset) -> StreamingChatModel,
+    tools: Tools,
     scope: CoroutineScope,
-    private val systemMessages: List<SystemMessage> = emptyList(),
-    private val mcpManager: McpConnectionManager,
+    systemMessages: List<SystemMessage> = emptyList(),
+    mcpManager: McpConnectionManager,
     private val settingsRepository: SettingsRepository,
 ) : Flow<Chat> {
 
@@ -41,7 +35,8 @@ class ChatFlow(
 
     private val chatStateFlow = ChatStateFlow(chatRepository, scope)
     private val permissionedToolExecutor = PermissionedToolExecutor(chatStateFlow, chatRepository)
-    private val toolsMapFactory = ToolsMapFactory(tools, mcpManager, permissionedToolExecutor, rolesRepository)
+    private val toolsMapFactory = ToolsMapFactory(chatStateFlow, tools, mcpManager, permissionedToolExecutor, rolesRepository, presetsRepository)
+    private val chatAgentFactory = ChatAgentFactory(modelFactory, systemMessages, toolsMapFactory, presetsRepository, rolesRepository, chatRepository)
 
     private val currentState get() = chatStateFlow.currentState
 
@@ -74,23 +69,13 @@ class ChatFlow(
                 )
             )
 
-            val roles = rolesRepository.load()
-            val roleText = roles.roles[roles.active].text
-            val roleMessage = SystemMessage.from(roleText)
-            val toolsMap = toolsMapFactory.create(chatId, preset.model)
-
+            val aiService = chatAgentFactory.create()
             val maxRetries = settingsRepository.load().apiRetries
             val builder = StringBuilder()
             var attempt = 0
 
             fun startStream() {
                 if (ignoreCallbacks) return
-                val aiService = AiServices.builder(SonaAiService::class.java)
-                    .streamingChatModel(modelFactory(preset))
-                    .systemMessageProvider { (systemMessages + roleMessage).joinToString("\n") }
-                    .chatMemoryProvider { id -> ChatRepositoryChatMemoryStore(chatRepository, id.toString()) }
-                    .tools(toolsMap)
-                    .build()
 
                 builder.setLength(0)
                 val msgs = currentState.messages.toMutableList()
@@ -200,7 +185,7 @@ class ChatFlow(
             }
 
             startStream()
-        } catch (e: CancellationException) {
+        } catch (_: CancellationException) {
             currentStream = null
             chatStateFlow.emit(currentState.copy(requestInProgress = false, isStreaming = false))
         } catch (e: Exception) {
