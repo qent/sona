@@ -5,10 +5,12 @@ import io.qent.sona.config.SonaConfig
 import io.qent.sona.core.permissions.FilePermissionsRepository
 
 class PluginFilePermissionsRepository(project: Project) : FilePermissionsRepository {
-    private val root = project.basePath ?: "/"
-    private val config = SonaConfig.load(root)
 
-    override val whitelist = config?.permissions?.files?.whitelist ?: listOf("$root/.*")
+    override val projectPath = project.basePath ?: "/"
+
+    private val config = SonaConfig.load(projectPath)
+
+    override val whitelist = config?.permissions?.files?.whitelist ?: listOf("$projectPath/.*")
     override val blacklist = config?.permissions?.files?.blacklist ?: listOf(
         ".*/\\.env.*",
         ".*/\\.git.*",

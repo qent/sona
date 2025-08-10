@@ -85,7 +85,7 @@
   },
   {
     "name": "Gemini",
-    "defaultEndpoint": "https://generativelanguage.googleapis.com/v1beta/",
+    "defaultEndpoint": "https://generativelanguage.googleapis.com/v1beta",
     "models": [
       {
         "name": "gemini-2.5-pro",
