@@ -38,7 +38,8 @@ under the message input. The text of the active role is sent as a system message
 with every request but is not stored in the chat history. Every request is also
 prefixed with a system message summarizing
 the current environment (OS, IDE, Java, Python, Node.js versions, file extension
-statistics and build systems).
+statistics and build systems). On startup the plugin also reads any `.md` files in
+`src/main/resources/prompts` and appends their text as additional system messages.
 
 Models can also switch roles themselves using a tool that selects a role by name.
 

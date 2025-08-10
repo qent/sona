@@ -11,7 +11,8 @@ import org.junit.Test
 
 private class StubRepository(
     override val whitelist: List<String>,
-    override val blacklist: List<String>
+    override val blacklist: List<String>,
+    override val projectPath: String = ""
 ) : FilePermissionsRepository
 
 private class FakeExternalTools(
