@@ -38,8 +38,11 @@ class ChatFlow(
 ) : Flow<Chat> {
 
     private val scope = scope + Dispatchers.IO
+
     private val chatStateFlow = ChatStateFlow(chatRepository, scope)
     private val permissionedToolExecutor = PermissionedToolExecutor(chatStateFlow, chatRepository)
+    private val toolsMapFactory = ToolsMapFactory(tools, mcpManager, permissionedToolExecutor, rolesRepository)
+
     private val currentState get() = chatStateFlow.currentState
 
     private var currentStream: TokenStream? = null
@@ -54,7 +57,7 @@ class ChatFlow(
     suspend fun send(text: String) {
         val chatId = currentState.chatId
         val preset = presetsRepository.load().let { it.presets[it.active] }
-        val gson = Gson()
+
         try {
             val userMsg = UserMessage.from(text)
             chatRepository.addMessage(chatId, userMsg, preset.model)
@@ -74,50 +77,7 @@ class ChatFlow(
             val roles = rolesRepository.load()
             val roleText = roles.roles[roles.active].text
             val roleMessage = SystemMessage.from(roleText)
-            val roleDescriptions = roles.roles.joinToString("\n") { "name = '${it.name}' (${it.short})" }
-
-            val roleSpec = ToolSpecification.builder()
-                .name("switchRole")
-                .description("Switch agent role by name. Available roles: \n$roleDescriptions")
-                .parameters(
-                    JsonObjectSchema.builder()
-                        .addStringProperty("name", "Role name")
-                        .required("name")
-                        .build()
-                )
-                .build()
-
-            val toolSpecs = ToolSpecifications.toolSpecificationsFrom(tools).toMutableList().apply { add(roleSpec) } + mcpManager.listTools()
-            val toolMap = toolSpecs.associateWith { spec: ToolSpecification ->
-                permissionedToolExecutor.create(chatId, preset.model, spec.name()) { req ->
-                    when (spec.name()) {
-                        "getFocusedFileInfo" -> gson.toJson(tools.getFocusedFileInfo())
-                        "getFileLines" -> {
-                            val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
-                            val path = args["arg0"]?.toString() ?: return@create "Empty file path"
-                            val from = (args["arg1"] as? Number)?.toInt() ?: 0
-                            val to = (args["arg2"] as? Number)?.toInt() ?: 0
-                            tools.getFileLines(path, from, to)
-                        }
-                        "readFile" -> {
-                            val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
-                            val path = args["arg0"]?.toString() ?: return@create "Empty file path"
-                            tools.readFile(path)
-                        }
-                        "switchRole" -> {
-                            val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
-                            val name = args["name"]?.toString() ?: return@create "Empty role name"
-                            tools.switchRole(name)
-                        }
-                        "applyPatch" -> {
-                            val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
-                            val path = args["arg0"]?.toString() ?: return@create " Empty patch"
-                            tools.applyPatch(path)
-                        }
-                        else -> runBlocking { mcpManager.execute(req.id(), spec.name(), req.arguments()) }
-                    }
-                }
-            }
+            val toolsMap = toolsMapFactory.create(chatId, preset.model)
 
             val maxRetries = settingsRepository.load().apiRetries
             val builder = StringBuilder()
@@ -129,7 +89,7 @@ class ChatFlow(
                     .streamingChatModel(modelFactory(preset))
                     .systemMessageProvider { (systemMessages + roleMessage).joinToString("\n") }
                     .chatMemoryProvider { id -> ChatRepositoryChatMemoryStore(chatRepository, id.toString()) }
-                    .tools(toolMap)
+                    .tools(toolsMap)
                     .build()
 
                 builder.setLength(0)
