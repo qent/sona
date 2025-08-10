@@ -1,15 +1,15 @@
 package io.qent.sona.core.state
 
 import dev.langchain4j.data.message.ChatMessage
-import io.qent.sona.core.chat.Chat
 import io.qent.sona.core.chat.ChatRepository
 import io.qent.sona.core.chat.ChatRepositoryMessage
+import io.qent.sona.core.chat.ChatSession
+import io.qent.sona.core.chat.ChatStateFlow
 import io.qent.sona.core.chat.ChatSummary
 import io.qent.sona.core.model.TokenUsageInfo
-import io.qent.sona.core.state.interactors.ChatSession
 import io.qent.sona.core.state.interactors.ChatStateInteractor
-import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -37,21 +37,15 @@ private class FakeChatRepository : ChatRepository {
     override suspend fun deleteMessagesFrom(chatId: String, index: Int) { deletedFrom = chatId to index }
 }
 
-private class FakeChatFlow : ChatSession {
-    private val flow = MutableSharedFlow<Chat>()
-    var lastLoaded: String? = null
+private class FakeChatSession : ChatSession {
     var sent: String? = null
     var stopped = false
     var deletedFrom: Int? = null
     var toggled = false
-    var resolved: Pair<Boolean, Boolean>? = null
-    override suspend fun loadChat(id: String) { lastLoaded = id }
     override suspend fun send(text: String) { sent = text }
     override fun stop() { stopped = true }
     override suspend fun deleteFrom(idx: Int) { deletedFrom = idx }
     override fun toggleAutoApproveTools() { toggled = true }
-    override suspend fun resolveToolPermission(allow: Boolean, always: Boolean) { resolved = allow to always }
-    override suspend fun collect(collector: FlowCollector<Chat>) { flow.collect(collector) }
 }
 
 class ChatStateInteractorTest {
@@ -59,10 +53,11 @@ class ChatStateInteractorTest {
     fun newChatCreatesWhenEmpty() = runBlocking {
         val repo = FakeChatRepository()
         val chatId = repo.createChat()
-        val flow = FakeChatFlow()
-        val interactor = ChatStateInteractor(flow, repo)
+        val chatStateFlow = ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined))
+        val session = FakeChatSession()
+        val interactor = ChatStateInteractor(session, repo, chatStateFlow)
         interactor.newChat()
-        assertNotEquals(chatId, flow.lastLoaded)
+        assertNotEquals(chatId, chatStateFlow.currentState.chatId)
     }
 
     @Test
@@ -70,27 +65,30 @@ class ChatStateInteractorTest {
         val repo = FakeChatRepository()
         val existing = repo.createChat()
         repo.messages[existing]?.add(ChatRepositoryMessage(existing, dev.langchain4j.data.message.UserMessage.from("hi"), "m"))
-        val flow = FakeChatFlow()
-        val interactor = ChatStateInteractor(flow, repo)
+        val chatStateFlow = ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined))
+        val session = FakeChatSession()
+        val interactor = ChatStateInteractor(session, repo, chatStateFlow)
         interactor.newChat()
-        assertNotEquals(existing, flow.lastLoaded)
+        assertNotEquals(existing, chatStateFlow.currentState.chatId)
     }
 
     @Test
     fun openChatDelegates() = runBlocking {
         val repo = FakeChatRepository()
-        val flow = FakeChatFlow()
-        val interactor = ChatStateInteractor(flow, repo)
+        val chatStateFlow = ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined))
+        val session = FakeChatSession()
+        val interactor = ChatStateInteractor(session, repo, chatStateFlow)
         interactor.openChat("123")
-        assertEquals("123", flow.lastLoaded)
+        assertEquals("123", chatStateFlow.currentState.chatId)
     }
 
     @Test
     fun listChatsReturnsRepositoryData() = runBlocking {
         val repo = FakeChatRepository()
         val chat1 = repo.createChat()
-        val flow = FakeChatFlow()
-        val interactor = ChatStateInteractor(flow, repo)
+        val chatStateFlow = ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined))
+        val session = FakeChatSession()
+        val interactor = ChatStateInteractor(session, repo, chatStateFlow)
         val chats = interactor.listChats()
         assertEquals(1, chats.size)
         assertEquals(chat1, chats.first().id)
@@ -100,8 +98,9 @@ class ChatStateInteractorTest {
     fun deleteChatDelegatesToRepository() = runBlocking {
         val repo = FakeChatRepository()
         val id = repo.createChat()
-        val flow = FakeChatFlow()
-        val interactor = ChatStateInteractor(flow, repo)
+        val chatStateFlow = ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined))
+        val session = FakeChatSession()
+        val interactor = ChatStateInteractor(session, repo, chatStateFlow)
         interactor.deleteChat(id)
         assertEquals(id, repo.deleted)
     }
@@ -109,46 +108,41 @@ class ChatStateInteractorTest {
     @Test
     fun sendDelegatesToFlow() = runBlocking {
         val repo = FakeChatRepository()
-        val flow = FakeChatFlow()
-        val interactor = ChatStateInteractor(flow, repo)
+        val chatStateFlow = ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined))
+        val session = FakeChatSession()
+        val interactor = ChatStateInteractor(session, repo, chatStateFlow)
         interactor.send("hello")
-        assertEquals("hello", flow.sent)
+        assertEquals("hello", session.sent)
     }
 
     @Test
     fun stopDelegatesToFlow() = runBlocking {
         val repo = FakeChatRepository()
-        val flow = FakeChatFlow()
-        val interactor = ChatStateInteractor(flow, repo)
+        val chatStateFlow = ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined))
+        val session = FakeChatSession()
+        val interactor = ChatStateInteractor(session, repo, chatStateFlow)
         interactor.stop()
-        assertEquals(true, flow.stopped)
+        assertEquals(true, session.stopped)
     }
 
     @Test
     fun deleteFromDelegatesToFlow() = runBlocking {
         val repo = FakeChatRepository()
-        val flow = FakeChatFlow()
-        val interactor = ChatStateInteractor(flow, repo)
+        val chatStateFlow = ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined))
+        val session = FakeChatSession()
+        val interactor = ChatStateInteractor(session, repo, chatStateFlow)
         interactor.deleteFrom(5)
-        assertEquals(5, flow.deletedFrom)
+        assertEquals(5, session.deletedFrom)
     }
 
     @Test
     fun toggleAutoApproveToolsDelegates() = runBlocking {
         val repo = FakeChatRepository()
-        val flow = FakeChatFlow()
-        val interactor = ChatStateInteractor(flow, repo)
+        val chatStateFlow = ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined))
+        val session = FakeChatSession()
+        val interactor = ChatStateInteractor(session, repo, chatStateFlow)
         interactor.toggleAutoApproveTools()
-        assertEquals(true, flow.toggled)
-    }
-
-    @Test
-    fun resolveToolPermissionDelegates() = runBlocking {
-        val repo = FakeChatRepository()
-        val flow = FakeChatFlow()
-        val interactor = ChatStateInteractor(flow, repo)
-        interactor.resolveToolPermission(true, false)
-        assertEquals(true to false, flow.resolved)
+        assertEquals(true, session.toggled)
     }
 }
 

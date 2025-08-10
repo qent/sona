@@ -30,7 +30,7 @@
   descriptions.
 - The UI passes a list of additional `SystemMessage` values to the core. The first message describes the current
   environment (OS, IDE, Java, Python, Node.js, file extension statistics, build systems) and is prepended to every LLM request.
-- ChatFlow leverages langchain4j `AiService` and `TokenStream` to emit partial responses and tool events via streaming callbacks.
+- ChatController leverages langchain4j `AiService` and `TokenStream` to emit partial responses and tool events via streaming callbacks.
 - AI messages show a gear icon that toggles visibility of requested tools. Tool outputs stream into a terminal-style bubble with animated dots until completion.
 - Run `./gradlew build` before committing any changes.
 - After completing a task, make sure `AGENTS.md` and `README.md` reflect the latest behavior.
@@ -46,9 +46,7 @@ IDE theme changes.
 
 ## Current structure
 
-- **core module** – contains `ChatFlow`, a thin `StateProvider` facade, `StateFactory` and domain interactors (`ChatStateInteractor`, `RolesListStateInteractor`, `EditRoleStateInteractor`, `PresetsListStateInteractor`, `EditPresetStateInteractor`, `ServersStateInteractor`). `ChatFlow` is a
-  `MutableStateFlow` based `Flow` that manages the conversation with the model
-  and keeps track of token usage while the interactors handle domain logic.
+- **core module** – contains `ChatController`, `ChatStateFlow`, a thin `StateProvider` facade, `StateFactory` and domain interactors (`ChatStateInteractor`, `RolesListStateInteractor`, `EditRoleStateInteractor`, `PresetsListStateInteractor`, `EditPresetStateInteractor`, `ServersStateInteractor`). `ChatStateFlow` emits the current chat while `ChatController` manages the conversation with the model and keeps track of token usage while the interactors handle domain logic.
 - **Plugin module** – provides IntelliJ implementations of the repositories,
   the Compose UI and `PluginStateFlow`, a project service exposing
   `StateFlow<State>` from `StateProvider`.
@@ -68,7 +66,7 @@ variables, transport, URL, working directory, request headers and an optional
 these servers require the same user permission prompts as local tools. Server enablement and
 disabled tools are stored in `sona.json`; only servers marked as enabled reconnect
 automatically on restart.
-`ChatFlow` depends only on the `Tools` interface and receives the decorator from `StateProvider`.
+`ChatController` receives a `Tools` decorator from `StateProvider` via its injected `ChatAgentFactory`.
 
 Whenever you extend the logic make sure the flow of state remains unidirectional
 and that the core module stays free from IntelliJ SDK imports.
