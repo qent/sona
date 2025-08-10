@@ -5,7 +5,8 @@ import org.junit.Test
 
 private class FakeRepository(
     override val whitelist: List<String>,
-    override val blacklist: List<String>
+    override val blacklist: List<String>,
+    override val projectPath: String = ""
 ) : FilePermissionsRepository
 
 class FilePermissionManagerTest {

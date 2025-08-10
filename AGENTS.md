@@ -30,6 +30,7 @@
   descriptions.
 - The UI passes a list of additional `SystemMessage` values to the core. The first message describes the current
   environment (OS, IDE, Java, Python, Node.js, file extension statistics, build systems) and is prepended to every LLM request.
+- Any `.md` files in `src/main/resources/prompts` are read at startup and their contents are appended as additional system messages.
 - ChatController leverages langchain4j `AiService` and `TokenStream` to emit partial responses and tool events via streaming callbacks.
 - AI messages show a gear icon that toggles visibility of requested tools. Tool outputs stream into a terminal-style bubble with animated dots until completion.
 - Run `./gradlew build` before committing any changes.

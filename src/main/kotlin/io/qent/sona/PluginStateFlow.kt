@@ -25,10 +25,15 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import java.io.File
+import java.net.JarURLConnection
 import java.net.http.HttpClient
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import java.time.Duration.ofSeconds
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
@@ -186,7 +191,34 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
     }
 
     private fun createSystemMessages(): List<SystemMessage> {
-        return listOf(SystemMessage.from(environmentInfo()))
+        val env = SystemMessage.from(environmentInfo())
+        return listOf(env) + loadPromptMessages()
+    }
+
+    private fun loadPromptMessages(): List<SystemMessage> {
+        val dirUrl = this::class.java.classLoader.getResource("prompts") ?: return emptyList()
+        return when (dirUrl.protocol) {
+            "jar" -> {
+                val connection = dirUrl.openConnection() as? JarURLConnection ?: return emptyList()
+                FileSystems.newFileSystem(connection.jarFileURL.toURI(), emptyMap<String, Any>()).use { fs ->
+                    val path = fs.getPath("prompts")
+                    loadMessagesFromPath(path)
+                }
+            }
+            else -> {
+                val path = Paths.get(dirUrl.toURI())
+                loadMessagesFromPath(path)
+            }
+        }
+    }
+
+    private fun loadMessagesFromPath(path: Path): List<SystemMessage> {
+        val messages = mutableListOf<SystemMessage>()
+        Files.list(path).use { stream ->
+            stream.filter { Files.isRegularFile(it) && it.toString().endsWith(".md") }
+                .forEach { p -> messages += SystemMessage.from(Files.readString(p)) }
+        }
+        return messages
     }
 
     private fun environmentInfo(): String {
