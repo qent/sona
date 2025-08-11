@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import java.io.File
 import java.net.JarURLConnection
+import java.net.URI
 import java.net.http.HttpClient
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
@@ -200,7 +201,12 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
         return when (dirUrl.protocol) {
             "jar" -> {
                 val connection = dirUrl.openConnection() as? JarURLConnection ?: return emptyList()
-                FileSystems.newFileSystem(connection.jarFileURL.toURI(), emptyMap<String, Any>()).use { fs ->
+                val jarUri = connection.jarFileURL.toURI()
+                // Ensure the URI has the correct format for FileSystems.newFileSystem()
+                val fileSystemUri = if (jarUri.scheme == "file") {
+                    URI.create("jar:${jarUri}")
+                } else jarUri
+                FileSystems.newFileSystem(fileSystemUri, emptyMap<String, Any>()).use { fs ->
                     val path = fs.getPath("prompts")
                     loadMessagesFromPath(path)
                 }
