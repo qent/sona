@@ -5,4 +5,5 @@ data class Settings(
     val cacheSystemPrompts: Boolean,
     val cacheToolDescriptions: Boolean,
     val apiRetries: Int,
+    val enablePluginLogging: Boolean,
 )

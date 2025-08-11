@@ -28,6 +28,7 @@ class ChatController(
     private val chatStateFlow: ChatStateFlow,
     private val chatAgentFactory: ChatAgentFactory,
     scope: CoroutineScope,
+    private val log: (String) -> Unit = {},
 ) : ChatSession {
 
     private val scope = scope + Dispatchers.IO
@@ -40,6 +41,7 @@ class ChatController(
     override suspend fun send(text: String) {
         val chatId = currentState.chatId
         val preset = presetsRepository.load().let { it.presets[it.active] }
+        log("send: chatId=$chatId preset=${preset.model} text=$text")
 
         try {
             val userMsg = UserMessage.from(text)
@@ -74,9 +76,11 @@ class ChatController(
                 }
 
                 ignoreCallbacks = false
+                log("startStream: attempt=$attempt")
                 currentStream = aiService.chat(chatId, text)
                     .onPartialResponse { token ->
                         if (ignoreCallbacks) return@onPartialResponse
+                        log("onPartialResponse: $token")
                         builder.append(token)
                         val msgs = currentState.messages.toMutableList()
                         val lastIndex = msgs.lastIndex
@@ -89,6 +93,7 @@ class ChatController(
                     }
                     .onToolExecuted { exec: ToolExecution ->
                         if (ignoreCallbacks) return@onToolExecuted
+                        log("onToolExecuted: ${exec.request().name()}")
                         val toolResultMessage = ToolExecutionResultMessage(
                             exec.request().id(),
                             exec.request().name(),
@@ -122,6 +127,7 @@ class ChatController(
                     }
                     .onCompleteResponse { response ->
                         if (ignoreCallbacks) return@onCompleteResponse
+                        log("onCompleteResponse")
                         val totalUsage = response.metadata().tokenUsage().toInfo()
                         val msgs = currentState.messages.toMutableList()
                         val lastIndex = msgs.lastIndex
@@ -146,6 +152,7 @@ class ChatController(
                     }
                     .onError { t ->
                         if (ignoreCallbacks) return@onError
+                        log("onError: ${t.message}")
                         if (t is CancellationException) {
                             currentStream = null
                             chatStateFlow.emit(currentState.copy(requestInProgress = false, isStreaming = false))
@@ -155,12 +162,14 @@ class ChatController(
                         if (attempt < maxRetries) {
                             val delayMs = 1000L * (1 shl attempt)
                             attempt++
+                            log("retrying in ${delayMs}ms")
                             scope.launch {
                                 delay(delayMs)
                                 if (!ignoreCallbacks) startStream()
                             }
                             chatStateFlow.emit(currentState.copy(requestInProgress = true, isStreaming = false))
                         } else {
+                            log("max retries reached")
                             val errMsg = ChatRepositoryMessage(
                                 chatId,
                                 AiMessage.from("Error: ${t.message}"),
@@ -187,9 +196,11 @@ class ChatController(
 
             startStream()
         } catch (_: CancellationException) {
+            log("send cancelled")
             currentStream = null
             chatStateFlow.emit(currentState.copy(requestInProgress = false, isStreaming = false))
         } catch (e: Exception) {
+            log("send exception: ${e.message}")
             val errorMessage = ChatRepositoryMessage(
                 chatId,
                 AiMessage.from("Error: ${e.message}\n\n${e.stackTrace}"),
@@ -206,10 +217,13 @@ class ChatController(
     }
 
     override fun toggleAutoApproveTools() {
-        chatStateFlow.emit(currentState.copy(autoApproveTools = !currentState.autoApproveTools))
+        val newValue = !currentState.autoApproveTools
+        log("toggleAutoApproveTools: $newValue")
+        chatStateFlow.emit(currentState.copy(autoApproveTools = newValue))
     }
 
     override suspend fun deleteFrom(index: Int) {
+        log("deleteFrom: index=$index")
         stop()
         val chatId = currentState.chatId
         chatRepository.deleteMessagesFrom(chatId, index)
@@ -217,6 +231,7 @@ class ChatController(
     }
 
     override fun stop() {
+        log("stop")
         ignoreCallbacks = true
         currentStream?.ignoreErrors()
         currentStream = null

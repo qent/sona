@@ -20,6 +20,7 @@ class PluginSettingsConfigurable : Configurable {
 
     private val repo = service<PluginSettingsRepository>()
     private var currentIgnoreHttpsErrors = repo.state.ignoreHttpsErrors
+    private var currentEnablePluginLogging = repo.state.enablePluginLogging
     private var currentCacheSystemPrompts = repo.state.cacheSystemPrompts
     private var currentCacheToolDescriptions = repo.state.cacheToolDescriptions
     private var currentApiRetries = repo.state.apiRetries
@@ -28,10 +29,12 @@ class PluginSettingsConfigurable : Configurable {
         val themeService = service<ThemeService>()
         val dark by themeService.isDark.collectAsState()
         var ignoreHttps by remember { mutableStateOf(currentIgnoreHttpsErrors) }
+        var enableLogging by remember { mutableStateOf(currentEnablePluginLogging) }
         var cacheSystemPrompts by remember { mutableStateOf(currentCacheSystemPrompts) }
         var cacheToolDescriptions by remember { mutableStateOf(currentCacheToolDescriptions) }
         val apiRetriesState = rememberTextFieldState(currentApiRetries.toString())
         LaunchedEffect(ignoreHttps) { currentIgnoreHttpsErrors = ignoreHttps }
+        LaunchedEffect(enableLogging) { currentEnablePluginLogging = enableLogging }
         LaunchedEffect(cacheSystemPrompts) { currentCacheSystemPrompts = cacheSystemPrompts }
         LaunchedEffect(cacheToolDescriptions) { currentCacheToolDescriptions = cacheToolDescriptions }
         LaunchedEffect(apiRetriesState.text) {
@@ -45,6 +48,12 @@ class PluginSettingsConfigurable : Configurable {
                     Checkbox(checked = ignoreHttps, onCheckedChange = { ignoreHttps = it })
                     Spacer(Modifier.width(8.dp))
                       Text(Strings.ignoreHttpsErrors)
+                }
+                Spacer(Modifier.height(8.dp))
+                Row {
+                    Checkbox(checked = enableLogging, onCheckedChange = { enableLogging = it })
+                    Spacer(Modifier.width(8.dp))
+                      Text(Strings.enablePluginLogging)
                 }
                 Spacer(Modifier.height(8.dp))
                 Row {
@@ -73,6 +82,7 @@ class PluginSettingsConfigurable : Configurable {
     override fun isModified(): Boolean {
         val saved = repo.state
         return currentIgnoreHttpsErrors != saved.ignoreHttpsErrors ||
+            currentEnablePluginLogging != saved.enablePluginLogging ||
             currentCacheSystemPrompts != saved.cacheSystemPrompts ||
             currentCacheToolDescriptions != saved.cacheToolDescriptions ||
             currentApiRetries != saved.apiRetries
@@ -82,6 +92,7 @@ class PluginSettingsConfigurable : Configurable {
         repo.loadState(
             PluginSettingsRepository.PluginSettingsState(
                 currentIgnoreHttpsErrors,
+                currentEnablePluginLogging,
                 currentCacheSystemPrompts,
                 currentCacheToolDescriptions,
                 currentApiRetries,

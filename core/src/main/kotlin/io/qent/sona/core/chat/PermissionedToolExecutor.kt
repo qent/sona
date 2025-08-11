@@ -15,6 +15,7 @@ data class ToolDecision(val allow: Boolean, val always: Boolean)
 class PermissionedToolExecutor(
     private val chatStateFlow: ChatStateFlow,
     private val chatRepository: ChatRepository,
+    private val log: (String) -> Unit = {},
 ) {
 
     private val currentChatState get() = chatStateFlow.currentState
@@ -22,6 +23,7 @@ class PermissionedToolExecutor(
     private var toolContinuation: CancellableContinuation<ToolDecision>? = null
 
     fun resolveToolPermission(allow: Boolean, always: Boolean) {
+        log("resolveToolPermission: allow=$allow always=$always")
         toolContinuation?.resume(ToolDecision(allow, always))
         toolContinuation = null
         chatStateFlow.emit(currentChatState.copy(toolRequest = null, requestInProgress = true))
@@ -33,6 +35,7 @@ class PermissionedToolExecutor(
         name: String,
         run: (ToolExecutionRequest) -> String
     ) = ToolExecutor { request, memoryId ->
+        log("tool execute request: ${'$'}{request.name()}")
         runBlocking {
             // fix empty lastAiMessage tools
             val messages = currentChatState.messages.toMutableList()
@@ -59,6 +62,7 @@ class PermissionedToolExecutor(
                 requestToolPermission(name)
             }
         }
+        log("tool decision: allow=${'$'}{decision.allow} always=${'$'}{decision.always}")
         if (decision.always) {
             runBlocking { chatRepository.addAllowedTool(chatId, name) }
         }
@@ -79,6 +83,7 @@ class PermissionedToolExecutor(
     }
 
     private suspend fun requestToolPermission(toolName: String): ToolDecision {
+        log("requestToolPermission: ${'$'}toolName")
         return suspendCancellableCoroutine { cont ->
             toolContinuation = cont
             chatStateFlow.emit(
