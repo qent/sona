@@ -63,10 +63,11 @@ message and for the entire conversation. It also displays how much of the
 model's context window is currently filled based on the active preset.
 
 The settings screen is split into two sections. **Plugin Settings** contains the
-original **Ignore HTTPS errors** option and a field for **LLM API retries** that
-controls how many times failed requests are retried with exponential backoff.
-The new **Anthropic Settings** section adds checkboxes to cache system prompts
-and tool descriptions when sending requests to Anthropic models.
+original **Ignore HTTPS errors** option, an **Enable plugin logging** flag and a
+field for **LLM API retries** that controls how many times failed requests are
+retried with exponential backoff. The new **Anthropic Settings** section adds
+checkboxes to cache system prompts and tool descriptions when sending requests
+to Anthropic models.
 
 ## Model pricing
 

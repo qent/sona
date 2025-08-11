@@ -37,6 +37,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class StateProvider(
     presetsRepository: PresetsRepository,
@@ -63,7 +64,12 @@ class StateProvider(
     private val tools: Tools = ToolsInfoDecorator(internalTools, externalTools, filePermissionManager)
     private val mcpManager = McpConnectionManager(mcpServersRepository, scope)
     private val chatStateFlow = ChatStateFlow(chatRepository, scope)
-    private val permissionedToolExecutor = PermissionedToolExecutor(chatStateFlow, chatRepository)
+    private val log: (String) -> Unit = { msg ->
+        runBlocking {
+            if (settingsRepository.load().enablePluginLogging) println("[Sona] $msg")
+        }
+    }
+    private val permissionedToolExecutor = PermissionedToolExecutor(chatStateFlow, chatRepository, log)
     private val toolsMapFactory = ToolsMapFactory(
         chatStateFlow,
         tools,
@@ -86,7 +92,8 @@ class StateProvider(
         settingsRepository,
         chatStateFlow,
         chatAgentFactory,
-        scope
+        scope,
+        log
     )
 
     private val chatInteractor = ChatStateInteractor(chatController, chatRepository, chatStateFlow)

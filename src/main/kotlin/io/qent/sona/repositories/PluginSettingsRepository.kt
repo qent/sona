@@ -14,6 +14,7 @@ class PluginSettingsRepository :
     PersistentStateComponent<PluginSettingsRepository.PluginSettingsState> {
     data class PluginSettingsState(
         var ignoreHttpsErrors: Boolean = false,
+        var enablePluginLogging: Boolean = false,
         var cacheSystemPrompts: Boolean = true,
         var cacheToolDescriptions: Boolean = true,
         var apiRetries: Int = 0,
@@ -32,5 +33,6 @@ class PluginSettingsRepository :
         pluginSettingsState.cacheSystemPrompts,
         pluginSettingsState.cacheToolDescriptions,
         pluginSettingsState.apiRetries,
+        pluginSettingsState.enablePluginLogging,
     )
 }
