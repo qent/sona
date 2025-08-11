@@ -101,9 +101,9 @@ private fun Messages(
                         bottomContent = bottom,
                         onDelete = { state.onDeleteFrom(index) },
                         onEdit = {
-                            state.onDeleteFrom(index)
                             inputText.value = TextFieldValue(message.text)
                             focusRequester.requestFocus()
+                            state.onDeleteFrom(index)
                         },
                         onScrollOutside = { delta ->
                             coroutineScope.launch {

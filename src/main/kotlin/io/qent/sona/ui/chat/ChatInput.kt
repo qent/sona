@@ -109,7 +109,12 @@ fun ChatInput(state: ChatState, text: MutableState<TextFieldValue>, focusRequest
                         .heightIn(min = 100.dp, max = 300.dp)
                         .padding(bottom = 30.dp)
                         .focusRequester(focusRequester)
-                        .onFocusChanged { isFocused = it.isFocused }
+                        .onFocusChanged {
+                            if (it.isFocused) {
+                                text.value = text.value.copy(selection = TextRange(text.value.text.length))
+                            }
+                            isFocused = it.isFocused
+                        }
                         .onPreviewKeyEvent { event ->
                             if (event.type == KeyEventType.KeyDown && event.key == Key.Enter) {
                                 if (event.isShiftPressed) {
