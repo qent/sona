@@ -39,6 +39,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
+import io.qent.sona.core.Logger
+
 class StateProvider(
     presetsRepository: PresetsRepository,
     chatRepository: ChatRepository,
@@ -51,6 +53,7 @@ class StateProvider(
     private val editConfig: () -> Unit,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default),
     systemMessages: List<SystemMessage> = emptyList(),
+    logger: Logger = Logger.NoOp,
 ) {
     private val filePermissionManager = FilePermissionManager(filePermissionRepository)
     private val internalTools = object : InternalTools {
@@ -62,13 +65,15 @@ class StateProvider(
         }
     }
     private val tools: Tools = ToolsInfoDecorator(internalTools, externalTools, filePermissionManager)
-    private val mcpManager = McpConnectionManager(mcpServersRepository, scope)
     private val chatStateFlow = ChatStateFlow(chatRepository, scope)
-    private val log: (String) -> Unit = { msg ->
-        runBlocking {
-            if (settingsRepository.load().enablePluginLogging) println("[Sona] $msg")
+    private val log = object : Logger {
+        override fun log(message: String) {
+            runBlocking {
+                if (settingsRepository.load().enablePluginLogging) logger.log("[Sona] $message")
+            }
         }
     }
+    private val mcpManager = McpConnectionManager(mcpServersRepository, scope, log)
     private val permissionedToolExecutor = PermissionedToolExecutor(chatStateFlow, chatRepository, log)
     private val toolsMapFactory = ToolsMapFactory(
         chatStateFlow,

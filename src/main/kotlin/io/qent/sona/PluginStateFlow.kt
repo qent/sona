@@ -15,6 +15,7 @@ import io.qent.sona.core.presets.Presets
 import io.qent.sona.core.state.State
 import io.qent.sona.core.state.StateProvider
 import io.qent.sona.core.state.UiMessage
+import io.qent.sona.IdeaLogger
 import io.qent.sona.repositories.*
 import io.qent.sona.tools.PluginExternalTools
 import kotlinx.coroutines.CoroutineScope
@@ -172,6 +173,7 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
             editConfig = { project.service<PluginMcpServersRepository>().openConfig() },
             scope = scope,
             systemMessages = createSystemMessages(),
+            logger = IdeaLogger,
         )
 
         stateProvider.state.onEach {

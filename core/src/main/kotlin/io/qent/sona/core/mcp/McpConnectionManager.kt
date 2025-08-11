@@ -9,11 +9,13 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import io.qent.sona.core.Logger
 import java.io.File
 
 class McpConnectionManager(
     private val repository: McpServersRepository,
-    scope: CoroutineScope
+    scope: CoroutineScope,
+    private val log: Logger = Logger.NoOp
 ) {
     private val scope = scope + SupervisorJob() + Dispatchers.IO
     private val clients = mutableMapOf<String, McpClient>()
@@ -94,7 +96,7 @@ class McpConnectionManager(
                         disabledTools = disabled[config.name] ?: emptySet(),
                     )
                 )
-                println("Failed to connect to MCP server ${config.name}: ${it.message}")
+                log.log("Failed to connect to MCP server ${config.name}: ${it.message}")
             }
         }
     }
@@ -208,7 +210,7 @@ class McpConnectionManager(
                     .build()
             }
             else -> {
-                println("Unsupported MCP transport: ${config.transport}")
+                log.log("Unsupported MCP transport: ${config.transport}")
                 return null
             }
         }
