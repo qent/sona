@@ -5,6 +5,7 @@ import dev.langchain4j.data.message.ToolExecutionResultMessage
 import dev.langchain4j.data.message.UserMessage
 import dev.langchain4j.service.TokenStream
 import dev.langchain4j.service.tool.ToolExecution
+import io.qent.sona.core.Logger
 import io.qent.sona.core.model.toInfo
 import io.qent.sona.core.presets.PresetsRepository
 import io.qent.sona.core.settings.SettingsRepository
@@ -28,7 +29,7 @@ class ChatController(
     private val chatStateFlow: ChatStateFlow,
     private val chatAgentFactory: ChatAgentFactory,
     scope: CoroutineScope,
-    private val log: (String) -> Unit = {},
+    private val log: Logger = Logger.NoOp,
 ) : ChatSession {
 
     private val scope = scope + Dispatchers.IO
@@ -41,19 +42,19 @@ class ChatController(
     override suspend fun send(text: String) {
         val chatId = currentState.chatId
         val preset = presetsRepository.load().let { it.presets[it.active] }
-        log("send: chatId=$chatId preset=${preset.model} text=$text")
+        log.log("send: chatId=$chatId preset=${preset.model} text=$text")
 
         try {
             val userMsg = UserMessage.from(text)
-            log("save user message to repo")
+            log.log("save user message to repo")
             chatRepository.addMessage(chatId, userMsg, preset.model)
             val userRepoMsg = ChatRepositoryMessage(chatId, userMsg, preset.model)
             val baseMessages = currentState.messages + userRepoMsg
-            log("emit: user message")
+            log.log("emit: user message")
             chatStateFlow.emit(currentState.copy(messages = baseMessages))
 
             val placeholder = ChatRepositoryMessage(chatId, AiMessage.from(""), preset.model)
-            log("emit: ai placeholder message")
+            log.log("emit: ai placeholder message")
             chatStateFlow.emit(
                 currentState.copy(
                     requestInProgress = true,
@@ -69,19 +70,19 @@ class ChatController(
 
             fun startStream() {
                 if (ignoreCallbacks) {
-                    log("ignore callbacks: startStream")
+                    log.log("ignore callbacks: startStream")
                     return
                 }
 
                 builder.setLength(0)
 
                 ignoreCallbacks = false
-                log("startStream: attempt=$attempt")
+                log.log("startStream: attempt=$attempt")
                 currentStream = aiService.chat(chatId, text)
                     .onPartialResponse { token ->
-                        log("ignore callbacks: onPartialResponse")
+                        log.log("ignore callbacks: onPartialResponse")
                         if (ignoreCallbacks) return@onPartialResponse
-                        log("onPartialResponse: $token")
+                        log.log("onPartialResponse: $token")
                         builder.append(token)
                         val msgs = currentState.messages.toMutableList()
                         val lastIndex = msgs.lastIndex
@@ -89,16 +90,16 @@ class ChatController(
                             msgs[lastIndex] = msgs[lastIndex].copy(
                                 message = AiMessage.from(builder.toString())
                             )
-                            log("emit: partial message")
+                            log.log("emit: partial message")
                             chatStateFlow.emit(currentState.copy(messages = msgs, isStreaming = true, requestInProgress = true))
                         }
                     }
                     .onToolExecuted { exec: ToolExecution ->
                         if (ignoreCallbacks) {
-                            log("ignore callbacks: onToolExecuted")
+                            log.log("ignore callbacks: onToolExecuted")
                             return@onToolExecuted
                         }
-                        log("onToolExecuted: ${exec.request().name()}")
+                        log.log("onToolExecuted: ${exec.request().name()}")
                         val toolResultMessage = ToolExecutionResultMessage(
                             exec.request().id(),
                             exec.request().name(),
@@ -106,7 +107,7 @@ class ChatController(
                         )
 
                         runBlocking {
-                            log("add tool result to repo")
+                            log.log("add tool result to repo")
                             chatRepository.addMessage(chatId, toolResultMessage, preset.model)
                         }
 
@@ -117,14 +118,14 @@ class ChatController(
                             m is ToolExecutionResultMessage && m.id() == exec.request().id()
                         }
                         if (idx >= 0) {
-                            log("replace tool placeholder")
+                            log.log("replace tool placeholder")
                             messages[idx] = repositoryMessage
                         } else {
                             messages += repositoryMessage
                         }
                         val placeholderAfter = ChatRepositoryMessage(chatId, AiMessage.from(""), preset.model)
                         builder.setLength(0)
-                        log("emit: placeholder after tools")
+                        log.log("emit: placeholder after tools")
                         chatStateFlow.emit(
                             currentState.copy(
                                 messages = messages + placeholderAfter,
@@ -135,10 +136,10 @@ class ChatController(
                     }
                     .onCompleteResponse { response ->
                         if (ignoreCallbacks) {
-                            log("ignore callbacks: onCompleteResponse")
+                            log.log("ignore callbacks: onCompleteResponse")
                             return@onCompleteResponse
                         }
-                        log("onCompleteResponse")
+                        log.log("onCompleteResponse")
                         val totalUsage = response.metadata().tokenUsage().toInfo()
                         val msgs = currentState.messages.toMutableList()
                         val lastIndex = msgs.lastIndex
@@ -151,10 +152,10 @@ class ChatController(
                             )
                         }
                         runBlocking {
-                            log("add full response message to repo")
+                            log.log("add full response message to repo")
                             chatRepository.addMessage(chatId, response.aiMessage(), preset.model, totalUsage)
                         }
-                        log("emit: token usage")
+                        log.log("emit: token usage")
                         chatStateFlow.emit(
                             currentState.copy(
                                 messages = msgs,
@@ -167,12 +168,12 @@ class ChatController(
                     }
                     .onError { t ->
                         if (ignoreCallbacks) {
-                            log("ignore callbacks: onError")
+                            log.log("ignore callbacks: onError")
                             return@onError
                         }
-                        log("onError: ${t.message}")
+                        log.log("onError: ${t.message}")
                         if (t is CancellationException) {
-                            log("CancellationException")
+                            log.log("CancellationException")
                             currentStream = null
                             chatStateFlow.emit(currentState.copy(requestInProgress = false, isStreaming = false))
                             return@onError
@@ -181,21 +182,21 @@ class ChatController(
                         if (attempt < maxRetries) {
                             val delayMs = 1000L * (1 shl attempt)
                             attempt++
-                            log("retrying in ${delayMs}ms")
+                            log.log("retrying in ${delayMs}ms")
                             scope.launch {
                                 delay(delayMs)
                                 if (!ignoreCallbacks) startStream()
                             }
                             chatStateFlow.emit(currentState.copy(requestInProgress = true, isStreaming = false))
                         } else {
-                            log("max retries reached")
+                            log.log("max retries reached")
                             val errMsg = ChatRepositoryMessage(
                                 chatId,
                                 AiMessage.from("Error: ${t.message}"),
                                 preset.model
                             )
                             runBlocking {
-                                log("add error to repo")
+                                log.log("add error to repo")
                                 chatRepository.addMessage(chatId, errMsg.message, preset.model)
                             }
                             val messages = currentState.messages.toMutableList()
@@ -204,7 +205,7 @@ class ChatController(
                             } else {
                                 messages += errMsg
                             }
-                            log("emit: error")
+                            log.log("emit: error")
                             chatStateFlow.emit(
                                 currentState.copy(
                                     messages = messages,
@@ -219,11 +220,11 @@ class ChatController(
 
             startStream()
         } catch (_: CancellationException) {
-            log("send cancelled")
+            log.log("send cancelled")
             currentStream = null
             chatStateFlow.emit(currentState.copy(requestInProgress = false, isStreaming = false))
         } catch (e: Exception) {
-            log("send exception: ${e.message}")
+            log.log("send exception: ${e.message}")
             val errorMessage = ChatRepositoryMessage(
                 chatId,
                 AiMessage.from("Error: ${e.message}\n\n${e.stackTrace}"),
@@ -241,12 +242,12 @@ class ChatController(
 
     override fun toggleAutoApproveTools() {
         val newValue = !currentState.autoApproveTools
-        log("toggleAutoApproveTools: $newValue")
+        log.log("toggleAutoApproveTools: $newValue")
         chatStateFlow.emit(currentState.copy(autoApproveTools = newValue))
     }
 
     override suspend fun deleteFrom(index: Int) {
-        log("deleteFrom: index=$index")
+        log.log("deleteFrom: index=$index")
         stop()
         val chatId = currentState.chatId
         chatRepository.deleteMessagesFrom(chatId, index)
@@ -254,7 +255,7 @@ class ChatController(
     }
 
     override fun stop() {
-        log("stop")
+        log.log("stop")
         ignoreCallbacks = true
         currentStream?.ignoreErrors()
         currentStream = null
