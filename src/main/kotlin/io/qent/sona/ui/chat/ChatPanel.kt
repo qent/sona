@@ -23,6 +23,9 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -44,6 +47,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun ChatPanel(project: Project, state: ChatState) {
+    val inputText = remember { mutableStateOf(TextFieldValue("")) }
+    val focusRequester = remember { FocusRequester() }
     Column(
         Modifier
             .fillMaxSize()
@@ -53,13 +58,19 @@ fun ChatPanel(project: Project, state: ChatState) {
         Box(
             Modifier.weight(1f)
         ) {
-            Messages(project, state)
+            Messages(project, state, inputText, focusRequester)
         }
-        ChatInput(state)
+        ChatInput(state, inputText, focusRequester)
     }
 }
 @Composable
-private fun Messages(project: Project, state: ChatState, modifier: Modifier = Modifier) {
+private fun Messages(
+    project: Project,
+    state: ChatState,
+    inputText: MutableState<TextFieldValue>,
+    focusRequester: FocusRequester,
+    modifier: Modifier = Modifier,
+) {
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     LazyColumn(
@@ -89,9 +100,10 @@ private fun Messages(project: Project, state: ChatState, modifier: Modifier = Mo
                         message,
                         bottomContent = bottom,
                         onDelete = { state.onDeleteFrom(index) },
-                        onRetry = {
+                        onEdit = {
                             state.onDeleteFrom(index)
-                            state.onSendMessage(message.text)
+                            inputText.value = TextFieldValue(message.text)
+                            focusRequester.requestFocus()
                         },
                         onScrollOutside = { delta ->
                             coroutineScope.launch {
@@ -121,7 +133,7 @@ fun MessageBubble(
     message: UiMessage,
     bottomContent: (@Composable () -> Unit)? = null,
     onDelete: () -> Unit,
-    onRetry: () -> Unit,
+    onEdit: () -> Unit,
     onScrollOutside: (Float) -> Unit,
 ) {
     if (message is UiMessage.Ai && message.text.isEmpty()) return
@@ -217,15 +229,12 @@ fun MessageBubble(
             if (isUser) {
                 Spacer(Modifier.width(8.dp))
                 Image(
-                    painter = loadIcon("/icons/retry.svg"),
-                    contentDescription = Strings.retryMessage,
+                    painter = loadIcon("/icons/edit.svg"),
+                    contentDescription = Strings.editMessage,
                     colorFilter = ColorFilter.tint(textColor),
                     modifier = Modifier
                         .size(12.dp)
-                        .clickable {
-                            clipboard.setText(AnnotatedString(messageText))
-                            onRetry()
-                        }
+                        .clickable(onClick = onEdit)
                 )
                 Spacer(Modifier.width(8.dp))
                 Image(

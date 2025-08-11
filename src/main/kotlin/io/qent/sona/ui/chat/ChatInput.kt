@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -56,10 +57,8 @@ import io.qent.sona.ui.common.DropdownSelector
 import io.qent.sona.ui.common.SonaTheme
 
 @Composable
-fun ChatInput(state: ChatState) {
-    val text = remember { mutableStateOf(TextFieldValue("")) }
+fun ChatInput(state: ChatState, text: MutableState<TextFieldValue>, focusRequester: FocusRequester) {
     var isFocused by remember { mutableStateOf(false) }
-    val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
