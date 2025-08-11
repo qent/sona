@@ -7,7 +7,7 @@
 - Settings are stored using a repository interface in the logic module with an IntelliJ implementation in the UI module.
 - Chat history is persisted via a repository implementation (`PluginChatRepository`) that stores chats across IDE
   sessions.
-- User messages offer copy, retry, and delete icons. Retry copies the message text, removes it and all following messages, then resends the text. AI and tool messages only provide copy, and deleting a user message truncates the chat history from that point.
+- User messages offer copy, edit, and delete icons. Edit copies the message text into the input field and removes it and all following messages, letting the user modify and resend manually. AI and tool messages only provide copy, and deleting a user message truncates the chat history from that point.
   - Code blocks display Copy and Apply Patch icons. The latter opens a diff view to review and apply the patch.
   - System prompts (roles) are stored in `RolesRepository` and can be managed from
     the Roles screen. Each role has a name, a short description for tool usage,
