@@ -30,6 +30,7 @@ object Strings {
     val showToolRequests: String get() = bundle.getString("showToolRequests")
     val copyMessage: String get() = bundle.getString("copyMessage")
     val deleteMessage: String get() = bundle.getString("deleteMessage")
+    val retryMessage: String get() = bundle.getString("retryMessage")
     val ok: String get() = bundle.getString("ok")
     val alwaysInThisChat: String get() = bundle.getString("alwaysInThisChat")
     val cancel: String get() = bundle.getString("cancel")

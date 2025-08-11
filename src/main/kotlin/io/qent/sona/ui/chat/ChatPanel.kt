@@ -89,6 +89,10 @@ private fun Messages(project: Project, state: ChatState, modifier: Modifier = Mo
                         message,
                         bottomContent = bottom,
                         onDelete = { state.onDeleteFrom(index) },
+                        onRetry = {
+                            state.onDeleteFrom(index)
+                            state.onSendMessage(message.text)
+                        },
                         onScrollOutside = { delta ->
                             coroutineScope.launch {
                                 listState.scrollBy(delta)
@@ -96,7 +100,7 @@ private fun Messages(project: Project, state: ChatState, modifier: Modifier = Mo
                         }
                     )
                 } else if (message is UiMessage.Tool) {
-                    ToolMessageBubble(message, onDelete = { state.onDeleteFrom(index) })
+                    ToolMessageBubble(message)
                 }
             }
             Spacer(Modifier.height(2.dp))
@@ -117,6 +121,7 @@ fun MessageBubble(
     message: UiMessage,
     bottomContent: (@Composable () -> Unit)? = null,
     onDelete: () -> Unit,
+    onRetry: () -> Unit,
     onScrollOutside: (Float) -> Unit,
 ) {
     if (message is UiMessage.Ai && message.text.isEmpty()) return
@@ -209,15 +214,29 @@ fun MessageBubble(
                     .size(12.dp)
                     .clickable { clipboard.setText(AnnotatedString(messageText)) }
             )
-            Spacer(Modifier.width(8.dp))
-            Image(
-                painter = loadIcon("/icons/trash.svg"),
-                contentDescription = Strings.deleteMessage,
-                colorFilter = ColorFilter.tint(textColor),
-                modifier = Modifier
-                    .size(12.dp)
-                    .clickable(onClick = onDelete)
-            )
+            if (isUser) {
+                Spacer(Modifier.width(8.dp))
+                Image(
+                    painter = loadIcon("/icons/retry.svg"),
+                    contentDescription = Strings.retryMessage,
+                    colorFilter = ColorFilter.tint(textColor),
+                    modifier = Modifier
+                        .size(12.dp)
+                        .clickable {
+                            clipboard.setText(AnnotatedString(messageText))
+                            onRetry()
+                        }
+                )
+                Spacer(Modifier.width(8.dp))
+                Image(
+                    painter = loadIcon("/icons/trash.svg"),
+                    contentDescription = Strings.deleteMessage,
+                    colorFilter = ColorFilter.tint(textColor),
+                    modifier = Modifier
+                        .size(12.dp)
+                        .clickable(onClick = onDelete)
+                )
+            }
         }
     }
 }
@@ -226,7 +245,6 @@ fun MessageBubble(
 @Composable
 fun ToolMessageBubble(
     message: UiMessage.Tool,
-    onDelete: () -> Unit,
 ) {
     var hovered by remember { mutableStateOf(false) }
     val clipboard = LocalClipboardManager.current
@@ -289,15 +307,6 @@ fun ToolMessageBubble(
                 modifier = Modifier
                     .size(12.dp)
                     .clickable { clipboard.setText(AnnotatedString(message.text)) }
-            )
-            Spacer(Modifier.width(8.dp))
-            Image(
-                painter = loadIcon("/icons/trash.svg"),
-                contentDescription = Strings.deleteMessage,
-                colorFilter = ColorFilter.tint(textColor),
-                modifier = Modifier
-                    .size(12.dp)
-                    .clickable(onClick = onDelete)
             )
         }
     }

@@ -146,12 +146,13 @@ Disabled tool names persist in `sona.json` under the server's `disabledTools` ar
 }
 ```
 
-## Copying and deleting messages
+## Copying, retrying, and deleting messages
 
-When hovering a message, copy and delete icons appear beneath its bottom‑right corner.
-The clipboard button copies the entire message text while the trash icon removes
-that message and all following messages from both the chat view and persistent
-history. Code blocks additionally show an **Apply patch** button that opens a diff view to review and apply changes.
+When hovering a user message, copy, retry, and delete icons appear beneath its bottom‑right corner.
+The clipboard button copies the message text while the retry arrow also copies it,
+removes that message and all following messages, then resends the text to the chat.
+The trash icon simply removes the message and subsequent history from both the chat view and persistent history.
+AI and tool messages only expose the copy icon. Code blocks additionally show an **Apply patch** button that opens a diff view to review and apply changes.
 
 Chat messages are now selectable so you can highlight and copy any portion of
 the text directly. Code blocks render using the IDE editor component, providing
