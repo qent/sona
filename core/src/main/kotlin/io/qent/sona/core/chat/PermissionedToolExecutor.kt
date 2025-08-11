@@ -26,6 +26,7 @@ class PermissionedToolExecutor(
         log("resolveToolPermission: allow=$allow always=$always")
         toolContinuation?.resume(ToolDecision(allow, always))
         toolContinuation = null
+        log("emit: tool request = null")
         chatStateFlow.emit(currentChatState.copy(toolRequest = null, requestInProgress = true))
     }
 
@@ -35,7 +36,7 @@ class PermissionedToolExecutor(
         name: String,
         run: (ToolExecutionRequest) -> String
     ) = ToolExecutor { request, memoryId ->
-        log("tool execute request: ${'$'}{request.name()}")
+        log("tool execute request: ${request.name()}")
         runBlocking {
             // fix empty lastAiMessage tools
             val messages = currentChatState.messages.toMutableList()
@@ -51,22 +52,28 @@ class PermissionedToolExecutor(
                     lastAiMessage.model,
                     lastAiMessage.tokenUsage
                 )
+                log("emit: fixed message with tools request")
                 chatStateFlow.emit(currentChatState.copy(messages = messages))
             }
         }
 
         val decision = runBlocking {
             if (currentChatState.autoApproveTools || chatRepository.isToolAllowed(chatId, name)) {
+                log("autoApproveTools = ${currentChatState.autoApproveTools} or tool allowed at chat")
                 ToolDecision(true, false)
             } else {
                 requestToolPermission(name)
             }
         }
-        log("tool decision: allow=${'$'}{decision.allow} always=${'$'}{decision.always}")
+        log("tool decision: allow=${decision.allow} always=${decision.always}")
         if (decision.always) {
-            runBlocking { chatRepository.addAllowedTool(chatId, name) }
+            runBlocking {
+                log("add allowed tool")
+                chatRepository.addAllowedTool(chatId, name)
+            }
         }
         if (decision.allow) {
+            log("emit: tool placeholder")
             chatStateFlow.emit(
                 currentChatState.copy(
                     messages = currentChatState.messages + ChatRepositoryMessage(
@@ -83,9 +90,10 @@ class PermissionedToolExecutor(
     }
 
     private suspend fun requestToolPermission(toolName: String): ToolDecision {
-        log("requestToolPermission: ${'$'}toolName")
+        log("requestToolPermission: $toolName")
         return suspendCancellableCoroutine { cont ->
             toolContinuation = cont
+            log("emit: tool request = $toolName")
             chatStateFlow.emit(
                 currentChatState.copy(
                     toolRequest = toolName,

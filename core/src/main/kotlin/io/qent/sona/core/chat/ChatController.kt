@@ -45,12 +45,15 @@ class ChatController(
 
         try {
             val userMsg = UserMessage.from(text)
+            log("save user message to repo")
             chatRepository.addMessage(chatId, userMsg, preset.model)
             val userRepoMsg = ChatRepositoryMessage(chatId, userMsg, preset.model)
             val baseMessages = currentState.messages + userRepoMsg
+            log("emit: user message")
             chatStateFlow.emit(currentState.copy(messages = baseMessages))
 
             val placeholder = ChatRepositoryMessage(chatId, AiMessage.from(""), preset.model)
+            log("emit: ai placeholder message")
             chatStateFlow.emit(
                 currentState.copy(
                     requestInProgress = true,
@@ -65,20 +68,18 @@ class ChatController(
             var attempt = 0
 
             fun startStream() {
-                if (ignoreCallbacks) return
+                if (ignoreCallbacks) {
+                    log("ignore callbacks: startStream")
+                    return
+                }
 
                 builder.setLength(0)
-                val msgs = currentState.messages.toMutableList()
-                val lastIdx = msgs.lastIndex
-                if (lastIdx >= 0) {
-                    msgs[lastIdx] = msgs[lastIdx].copy(message = AiMessage.from(""))
-                    chatStateFlow.emit(currentState.copy(messages = msgs, isStreaming = true, requestInProgress = true))
-                }
 
                 ignoreCallbacks = false
                 log("startStream: attempt=$attempt")
                 currentStream = aiService.chat(chatId, text)
                     .onPartialResponse { token ->
+                        log("ignore callbacks: onPartialResponse")
                         if (ignoreCallbacks) return@onPartialResponse
                         log("onPartialResponse: $token")
                         builder.append(token)
@@ -88,35 +89,42 @@ class ChatController(
                             msgs[lastIndex] = msgs[lastIndex].copy(
                                 message = AiMessage.from(builder.toString())
                             )
+                            log("emit: partial message")
                             chatStateFlow.emit(currentState.copy(messages = msgs, isStreaming = true, requestInProgress = true))
                         }
                     }
                     .onToolExecuted { exec: ToolExecution ->
-                        if (ignoreCallbacks) return@onToolExecuted
+                        if (ignoreCallbacks) {
+                            log("ignore callbacks: onToolExecuted")
+                            return@onToolExecuted
+                        }
                         log("onToolExecuted: ${exec.request().name()}")
                         val toolResultMessage = ToolExecutionResultMessage(
                             exec.request().id(),
                             exec.request().name(),
                             exec.result()
                         )
-                        val repositoryMessage = ChatRepositoryMessage(chatId, toolResultMessage, preset.model)
 
                         runBlocking {
+                            log("add tool result to repo")
                             chatRepository.addMessage(chatId, toolResultMessage, preset.model)
                         }
 
                         val messages = currentState.messages.toMutableList()
+                        val repositoryMessage = ChatRepositoryMessage(chatId, toolResultMessage, preset.model)
                         val idx = messages.indexOfLast {
                             val m = it.message
                             m is ToolExecutionResultMessage && m.id() == exec.request().id()
                         }
                         if (idx >= 0) {
+                            log("replace tool placeholder")
                             messages[idx] = repositoryMessage
                         } else {
                             messages += repositoryMessage
                         }
                         val placeholderAfter = ChatRepositoryMessage(chatId, AiMessage.from(""), preset.model)
                         builder.setLength(0)
+                        log("emit: placeholder after tools")
                         chatStateFlow.emit(
                             currentState.copy(
                                 messages = messages + placeholderAfter,
@@ -126,7 +134,10 @@ class ChatController(
                         )
                     }
                     .onCompleteResponse { response ->
-                        if (ignoreCallbacks) return@onCompleteResponse
+                        if (ignoreCallbacks) {
+                            log("ignore callbacks: onCompleteResponse")
+                            return@onCompleteResponse
+                        }
                         log("onCompleteResponse")
                         val totalUsage = response.metadata().tokenUsage().toInfo()
                         val msgs = currentState.messages.toMutableList()
@@ -139,7 +150,11 @@ class ChatController(
                                 totalUsage
                             )
                         }
-                        runBlocking { chatRepository.addMessage(chatId, response.aiMessage(), preset.model, totalUsage) }
+                        runBlocking {
+                            log("add full response message to repo")
+                            chatRepository.addMessage(chatId, response.aiMessage(), preset.model, totalUsage)
+                        }
+                        log("emit: token usage")
                         chatStateFlow.emit(
                             currentState.copy(
                                 messages = msgs,
@@ -151,9 +166,13 @@ class ChatController(
                         currentStream = null
                     }
                     .onError { t ->
-                        if (ignoreCallbacks) return@onError
+                        if (ignoreCallbacks) {
+                            log("ignore callbacks: onError")
+                            return@onError
+                        }
                         log("onError: ${t.message}")
                         if (t is CancellationException) {
+                            log("CancellationException")
                             currentStream = null
                             chatStateFlow.emit(currentState.copy(requestInProgress = false, isStreaming = false))
                             return@onError
@@ -175,13 +194,17 @@ class ChatController(
                                 AiMessage.from("Error: ${t.message}"),
                                 preset.model
                             )
-                            runBlocking { chatRepository.addMessage(chatId, errMsg.message, preset.model) }
+                            runBlocking {
+                                log("add error to repo")
+                                chatRepository.addMessage(chatId, errMsg.message, preset.model)
+                            }
                             val messages = currentState.messages.toMutableList()
                             if (messages.isNotEmpty()) {
                                 messages[messages.lastIndex] = errMsg
                             } else {
                                 messages += errMsg
                             }
+                            log("emit: error")
                             chatStateFlow.emit(
                                 currentState.copy(
                                     messages = messages,

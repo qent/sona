@@ -190,16 +190,7 @@ private fun PresetForm(
         TextField(
             value = TextFieldValue("•".repeat(tokenState.text.length)),
             onValueChange = { value ->
-                val input = value.text
-                val old = tokenState.text.toString()
-                val newValue: String? = when {
-                    input.length < old.length -> old.dropLast(1)
-                    input.length > old.length -> old + input.last()
-                    else -> null
-                }
-                newValue?.let {
-                    tokenState.setTextAndPlaceCursorAtEnd(it)
-                }
+                tokenState.setTextAndPlaceCursorAtEnd(value.text)
             },
             modifier = Modifier.fillMaxWidth(),
         )
