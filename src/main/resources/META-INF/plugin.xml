@@ -34,6 +34,12 @@
                 descriptionKey="rolesActionDescription"
                 icon="AllIcons.General.User"/>
 
+        <action id="OpenUserPromptAction"
+                class="io.qent.sona.actions.OpenUserPromptAction"
+                textKey="userSystemPromptAction"
+                descriptionKey="userSystemPromptActionDescription"
+                icon="AllIcons.FileTypes.Text"/>
+
         <action id="OpenPresetsAction"
                 class="io.qent.sona.actions.OpenPresetsAction"
                 textKey="presetsAction"
@@ -67,6 +73,7 @@
         <applicationService serviceImplementation="io.qent.sona.repositories.PluginChatRepository"/>
         <applicationService serviceImplementation="io.qent.sona.repositories.PluginRolesRepository"/>
         <applicationService serviceImplementation="io.qent.sona.repositories.PluginPresetsRepository"/>
+        <applicationService serviceImplementation="io.qent.sona.repositories.PluginUserPromptRepository"/>
         <applicationService serviceImplementation="io.qent.sona.services.ThemeService"/>
         <projectService serviceImplementation="io.qent.sona.repositories.PluginMcpServersRepository"/>
 

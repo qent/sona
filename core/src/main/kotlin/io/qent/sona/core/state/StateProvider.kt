@@ -21,6 +21,7 @@ import io.qent.sona.core.roles.Roles
 import io.qent.sona.core.roles.RolesRepository
 import io.qent.sona.core.roles.RolesStateFlow
 import io.qent.sona.core.settings.SettingsRepository
+import io.qent.sona.core.prompts.UserPromptRepository
 import io.qent.sona.core.state.interactors.ChatStateInteractor
 import io.qent.sona.core.state.interactors.EditPresetStateInteractor
 import io.qent.sona.core.state.interactors.EditRoleStateInteractor
@@ -45,6 +46,7 @@ class StateProvider(
     presetsRepository: PresetsRepository,
     chatRepository: ChatRepository,
     rolesRepository: RolesRepository,
+    private val userPromptRepository: UserPromptRepository,
     modelFactory: (Preset) -> StreamingChatModel,
     externalTools: ExternalTools,
     filePermissionRepository: FilePermissionsRepository,
@@ -52,7 +54,7 @@ class StateProvider(
     settingsRepository: SettingsRepository,
     private val editConfig: () -> Unit,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default),
-    systemMessages: List<SystemMessage> = emptyList(),
+    systemMessages: () -> List<SystemMessage> = { emptyList() },
     logger: Logger = Logger.NoOp,
 ) {
     private val filePermissionManager = FilePermissionManager(filePermissionRepository)
@@ -182,6 +184,7 @@ class StateProvider(
             onOpenRoles = { scope.launch { showRoles() } },
             onOpenPresets = { scope.launch { showPresets() } },
             onOpenServers = { scope.launch { showServers() } },
+            onOpenUserPrompt = { scope.launch { showUserPrompt() } },
         )
         _state.emit(state)
     }
@@ -213,6 +216,7 @@ class StateProvider(
             onOpenRoles = { scope.launch { showRoles() } },
             onOpenPresets = { scope.launch { showPresets() } },
             onOpenServers = { scope.launch { showServers() } },
+            onOpenUserPrompt = { scope.launch { showUserPrompt() } },
         )
         _state.emit(state)
     }
@@ -238,6 +242,7 @@ class StateProvider(
             onOpenHistory = { scope.launch { showHistory() } },
             onOpenPresets = { scope.launch { showPresets() } },
             onOpenServers = { scope.launch { showServers() } },
+            onOpenUserPrompt = { scope.launch { showUserPrompt() } },
         )
         _state.emit(state)
     }
@@ -259,6 +264,7 @@ class StateProvider(
             onOpenHistory = { scope.launch { showHistory() } },
             onOpenPresets = { scope.launch { showPresets() } },
             onOpenServers = { scope.launch { showServers() } },
+            onOpenUserPrompt = { scope.launch { showUserPrompt() } },
         )
         _state.emit(state)
     }
@@ -294,6 +300,7 @@ class StateProvider(
             onOpenHistory = { scope.launch { showHistory() } },
             onOpenRoles = { scope.launch { showRoles() } },
             onOpenServers = { scope.launch { showServers() } },
+            onOpenUserPrompt = { scope.launch { showUserPrompt() } },
         )
         _state.emit(state)
     }
@@ -322,6 +329,38 @@ class StateProvider(
             onOpenHistory = { scope.launch { showHistory() } },
             onOpenRoles = { scope.launch { showRoles() } },
             onOpenServers = { scope.launch { showServers() } },
+            onOpenUserPrompt = { scope.launch { showUserPrompt() } },
+        )
+        _state.emit(state)
+    }
+
+    private suspend fun showUserPrompt() {
+        chatScreenJob?.cancel()
+        emitUserPromptState()
+    }
+
+    private suspend fun emitUserPromptState() {
+        val text = userPromptRepository.load()
+        val state = factory.createUserPromptState(
+            prompt = text,
+            onSave = { p ->
+                scope.launch {
+                    if (p.isNotBlank()) {
+                        userPromptRepository.save(p)
+                    } else {
+                        userPromptRepository.save("")
+                    }
+                    startChatStateEmitting()
+                }
+            },
+            onNewChat = {
+                startChatStateEmitting()
+                scope.launch { chatInteractor.newChat() }
+            },
+            onOpenHistory = { scope.launch { showHistory() } },
+            onOpenRoles = { scope.launch { showRoles() } },
+            onOpenPresets = { scope.launch { showPresets() } },
+            onOpenServers = { scope.launch { showServers() } },
         )
         _state.emit(state)
     }
@@ -343,6 +382,7 @@ class StateProvider(
             onOpenHistory = { scope.launch { showHistory() } },
             onOpenRoles = { scope.launch { showRoles() } },
             onOpenPresets = { scope.launch { showPresets() } },
+            onOpenUserPrompt = { scope.launch { showUserPrompt() } },
         )
         _state.emit(state)
     }

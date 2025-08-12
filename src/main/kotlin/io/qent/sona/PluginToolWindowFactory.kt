@@ -17,6 +17,7 @@ import io.qent.sona.ui.presets.PresetsPanel
 import io.qent.sona.ui.roles.RolesListPanel
 import io.qent.sona.ui.roles.EditRolePanel
 import io.qent.sona.ui.mcp.ServersPanel
+import io.qent.sona.ui.prompt.UserPromptPanel
 import io.qent.sona.ui.common.SonaTheme
 import kotlinx.coroutines.flow.buffer
 import org.jetbrains.jewel.bridge.JewelComposePanel
@@ -38,6 +39,7 @@ class PluginToolWindowFactory : ToolWindowFactory, DumbAware {
                         is PresetsListState -> PresetsPanel(s)
                         is EditPresetState -> PresetsPanel(s)
                         is ServersState -> ServersPanel(s)
+                        is UserPromptState -> UserPromptPanel(s)
                     }
                 }
             },
@@ -51,6 +53,7 @@ class PluginToolWindowFactory : ToolWindowFactory, DumbAware {
                 ActionManager.getInstance().getAction("CreateNewChatAction"),
                 ActionManager.getInstance().getAction("OpenHistoryAction"),
                 ActionManager.getInstance().getAction("OpenRolesAction"),
+                ActionManager.getInstance().getAction("OpenUserPromptAction"),
                 ActionManager.getInstance().getAction("OpenPresetsAction"),
                 ActionManager.getInstance().getAction("OpenServersAction"),
             )

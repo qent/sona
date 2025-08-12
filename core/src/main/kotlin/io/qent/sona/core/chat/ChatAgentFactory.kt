@@ -10,7 +10,7 @@ import io.qent.sona.core.roles.RolesRepository
 
 class ChatAgentFactory(
     private val modelFactory: (Preset) -> StreamingChatModel,
-    private val systemMessages: List<SystemMessage> = emptyList(),
+    private val systemMessages: () -> List<SystemMessage> = { emptyList() },
     private val toolsMapFactory: ToolsMapFactory,
     private val presetsRepository: PresetsRepository,
     private val rolesRepository: RolesRepository,
@@ -25,7 +25,7 @@ class ChatAgentFactory(
 
         return AiServices.builder(SonaAiService::class.java)
             .streamingChatModel(modelFactory(preset))
-            .systemMessageProvider { (systemMessages + roleMessage).joinToString("\n") }
+            .systemMessageProvider { (systemMessages() + roleMessage).joinToString("\n") }
             .chatMemoryProvider { id -> ChatRepositoryChatMemoryStore(chatRepository, id.toString()) }
             .tools(toolsMap)
             .build()

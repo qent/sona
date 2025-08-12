@@ -40,6 +40,7 @@ prefixed with a system message summarizing
 the current environment (OS, IDE, Java, Python, Node.js versions, file extension
 statistics and build systems). On startup the plugin also reads any `.md` files in
 `src/main/resources/prompts` and appends their text as additional system messages.
+A user-specific system prompt can be edited from the toolbar and is included with every request when set.
 
 Models can also switch roles themselves using a tool that selects a role by name.
 
