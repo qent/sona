@@ -1,5 +1,6 @@
 package io.qent.sona.core.tools
 
+import io.qent.sona.core.permissions.DirectoryListing
 import io.qent.sona.core.permissions.FileElement
 import io.qent.sona.core.permissions.FileElementType
 import io.qent.sona.core.permissions.FileInfo
@@ -17,12 +18,14 @@ private class StubRepository(
 
 private class FakeExternalTools(
     private val focused: FileStructureInfo?,
-    private val files: Map<String, FileInfo?>
+    private val files: Map<String, FileInfo?>,
+    private val dirs: Map<String, DirectoryListing?> = emptyMap()
 ) : ExternalTools {
     override fun getFocusedFileInfo(): FileStructureInfo? = focused
     override fun getFileLines(path: String, fromLine: Int, toLine: Int): FileInfo? = files[path]
     override fun readFile(path: String): FileInfo? = files[path]
     override fun applyPatch(patch: String) = ""
+    override fun listPath(path: String): DirectoryListing? = dirs[path]
 }
 
 private class FakeInternalTools : InternalTools {
@@ -65,6 +68,21 @@ class ToolsInfoDecoratorTest {
         val manager = FilePermissionManager(repo)
         val decorator = ToolsInfoDecorator(FakeInternalTools(), FakeExternalTools(null, emptyMap()), manager)
         assertEquals("File not found", decorator.readFile("/missing"))
+    }
+
+    @Test
+    fun `listPath filters entries by permissions`() {
+        val repo = StubRepository(listOf("/allowed.*"), listOf("/allowed/.*secret.*"))
+        val manager = FilePermissionManager(repo)
+        val listing = DirectoryListing(
+            items = listOf("file.txt", "secret.txt", "dir/"),
+            contents = mapOf("dir/" to listOf("inside.txt", "secret2.txt"))
+        )
+        val external = FakeExternalTools(null, emptyMap(), mapOf("/allowed" to listing))
+        val decorator = ToolsInfoDecorator(FakeInternalTools(), external, manager)
+        val result = decorator.listPath("/allowed")
+        assertEquals(listOf("file.txt", "dir/"), result.items)
+        assertEquals(mapOf("dir/" to listOf("inside.txt")), result.contents)
     }
 }
 

@@ -6,6 +6,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiManager
 import io.qent.sona.Strings
+import io.qent.sona.core.permissions.DirectoryListing
 import io.qent.sona.core.permissions.FileInfo
 import io.qent.sona.core.permissions.FileStructureInfo
 import io.qent.sona.core.tools.ExternalTools
@@ -18,6 +19,7 @@ import io.qent.sona.tools.structure.TypeScriptFileStructureProvider
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Files
 import java.nio.file.Paths
+import kotlin.streams.toList
 
 class PluginExternalTools(private val project: Project) : ExternalTools {
     private val javaProvider = JavaFileStructureProvider()
@@ -75,5 +77,29 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
     override fun applyPatch(patch: String): String {
         project.service<PatchService>().applyPatch(patch)
         return Strings.patchDiffOpened
+    }
+
+    override fun listPath(path: String): DirectoryListing? {
+        return try {
+            val p = Paths.get(path)
+            val items = Files.list(p).use { stream ->
+                stream.map { file ->
+                    val name = file.fileName.toString()
+                    if (Files.isDirectory(file)) "$name/" else name
+                }.sorted().toList()
+            }
+            val contents = items.filter { it.endsWith("/") }.associateWith { dir ->
+                val sub = p.resolve(dir.removeSuffix("/"))
+                Files.list(sub).use { subStream ->
+                    subStream.map { f ->
+                        val name = f.fileName.toString()
+                        if (Files.isDirectory(f)) "$name/" else name
+                    }.sorted().toList()
+                }
+            }
+            DirectoryListing(items, contents)
+        } catch (_: Exception) {
+            null
+        }
     }
 }

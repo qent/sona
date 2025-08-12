@@ -1,8 +1,10 @@
 package io.qent.sona.core.tools
 
 import dev.langchain4j.agent.tool.Tool
+import io.qent.sona.core.permissions.DirectoryListing
 import io.qent.sona.core.permissions.FilePermissionManager
 import io.qent.sona.core.permissions.FileStructureInfo
+import java.nio.file.Paths
 
 class ToolsInfoDecorator(
     private val internalTools: InternalTools,
@@ -26,6 +28,26 @@ class ToolsInfoDecorator(
     override fun readFile(path: String): String {
         val fileInfo = externalTools.readFile(path) ?: return "File not found"
         return filePermissionManager.getFileContent(fileInfo)
+    }
+
+    @Tool("Return list of files and directories at given absolute path with first-level contents")
+    override fun listPath(path: String): DirectoryListing {
+        if (!filePermissionManager.isFileAllowed(path)) {
+            return DirectoryListing(emptyList(), emptyMap())
+        }
+        val listing = externalTools.listPath(path) ?: return DirectoryListing(emptyList(), emptyMap())
+        fun allowed(parent: String, name: String): Boolean {
+            val full = Paths.get(parent, name.removeSuffix("/")).toString()
+            return filePermissionManager.isFileAllowed(full)
+        }
+        val items = listing.items.filter { allowed(path, it) }
+        val contents = listing.contents
+            .filter { (dir, _) -> allowed(path, dir) }
+            .mapValues { (dir, list) ->
+                val dirPath = Paths.get(path, dir).toString()
+                list.filter { allowed(dirPath, it) }
+            }
+        return DirectoryListing(items, contents)
     }
 
     @Tool("Apply a unified diff patch text content to the project")
