@@ -69,14 +69,10 @@ class ChatController(
             var attempt = 0
 
             fun startStream() {
-                if (ignoreCallbacks) {
-                    log.log("ignore callbacks: startStream")
-                    return
-                }
+                ignoreCallbacks = false
 
                 builder.setLength(0)
 
-                ignoreCallbacks = false
                 log.log("startStream: attempt=$attempt")
                 currentStream = aiService.chat(chatId, text)
                     .onPartialResponse { token ->

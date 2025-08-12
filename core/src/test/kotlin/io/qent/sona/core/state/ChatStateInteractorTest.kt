@@ -44,7 +44,7 @@ private class FakeChatSession : ChatSession {
     var toggled = false
     override suspend fun send(text: String) { sent = text }
     override fun stop() { stopped = true }
-    override suspend fun deleteFrom(idx: Int) { deletedFrom = idx }
+    override suspend fun deleteFrom(index: Int) { deletedFrom = index }
     override fun toggleAutoApproveTools() { toggled = true }
 }
 

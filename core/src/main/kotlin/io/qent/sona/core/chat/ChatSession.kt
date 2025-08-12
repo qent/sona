@@ -6,7 +6,7 @@ package io.qent.sona.core.chat
 interface ChatSession {
     suspend fun send(text: String)
     fun stop()
-    suspend fun deleteFrom(idx: Int)
+    suspend fun deleteFrom(index: Int)
     fun toggleAutoApproveTools()
 }
 
