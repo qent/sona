@@ -12,7 +12,11 @@ sealed interface UiMessage {
 
     data class User(override val text: String) : UiMessage
     data class Ai(override val text: String, val toolRequests: List<ToolExecutionRequest>) : UiMessage
-    data class Tool(override val text: String) : UiMessage
+    data class AiMessageWithTools(
+        override val text: String,
+        val toolRequests: List<ToolExecutionRequest>,
+        val toolResponse: List<String>,
+    ) : UiMessage
 }
 
 data class UiChatSummary(

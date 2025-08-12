@@ -3,6 +3,8 @@ package io.qent.sona.ui.chat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.*
@@ -26,6 +28,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -111,8 +114,8 @@ private fun Messages(
                             }
                         }
                     )
-                } else if (message is UiMessage.Tool) {
-                    ToolMessageBubble(message)
+                } else if (message is UiMessage.AiMessageWithTools) {
+                    AiWithToolsMessageBubble(message)
                 }
             }
             Spacer(Modifier.height(2.dp))
@@ -250,76 +253,115 @@ fun MessageBubble(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ToolMessageBubble(
-    message: UiMessage.Tool,
+fun AiWithToolsMessageBubble(
+    message: UiMessage.AiMessageWithTools,
 ) {
-    var hovered by remember { mutableStateOf(false) }
-    val clipboard = LocalClipboardManager.current
-    val background = SonaTheme.colors.AiBubble
+    var expanded by remember { mutableStateOf(false) }
+    val background = SonaTheme.colors.Background
     val textColor = SonaTheme.colors.AiText
-    Column(
+    val borderColor = Color.White.copy(alpha = 0.12f)
+
+    Box(
         Modifier
-            .pointerMoveFilter(
-                onEnter = {
-                    hovered = true
-                    false
-                },
-                onExit = {
-                    hovered = false
-                    false
-                }
-            )
             .fillMaxWidth()
+            .padding(top = 6.dp)
+            .border(1.dp, borderColor, RoundedCornerShape(6.dp))
+            .background(background, RoundedCornerShape(6.dp))
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        Box(
-            Modifier
-                .padding(top = 6.dp)
-                .shadow(2.dp, RoundedCornerShape(14.dp))
-                .background(background, RoundedCornerShape(6.dp))
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-                .height(if (message.text == "executing") 20.dp else 160.dp)
-                .fillMaxWidth()
-        ) {
-            if (message.text == "executing") {
-                AnimatedDots(textColor)
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    SelectionContainer {
-                        Text(
-                            message.text,
-                            color = textColor,
-                            fontSize = 10.sp,
-                            fontFamily = FontFamily.Monospace
-                        )
+        Column(Modifier.fillMaxWidth()) {
+            // Header row: main text + toggle
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                SelectionContainer(Modifier.weight(1f)) {
+                    Text(
+                        message.text,
+                        color = textColor,
+                        fontSize = 15.sp
+                    )
+                }
+                TriangleToggle(expanded = expanded, tint = textColor)
+            }
+
+            if (expanded) {
+                Spacer(Modifier.height(8.dp))
+
+                // Tool requests (kept subtle, inside container)
+                if (message.toolRequests.isNotEmpty()) {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .background(SonaTheme.colors.Background.copy(alpha = 0.06f), RoundedCornerShape(4.dp))
+                            .padding(6.dp)
+                    ) {
+                        ToolRequests(message.toolRequests)
+                    }
+                }
+
+                // Divider between requests and responses (if both exist)
+                if (message.toolRequests.isNotEmpty() && message.toolResponse.isNotEmpty()) {
+                    Spacer(Modifier.height(6.dp))
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(borderColor.copy(alpha = 0.25f))
+                    )
+                    Spacer(Modifier.height(6.dp))
+                } else if (message.toolRequests.isNotEmpty() || message.toolResponse.isNotEmpty()) {
+                    Spacer(Modifier.height(6.dp))
+                }
+
+                // Tool responses (monospace, scroll-safe, inside container)
+                if (message.toolResponse.isNotEmpty()) {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .background(SonaTheme.colors.Background.copy(alpha = 0.06f), RoundedCornerShape(4.dp))
+                            .padding(6.dp)
+                    ) {
+                        message.toolResponse.forEach { line ->
+                            SelectionContainer {
+                                Text(
+                                    line,
+                                    color = textColor,
+                                    fontSize = 12.sp,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
-        val alpha by animateFloatAsState(if (hovered) 1f else 0f)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp)
-                .alpha(alpha),
-            horizontalArrangement = Arrangement.End,
-        ) {
-            Image(
-                painter = loadIcon("/icons/copy.svg"),
-                contentDescription = Strings.copyMessage,
-                colorFilter = ColorFilter.tint(textColor),
-                modifier = Modifier
-                    .size(12.dp)
-                    .clickable { clipboard.setText(AnnotatedString(message.text)) }
-            )
+    }
+}
+
+@Composable
+private fun TriangleToggle(expanded: Boolean, tint: Color, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .size(16.dp)
+            .padding(start = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(Modifier.fillMaxSize().rotate(if (expanded) 90f else 0f)) {
+            val path = androidx.compose.ui.graphics.Path().apply {
+                // Draw a right-pointing triangle inside the box
+                moveTo(size.width * 0.30f, size.height * 0.20f)
+                lineTo(size.width * 0.30f, size.height * 0.80f)
+                lineTo(size.width * 0.75f, size.height * 0.50f)
+                close()
+            }
+            drawPath(path, color = tint)
         }
     }
-  }
+}
   @Composable
   private fun AnimatedDots(color: Color) {
     var dots by remember { mutableStateOf(0) }
@@ -370,4 +412,3 @@ fun ToolMessageBubble(
         }
     }
 }
-

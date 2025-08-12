@@ -36,8 +36,49 @@ class StateFactory {
     ): State.ChatState {
         val lastAi = chat.messages.lastOrNull { it.message is AiMessage }
         val lastUsage = lastAi?.tokenUsage ?: TokenUsageInfo()
+
+        val uiMessages = mutableListOf<UiMessage>()
+
+
+        chat.messages.forEachIndexed { index, message ->
+            val m = message.message
+
+            val lastUiMessage = uiMessages.lastOrNull()
+            val lastUiMessageIndex = uiMessages.size - 1
+
+            when (m) {
+                is AiMessage -> {
+                    uiMessages.add(UiMessage.Ai(m.text().orEmpty(), m.toolExecutionRequests()))
+                }
+                is UserMessage -> {
+                    uiMessages.add(UiMessage.User(m.singleText().trim()))
+                }
+                is ToolExecutionResultMessage -> {
+                    when (lastUiMessage) {
+                        is UiMessage.AiMessageWithTools -> {
+                            uiMessages[lastUiMessageIndex] = lastUiMessage.copy(
+                                toolResponse = lastUiMessage.toolResponse.toMutableList().apply {
+                                    add(m.text())
+                                }
+                            )
+                        }
+                        is UiMessage.Ai -> {
+                            uiMessages[lastUiMessageIndex] = UiMessage.AiMessageWithTools(
+                                lastUiMessage.text, lastUiMessage.toolRequests, listOf(m.text())
+                            )
+                        }
+                        else -> {
+                            uiMessages += UiMessage.AiMessageWithTools(
+                                "", emptyList(), listOf(m.text())
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
         return State.ChatState(
-            messages = chat.messages.mapNotNull { it.toUiMessage() },
+            messages = uiMessages,
             totalTokenUsage = chat.tokenUsage,
             lastTokenUsage = lastUsage,
             isSending = chat.requestInProgress,
@@ -184,13 +225,6 @@ class StateFactory {
         onOpenRoles = onOpenRoles,
         onOpenPresets = onOpenPresets,
     )
-}
-
-private fun ChatRepositoryMessage.toUiMessage(): UiMessage? = when (val m = message) {
-    is AiMessage -> UiMessage.Ai(m.text().orEmpty(), m.toolExecutionRequests())
-    is UserMessage -> UiMessage.User(m.singleText().trim())
-    is ToolExecutionResultMessage -> UiMessage.Tool(m.text())
-    else -> null
 }
 
 private fun ChatSummary.toUi(): UiChatSummary =
