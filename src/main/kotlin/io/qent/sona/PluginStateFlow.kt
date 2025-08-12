@@ -15,7 +15,6 @@ import io.qent.sona.core.presets.Presets
 import io.qent.sona.core.state.State
 import io.qent.sona.core.state.StateProvider
 import io.qent.sona.core.state.UiMessage
-import io.qent.sona.IdeaLogger
 import io.qent.sona.repositories.*
 import io.qent.sona.tools.PluginExternalTools
 import kotlinx.coroutines.CoroutineScope
@@ -199,7 +198,7 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
     }
 
     private fun loadPromptMessages(): List<SystemMessage> {
-        val dirUrl = this::class.java.classLoader.getResource("prompts") ?: return emptyList()
+        val dirUrl = this::class.java.classLoader.getResource("prompts/system") ?: return emptyList()
         return when (dirUrl.protocol) {
             "jar" -> {
                 val connection = dirUrl.openConnection() as? JarURLConnection ?: return emptyList()
@@ -209,7 +208,7 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
                     URI.create("jar:${jarUri}")
                 } else jarUri
                 FileSystems.newFileSystem(fileSystemUri, emptyMap<String, Any>()).use { fs ->
-                    val path = fs.getPath("prompts")
+                    val path = fs.getPath("prompts", "system")
                     loadMessagesFromPath(path)
                 }
             }

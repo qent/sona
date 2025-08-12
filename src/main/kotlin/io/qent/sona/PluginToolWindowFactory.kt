@@ -18,6 +18,7 @@ import io.qent.sona.ui.roles.RolesListPanel
 import io.qent.sona.ui.roles.EditRolePanel
 import io.qent.sona.ui.mcp.ServersPanel
 import io.qent.sona.ui.common.SonaTheme
+import kotlinx.coroutines.flow.buffer
 import org.jetbrains.jewel.bridge.JewelComposePanel
 
 class PluginToolWindowFactory : ToolWindowFactory, DumbAware {
@@ -27,7 +28,7 @@ class PluginToolWindowFactory : ToolWindowFactory, DumbAware {
                 val themeService = service<ThemeService>()
                 val dark by themeService.isDark.collectAsState()
                 val pluginStateFlow = project.service<PluginStateFlow>()
-                val state = pluginStateFlow.collectAsState(pluginStateFlow.lastState)
+                val state = pluginStateFlow.buffer(10).collectAsState(pluginStateFlow.lastState)
                 SonaTheme(dark = dark) {
                     when (val s = state.value) {
                         is ChatState -> ChatPanel(project, s)
