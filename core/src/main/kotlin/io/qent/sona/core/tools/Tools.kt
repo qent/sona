@@ -1,6 +1,7 @@
 package io.qent.sona.core.tools
 
 import io.qent.sona.core.permissions.DirectoryListing
+import io.qent.sona.core.permissions.FileDependenciesInfo
 import io.qent.sona.core.permissions.FileStructureInfo
 
 interface Tools : InternalTools {
@@ -9,4 +10,5 @@ interface Tools : InternalTools {
     fun readFile(path: String): String
     fun applyPatch(patch: String): String
     fun listPath(path: String): DirectoryListing
+    fun getFileDependencies(path: String): FileDependenciesInfo
 }
