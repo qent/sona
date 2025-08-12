@@ -66,6 +66,7 @@ fun ChatPanel(project: Project, state: ChatState) {
         ChatInput(state, inputText, focusRequester)
     }
 }
+
 @Composable
 private fun Messages(
     project: Project,
@@ -121,9 +122,9 @@ private fun Messages(
             Spacer(Modifier.height(2.dp))
         }
     }
-    LaunchedEffect(state.messages.size) {
+    LaunchedEffect(state.messages.lastOrNull()) {
         if (state.messages.isNotEmpty()) {
-            listState.animateScrollToItem(state.messages.lastIndex)
+            listState.scrollToItem(state.messages.lastIndex)
         }
     }
 }
