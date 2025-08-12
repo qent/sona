@@ -3,6 +3,7 @@ package io.qent.sona.core.tools
 import dev.langchain4j.agent.tool.Tool
 import io.qent.sona.core.permissions.DirectoryListing
 import io.qent.sona.core.permissions.FilePermissionManager
+import io.qent.sona.core.permissions.FileDependenciesInfo
 import io.qent.sona.core.permissions.FileStructureInfo
 import java.nio.file.Paths
 
@@ -48,6 +49,16 @@ class ToolsInfoDecorator(
                 list.filter { allowed(dirPath, it) }
             }
         return DirectoryListing(items, contents)
+    }
+
+    @Tool("Return dependencies of file at given absolute path")
+    override fun getFileDependencies(path: String): FileDependenciesInfo {
+        if (!filePermissionManager.isFileAllowed(path)) {
+            return FileDependenciesInfo("", emptyList())
+        }
+        val info = externalTools.getFileDependencies(path) ?: return FileDependenciesInfo("", emptyList())
+        val deps = info.dependencies.filter { filePermissionManager.isFileAllowed(it.path) }
+        return FileDependenciesInfo(info.path, deps)
     }
 
     @Tool("Apply a unified diff patch text content to the project")

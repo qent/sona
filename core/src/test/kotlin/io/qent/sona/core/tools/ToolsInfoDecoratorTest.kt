@@ -6,6 +6,7 @@ import io.qent.sona.core.permissions.FileElementType
 import io.qent.sona.core.permissions.FileInfo
 import io.qent.sona.core.permissions.FilePermissionManager
 import io.qent.sona.core.permissions.FilePermissionsRepository
+import io.qent.sona.core.permissions.FileDependenciesInfo
 import io.qent.sona.core.permissions.FileStructureInfo
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -26,6 +27,7 @@ private class FakeExternalTools(
     override fun readFile(path: String): FileInfo? = files[path]
     override fun applyPatch(patch: String) = ""
     override fun listPath(path: String): DirectoryListing? = dirs[path]
+    override fun getFileDependencies(path: String): FileDependenciesInfo? = null
 }
 
 private class FakeInternalTools : InternalTools {

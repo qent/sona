@@ -52,6 +52,12 @@ class ToolsMapFactory(
                         gson.toJson(tools.listPath(path))
                     }
 
+                    "getFileDependencies" -> {
+                        val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
+                        val path = args["arg0"]?.toString() ?: return@create "Empty file path"
+                        gson.toJson(tools.getFileDependencies(path))
+                    }
+
                     "switchRole" -> {
                         val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
                         val name = args["name"]?.toString() ?: return@create "Empty role name"

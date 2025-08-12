@@ -4,13 +4,17 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiManager
 import io.qent.sona.Strings
 import io.qent.sona.core.permissions.DirectoryListing
+import io.qent.sona.core.permissions.FileDependenciesInfo
 import io.qent.sona.core.permissions.FileInfo
 import io.qent.sona.core.permissions.FileStructureInfo
 import io.qent.sona.core.tools.ExternalTools
 import io.qent.sona.services.PatchService
+import io.qent.sona.tools.dependencies.JavaFileDependenciesProvider
+import io.qent.sona.tools.dependencies.KotlinFileDependenciesProvider
 import io.qent.sona.tools.structure.JavaFileStructureProvider
 import io.qent.sona.tools.structure.JavaScriptFileStructureProvider
 import io.qent.sona.tools.structure.KotlinFileStructureProvider
@@ -27,6 +31,8 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
     private val pythonProvider = PythonFileStructureProvider()
     private val tsProvider = TypeScriptFileStructureProvider()
     private val jsProvider = JavaScriptFileStructureProvider()
+    private val javaDepsProvider = JavaFileDependenciesProvider()
+    private val kotlinDepsProvider = KotlinFileDependenciesProvider()
 
     override fun getFocusedFileInfo(): FileStructureInfo? {
         val editor = FileEditorManager.getInstance(project).selectedTextEditor ?: return null
@@ -100,6 +106,22 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
             DirectoryListing(items, contents)
         } catch (_: Exception) {
             null
+        }
+    }
+
+    override fun getFileDependencies(path: String): FileDependenciesInfo? {
+        val vFile = LocalFileSystem.getInstance().findFileByPath(path) ?: return null
+        return runReadAction {
+            val psiFile = PsiManager.getInstance(project).findFile(vFile) ?: return@runReadAction null
+            val provider = when (psiFile) {
+                is KtFile -> kotlinDepsProvider
+                else -> when (psiFile.language.id.lowercase()) {
+                    "java" -> javaDepsProvider
+                    else -> null
+                }
+            } ?: return@runReadAction null
+            val deps = provider.collect(psiFile)
+            FileDependenciesInfo(path, deps)
         }
     }
 }
