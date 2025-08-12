@@ -46,6 +46,12 @@ class ToolsMapFactory(
                         tools.readFile(path)
                     }
 
+                    "listPath" -> {
+                        val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
+                        val path = args["arg0"]?.toString() ?: return@create "Empty path"
+                        gson.toJson(tools.listPath(path))
+                    }
+
                     "switchRole" -> {
                         val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
                         val name = args["name"]?.toString() ?: return@create "Empty role name"

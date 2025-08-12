@@ -15,6 +15,7 @@ import io.qent.sona.core.roles.Roles
 import io.qent.sona.core.roles.RolesRepository
 import io.qent.sona.core.settings.Settings
 import io.qent.sona.core.settings.SettingsRepository
+import io.qent.sona.core.permissions.DirectoryListing
 import io.qent.sona.core.permissions.FileStructureInfo
 import io.qent.sona.core.tools.Tools
 import kotlinx.coroutines.*
@@ -56,6 +57,7 @@ private class FakeTools : Tools {
     override fun readFile(path: String) = ""
     override fun applyPatch(patch: String) = ""
     override fun switchRole(name: String) = ""
+    override fun listPath(path: String) = DirectoryListing(emptyList(), emptyMap())
 }
 
 private class FakeSettingsRepository : SettingsRepository {
