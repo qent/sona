@@ -123,6 +123,12 @@ checking typical installation locations for the current operating system before 
 Currently `transport` may be `stdio` or `http`. Every server runs in its own coroutine so a failure does
 not affect the plugin. Tools provided by MCP servers require the same user confirmation as local tools.
 
+Sona ships with two predefined servers: `@jetbrains/mcp-proxy` and `memory`. The
+`memory` server uses `@modelcontextprotocol/server-memory` via `npx` and stores
+its state in `sona_memory.json` at the project root. When this server is enabled,
+its usage instructions from `prompts/memory_instructions.md` are appended to the
+system messages sent with each request.
+
 The tool window includes a **Servers** action listing all configured MCP servers. Each server is shown as a card
 with a coloured status indicator – grey for disabled, red when a connection fails, yellow while connecting and
 green once connected and exposing tools. Clicking a card toggles the server on or off. A refresh button above

@@ -68,6 +68,9 @@ variables, transport, URL, working directory, request headers and an optional
 these servers require the same user permission prompts as local tools. Server enablement and
 disabled tools are stored in `sona.json`; only servers marked as enabled reconnect
 automatically on restart.
+The plugin preconfigures two servers: `@jetbrains/mcp-proxy` and `memory`. The
+`memory` server runs `@modelcontextprotocol/server-memory` via `npx` and stores
+its data in `sona_memory.json` at the project root.
 When updating the configuration, merge new values into `sona.json` to preserve any
 user-provided fields instead of overwriting the file.
 `ChatController` receives a `Tools` decorator from `StateProvider` via its injected `ChatAgentFactory`.
