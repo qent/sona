@@ -74,4 +74,10 @@ class ToolsInfoDecorator(
     }
 
     override fun switchRole(name: String) = internalTools.switchRole(name)
+
+    @Tool("Execute a command in the IDE terminal")
+    override fun sendTerminalCommand(command: String): String = externalTools.sendTerminalCommand(command)
+
+    @Tool("Read all output from the IDE terminal")
+    override fun readTerminalOutput(): String = externalTools.readTerminalOutput()
 }

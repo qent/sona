@@ -1,9 +1,11 @@
 package io.qent.sona.tools
 
-import com.intellij.openapi.components.service
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.components.service
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiManager
 import io.qent.sona.Strings
@@ -15,15 +17,12 @@ import io.qent.sona.core.tools.ExternalTools
 import io.qent.sona.services.PatchService
 import io.qent.sona.tools.dependencies.JavaFileDependenciesProvider
 import io.qent.sona.tools.dependencies.KotlinFileDependenciesProvider
-import io.qent.sona.tools.structure.JavaFileStructureProvider
-import io.qent.sona.tools.structure.JavaScriptFileStructureProvider
-import io.qent.sona.tools.structure.KotlinFileStructureProvider
-import io.qent.sona.tools.structure.PythonFileStructureProvider
-import io.qent.sona.tools.structure.TypeScriptFileStructureProvider
+import io.qent.sona.tools.structure.*
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.plugins.terminal.ShellTerminalWidget
+import org.jetbrains.plugins.terminal.TerminalToolWindowManager
 import java.nio.file.Files
 import java.nio.file.Paths
-import kotlin.streams.toList
 
 class PluginExternalTools(private val project: Project) : ExternalTools {
     private val javaProvider = JavaFileStructureProvider()
@@ -33,12 +32,12 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
     private val jsProvider = JavaScriptFileStructureProvider()
     private val javaDepsProvider = JavaFileDependenciesProvider()
     private val kotlinDepsProvider = KotlinFileDependenciesProvider()
+    private var terminalWidget: ShellTerminalWidget? = null
 
     override fun getFocusedFileInfo(): FileStructureInfo? {
-        val editor = FileEditorManager.getInstance(project).selectedTextEditor ?: return null
-        val file = editor.virtualFile ?: return null
-
         return runReadAction {
+            val editor = FileEditorManager.getInstance(project).selectedTextEditor ?: return@runReadAction null
+            val file = editor.virtualFile ?: return@runReadAction null
             val psiFile = PsiManager.getInstance(project).findFile(file) ?: return@runReadAction null
             val document = editor.document
 
@@ -81,7 +80,13 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
     }
 
     override fun applyPatch(patch: String): String {
-        project.service<PatchService>().applyPatch(patch)
+        if (ApplicationManager.getApplication().isDispatchThread) {
+            project.service<PatchService>().applyPatch(patch)
+        } else {
+            ApplicationManager.getApplication().invokeLater {
+                project.service<PatchService>().applyPatch(patch)
+            }
+        }
         return Strings.patchDiffOpened
     }
 
@@ -123,5 +128,42 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
             val deps = provider.collect(psiFile)
             FileDependenciesInfo(path, deps)
         }
+    }
+
+    private fun getTerminal(): ShellTerminalWidget {
+        return if (ApplicationManager.getApplication().isDispatchThread) {
+            getTerminalInternal()
+        } else {
+            var terminal: ShellTerminalWidget? = null
+            ApplicationManager.getApplication().invokeAndWait {
+                terminal = getTerminalInternal()
+            }
+            terminal ?: throw IllegalStateException("Failed to create terminal widget")
+        }
+    }
+
+    private fun getTerminalInternal(): ShellTerminalWidget {
+        val widget = terminalWidget
+        if (widget != null && !Disposer.isDisposed(widget)) return widget
+        val workingDir = project.basePath ?: System.getProperty("user.dir")
+        val terminalManager = TerminalToolWindowManager.getInstance(project)
+        val newWidget = terminalManager.createShellWidget(workingDir, "Sona", true, true)
+        terminalWidget = newWidget as ShellTerminalWidget
+        return newWidget
+    }
+
+    override fun sendTerminalCommand(command: String): String {
+        if (ApplicationManager.getApplication().isDispatchThread) {
+            getTerminal().executeCommand(command)
+        } else {
+            ApplicationManager.getApplication().invokeLater {
+                getTerminal().executeCommand(command)
+            }
+        }
+        return Strings.terminalCommandSent
+    }
+
+    override fun readTerminalOutput(): String {
+        return getTerminal().terminalTextBuffer.toString()
     }
 }

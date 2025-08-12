@@ -27,6 +27,8 @@ private class FakeExternalTools(
     override fun readFile(path: String): FileInfo? = files[path]
     override fun applyPatch(patch: String) = ""
     override fun listPath(path: String): DirectoryListing? = dirs[path]
+    override fun sendTerminalCommand(command: String) = ""
+    override fun readTerminalOutput() = ""
     override fun getFileDependencies(path: String): FileDependenciesInfo? = null
 }
 

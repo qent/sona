@@ -102,7 +102,7 @@ you switch to a different chat.
 
 Tool calls referenced by the model are hidden behind a gear icon in the top‑right corner of each AI message. Clicking the icon reveals the list of requested tools. When a tool starts running, the chat shows a dark terminal‑style bubble with animated dots that are replaced by the tool's output once it finishes.
 
-The available tools let the model read the focused file, read any file by absolute path, list directory contents, apply unified diff patches and switch the active role between Architect and Code. Directory listings append "/" to folder names and include the first-level contents of each directory. File access is guarded by a permission system with a whitelist (project root by default) and a blacklist blocking sensitive files such as `.env`. Custom lists can be supplied by creating a `sona.json` file in the project root:
+The available tools let the model read the focused file, read any file by absolute path, list directory contents, run terminal commands from the project root, read terminal output, apply unified diff patches and switch the active role between Architect and Code. Directory listings append "/" to folder names and include the first-level contents of each directory. File access is guarded by a permission system with a whitelist (project root by default) and a blacklist blocking sensitive files such as `.env`. Custom lists can be supplied by creating a `sona.json` file in the project root:
 
 ```
 {
