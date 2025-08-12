@@ -32,7 +32,7 @@ class ToolsInfoDecorator(
 
     @Tool("Return list of files and directories at given absolute path with first-level contents")
     override fun listPath(path: String): DirectoryListing {
-        if (!filePermissionManager.isFileAllowed(path)) {
+        if (!filePermissionManager.isFileAllowed("$path/")) {
             return DirectoryListing(emptyList(), emptyMap())
         }
         val listing = externalTools.listPath(path) ?: return DirectoryListing(emptyList(), emptyMap())
