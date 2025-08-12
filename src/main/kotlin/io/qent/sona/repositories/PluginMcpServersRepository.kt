@@ -11,6 +11,7 @@ import java.io.File
 import kotlinx.coroutines.runBlocking
 
 private val JETBRAINS_MCP_ARGS = listOf("-y", "@jetbrains/mcp-proxy")
+private val MEMORY_MCP_ARGS = listOf("-y", "@modelcontextprotocol/server-memory")
 
 @Service(Service.Level.PROJECT)
 class PluginMcpServersRepository(private val project: Project) : McpServersRepository {
@@ -38,6 +39,18 @@ class PluginMcpServersRepository(private val project: Project) : McpServersRepos
                     name = "@jetbrains/mcp-proxy",
                     command = "npx",
                     args = JETBRAINS_MCP_ARGS,
+                    transport = "stdio"
+                )
+            )
+        }
+
+        if (result.none { it.args?.joinToString() == MEMORY_MCP_ARGS.joinToString() }) {
+            result.add(
+                McpServerConfig(
+                    name = "memory",
+                    command = "npx",
+                    args = MEMORY_MCP_ARGS,
+                    env = mapOf("MEMORY_FILE_PATH" to File(root, "sona_memory.json").absolutePath),
                     transport = "stdio"
                 )
             )

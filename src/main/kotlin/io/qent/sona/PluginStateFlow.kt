@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.net.JarURLConnection
 import java.net.URI
@@ -198,25 +199,38 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
     }
 
     private fun loadPromptMessages(): List<SystemMessage> {
-        val dirUrl = this::class.java.classLoader.getResource("prompts/system") ?: return emptyList()
-        return when (dirUrl.protocol) {
-            "jar" -> {
-                val connection = dirUrl.openConnection() as? JarURLConnection ?: return emptyList()
-                val jarUri = connection.jarFileURL.toURI()
-                // Ensure the URI has the correct format for FileSystems.newFileSystem()
-                val fileSystemUri = if (jarUri.scheme == "file") {
-                    URI.create("jar:${jarUri}")
-                } else jarUri
-                FileSystems.newFileSystem(fileSystemUri, emptyMap<String, Any>()).use { fs ->
-                    val path = fs.getPath("prompts", "system")
+        val messages = mutableListOf<SystemMessage>()
+        val dirUrl = this::class.java.classLoader.getResource("prompts/system")
+        if (dirUrl != null) {
+            messages += when (dirUrl.protocol) {
+                "jar" -> {
+                    val connection = dirUrl.openConnection() as? JarURLConnection ?: return emptyList()
+                    val jarUri = connection.jarFileURL.toURI()
+                    val fileSystemUri = if (jarUri.scheme == "file") {
+                        URI.create("jar:${jarUri}")
+                    } else jarUri
+                    FileSystems.newFileSystem(fileSystemUri, emptyMap<String, Any>()).use { fs ->
+                        val path = fs.getPath("prompts", "system")
+                        loadMessagesFromPath(path)
+                    }
+                }
+                else -> {
+                    val path = Paths.get(dirUrl.toURI())
                     loadMessagesFromPath(path)
                 }
             }
-            else -> {
-                val path = Paths.get(dirUrl.toURI())
-                loadMessagesFromPath(path)
+        }
+        if (isMemoryServerEnabled()) {
+            this::class.java.classLoader.getResourceAsStream("prompts/memory_instructions.md")?.use {
+                messages += SystemMessage.from(it.reader().readText())
             }
         }
+        return messages
+    }
+
+    private fun isMemoryServerEnabled(): Boolean {
+        val repo = project.service<PluginMcpServersRepository>()
+        return runBlocking { repo.loadEnabled().contains("memory") }
     }
 
     private fun loadMessagesFromPath(path: Path): List<SystemMessage> {

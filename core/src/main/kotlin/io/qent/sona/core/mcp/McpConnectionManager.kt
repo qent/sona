@@ -191,6 +191,12 @@ class McpConnectionManager(
 
 
     private fun createClient(config: McpServerConfig): DefaultMcpClient? {
+        config.env?.get("MEMORY_FILE_PATH")?.let { path ->
+            runCatching {
+                val file = File(path)
+                if (!file.exists()) file.createNewFile()
+            }
+        }
         val transport = when (config.transport.lowercase()) {
             "stdio" -> {
                 val cmd = buildList {
