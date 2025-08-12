@@ -33,6 +33,7 @@ class StateFactory {
         onOpenRoles: () -> Unit,
         onOpenPresets: () -> Unit,
         onOpenServers: () -> Unit,
+        onOpenUserPrompt: () -> Unit,
     ): State.ChatState {
         val lastAi = chat.messages.lastOrNull { it.message is AiMessage }
         val lastUsage = lastAi?.tokenUsage ?: TokenUsageInfo()
@@ -101,6 +102,7 @@ class StateFactory {
             onOpenRoles = onOpenRoles,
             onOpenPresets = onOpenPresets,
             onOpenServers = onOpenServers,
+            onOpenUserPrompt = onOpenUserPrompt,
         )
     }
 
@@ -112,6 +114,7 @@ class StateFactory {
         onOpenRoles: () -> Unit,
         onOpenPresets: () -> Unit,
         onOpenServers: () -> Unit,
+        onOpenUserPrompt: () -> Unit,
     ) = State.ChatListState(
         chats = chats.filter { it.messages != 0 }.map { it.toUi() },
         onOpenChat = onOpenChat,
@@ -120,6 +123,7 @@ class StateFactory {
         onOpenRoles = onOpenRoles,
         onOpenPresets = onOpenPresets,
         onOpenServers = onOpenServers,
+        onOpenUserPrompt = onOpenUserPrompt,
     )
 
     fun createRolesListState(
@@ -132,6 +136,7 @@ class StateFactory {
         onOpenHistory: () -> Unit,
         onOpenPresets: () -> Unit,
         onOpenServers: () -> Unit,
+        onOpenUserPrompt: () -> Unit,
     ) = State.RolesListState(
         roles = roles.roles,
         currentIndex = roles.active,
@@ -143,6 +148,7 @@ class StateFactory {
         onOpenHistory = onOpenHistory,
         onOpenPresets = onOpenPresets,
         onOpenServers = onOpenServers,
+        onOpenUserPrompt = onOpenUserPrompt,
     )
 
     fun createEditRoleState(
@@ -153,6 +159,7 @@ class StateFactory {
         onOpenHistory: () -> Unit,
         onOpenPresets: () -> Unit,
         onOpenServers: () -> Unit,
+        onOpenUserPrompt: () -> Unit,
     ) = State.EditRoleState(
         role = role,
         onSave = onSave,
@@ -161,6 +168,7 @@ class StateFactory {
         onOpenHistory = onOpenHistory,
         onOpenPresets = onOpenPresets,
         onOpenServers = onOpenServers,
+        onOpenUserPrompt = onOpenUserPrompt,
     )
 
     fun createPresetsListState(
@@ -173,6 +181,7 @@ class StateFactory {
         onOpenHistory: () -> Unit,
         onOpenRoles: () -> Unit,
         onOpenServers: () -> Unit,
+        onOpenUserPrompt: () -> Unit,
     ) = State.PresetsListState(
         presets = presets.presets,
         currentIndex = presets.active,
@@ -184,6 +193,7 @@ class StateFactory {
         onOpenHistory = onOpenHistory,
         onOpenRoles = onOpenRoles,
         onOpenServers = onOpenServers,
+        onOpenUserPrompt = onOpenUserPrompt,
     )
 
     fun createEditPresetState(
@@ -194,6 +204,7 @@ class StateFactory {
         onOpenHistory: () -> Unit,
         onOpenRoles: () -> Unit,
         onOpenServers: () -> Unit,
+        onOpenUserPrompt: () -> Unit,
     ) = State.EditPresetState(
         preset = preset,
         onSave = onSave,
@@ -202,6 +213,7 @@ class StateFactory {
         onOpenHistory = onOpenHistory,
         onOpenRoles = onOpenRoles,
         onOpenServers = onOpenServers,
+        onOpenUserPrompt = onOpenUserPrompt,
     )
 
     fun createServersState(
@@ -214,6 +226,7 @@ class StateFactory {
         onOpenHistory: () -> Unit,
         onOpenRoles: () -> Unit,
         onOpenPresets: () -> Unit,
+        onOpenUserPrompt: () -> Unit,
     ) = State.ServersState(
         servers = servers,
         onToggleServer = onToggleServer,
@@ -224,6 +237,25 @@ class StateFactory {
         onOpenHistory = onOpenHistory,
         onOpenRoles = onOpenRoles,
         onOpenPresets = onOpenPresets,
+        onOpenUserPrompt = onOpenUserPrompt,
+    )
+
+    fun createUserPromptState(
+        prompt: String,
+        onSave: (String) -> Unit,
+        onNewChat: () -> Unit,
+        onOpenHistory: () -> Unit,
+        onOpenRoles: () -> Unit,
+        onOpenPresets: () -> Unit,
+        onOpenServers: () -> Unit,
+    ) = State.UserPromptState(
+        prompt = prompt,
+        onSave = onSave,
+        onNewChat = onNewChat,
+        onOpenHistory = onOpenHistory,
+        onOpenRoles = onOpenRoles,
+        onOpenPresets = onOpenPresets,
+        onOpenServers = onOpenServers,
     )
 }
 

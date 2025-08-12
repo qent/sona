@@ -90,7 +90,7 @@ private fun buildChatController(repo: FakeChatRepository): ChatDeps {
     val stateFlow = ChatStateFlow(repo, scope)
     val permissioned = PermissionedToolExecutor(stateFlow, repo)
     val toolsMapFactory = ToolsMapFactory(stateFlow, tools, mcpManager, permissioned, rolesRepo, presetsRepo)
-    val agentFactory = ChatAgentFactory({ throw UnsupportedOperationException() }, emptyList(), toolsMapFactory, presetsRepo, rolesRepo, repo)
+    val agentFactory = ChatAgentFactory({ throw UnsupportedOperationException() }, { emptyList() }, toolsMapFactory, presetsRepo, rolesRepo, repo)
     val controller = ChatController(presetsRepo, repo, settingsRepo, stateFlow, agentFactory, scope)
     return ChatDeps(controller, stateFlow, permissioned, scope, mcpManager)
 }

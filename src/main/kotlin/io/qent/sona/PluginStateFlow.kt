@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.net.JarURLConnection
 import java.net.URI
@@ -47,6 +48,7 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
     private val presetsRepository = service<PluginPresetsRepository>()
     private val chatRepository = service<PluginChatRepository>()
     private val rolesRepository = service<PluginRolesRepository>()
+    private val userPromptRepository = service<PluginUserPromptRepository>()
     private val scope = CoroutineScope(Dispatchers.Default)
     private var stateProvider: StateProvider
 
@@ -76,6 +78,7 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
         onOpenRoles = {},
         onOpenPresets = {},
         onOpenServers = {},
+        onOpenUserPrompt = {},
     )
 
     init {
@@ -83,6 +86,7 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
             presetsRepository,
             chatRepository,
             rolesRepository,
+            userPromptRepository,
             modelFactory = { preset ->
                 when (preset.provider.name) {
                     "Anthropic" -> {
@@ -171,7 +175,7 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
             settingsRepository = settingsRepository,
             editConfig = { project.service<PluginMcpServersRepository>().openConfig() },
             scope = scope,
-            systemMessages = createSystemMessages(),
+            systemMessages = { createSystemMessages() },
             logger = IdeaLogger,
         )
 
@@ -194,7 +198,9 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
 
     private fun createSystemMessages(): List<SystemMessage> {
         val env = SystemMessage.from(environmentInfo())
-        return listOf(env) + loadPromptMessages()
+        val user = runBlocking { userPromptRepository.load() }
+        val userMessages = if (user.isNotBlank()) listOf(SystemMessage.from(user)) else emptyList()
+        return listOf(env) + userMessages + loadPromptMessages()
     }
 
     private fun loadPromptMessages(): List<SystemMessage> {

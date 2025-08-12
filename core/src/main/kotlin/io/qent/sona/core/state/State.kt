@@ -32,6 +32,7 @@ sealed class State {
     abstract val onOpenRoles: () -> Unit
     abstract val onOpenPresets: () -> Unit
     abstract val onOpenServers: () -> Unit
+    abstract val onOpenUserPrompt: () -> Unit
 
     data class ChatState(
         val messages: List<UiMessage>,
@@ -57,6 +58,7 @@ sealed class State {
         override val onOpenRoles: () -> Unit,
         override val onOpenPresets: () -> Unit,
         override val onOpenServers: () -> Unit,
+        override val onOpenUserPrompt: () -> Unit,
     ) : State()
 
     data class ChatListState(
@@ -67,6 +69,7 @@ sealed class State {
         override val onOpenRoles: () -> Unit,
         override val onOpenPresets: () -> Unit,
         override val onOpenServers: () -> Unit,
+        override val onOpenUserPrompt: () -> Unit,
     ) : State() {
         override val onOpenHistory = { }
     }
@@ -82,6 +85,7 @@ sealed class State {
         override val onOpenHistory: () -> Unit,
         override val onOpenPresets: () -> Unit,
         override val onOpenServers: () -> Unit,
+        override val onOpenUserPrompt: () -> Unit,
     ) : State() {
         override val onOpenRoles = { }
     }
@@ -94,6 +98,7 @@ sealed class State {
         override val onOpenHistory: () -> Unit,
         override val onOpenPresets: () -> Unit,
         override val onOpenServers: () -> Unit,
+        override val onOpenUserPrompt: () -> Unit,
     ) : State() {
         override val onOpenRoles = { }
     }
@@ -109,6 +114,7 @@ sealed class State {
         override val onOpenHistory: () -> Unit,
         override val onOpenRoles: () -> Unit,
         override val onOpenServers: () -> Unit,
+        override val onOpenUserPrompt: () -> Unit,
     ) : State() {
         override val onOpenPresets = { }
     }
@@ -121,6 +127,7 @@ sealed class State {
         override val onOpenHistory: () -> Unit,
         override val onOpenRoles: () -> Unit,
         override val onOpenServers: () -> Unit,
+        override val onOpenUserPrompt: () -> Unit,
     ) : State() {
         override val onOpenPresets = { }
     }
@@ -135,7 +142,20 @@ sealed class State {
         override val onOpenHistory: () -> Unit,
         override val onOpenRoles: () -> Unit,
         override val onOpenPresets: () -> Unit,
+        override val onOpenUserPrompt: () -> Unit,
     ) : State() {
         override val onOpenServers = { }
+    }
+
+    data class UserPromptState(
+        val prompt: String,
+        val onSave: (String) -> Unit,
+        override val onNewChat: () -> Unit,
+        override val onOpenHistory: () -> Unit,
+        override val onOpenRoles: () -> Unit,
+        override val onOpenPresets: () -> Unit,
+        override val onOpenServers: () -> Unit,
+    ) : State() {
+        override val onOpenUserPrompt = { }
     }
 }

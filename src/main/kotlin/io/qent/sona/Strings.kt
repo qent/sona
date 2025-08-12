@@ -71,5 +71,8 @@ object Strings {
     val deleteRoleQuestion: String get() = bundle.getString("deleteRoleQuestion")
     val deleteChatQuestion: String get() = bundle.getString("deleteChatQuestion")
     val shortDescription: String get() = bundle.getString("shortDescription")
+    val userSystemPromptAction: String get() = bundle.getString("userSystemPromptAction")
+    val userSystemPromptActionDescription: String get() = bundle.getString("userSystemPromptActionDescription")
+    val userSystemPrompt: String get() = bundle.getString("userSystemPrompt")
 }
 

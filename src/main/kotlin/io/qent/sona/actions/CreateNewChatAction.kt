@@ -19,6 +19,7 @@ class CreateNewChatAction : AnAction(Strings.createAction, Strings.createActionD
                 is State.PresetsListState -> onNewChat()
                 is State.EditPresetState -> onNewChat()
                 is State.ServersState -> onNewChat()
+                is State.UserPromptState -> onNewChat()
             }
         }
     }
