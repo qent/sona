@@ -60,6 +60,8 @@ private class FakeTools : Tools {
     override fun switchRole(name: String) = ""
     override fun listPath(path: String) = DirectoryListing(emptyList(), emptyMap())
     override fun getFileDependencies(path: String) = FileDependenciesInfo(path, emptyList())
+    override fun sendTerminalCommand(command: String) = ""
+    override fun readTerminalOutput() = ""
 }
 
 private class FakeSettingsRepository : SettingsRepository {

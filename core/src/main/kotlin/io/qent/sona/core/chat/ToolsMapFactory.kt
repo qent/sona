@@ -58,6 +58,16 @@ class ToolsMapFactory(
                         gson.toJson(tools.getFileDependencies(path))
                     }
 
+                    "sendTerminalCommand" -> {
+                        val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
+                        val command = args["arg0"]?.toString() ?: return@create "Empty terminal command"
+                        gson.toJson(tools.sendTerminalCommand(command))
+                    }
+
+                    "readTerminalOutput" -> {
+                        gson.toJson(tools.readTerminalOutput())
+                    }
+
                     "switchRole" -> {
                         val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
                         val name = args["name"]?.toString() ?: return@create "Empty role name"

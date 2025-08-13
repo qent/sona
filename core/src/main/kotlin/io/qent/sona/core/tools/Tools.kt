@@ -10,5 +10,7 @@ interface Tools : InternalTools {
     fun readFile(path: String): String
     fun applyPatch(patch: String): String
     fun listPath(path: String): DirectoryListing
+    fun sendTerminalCommand(command: String): String
+    fun readTerminalOutput(): String
     fun getFileDependencies(path: String): FileDependenciesInfo
 }

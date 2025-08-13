@@ -11,5 +11,7 @@ interface ExternalTools {
     fun readFile(path: String): FileInfo?
     fun applyPatch(patch: String): String
     fun listPath(path: String): DirectoryListing?
+    fun sendTerminalCommand(command: String): String
+    fun readTerminalOutput(): String
     fun getFileDependencies(path: String): FileDependenciesInfo?
 }
