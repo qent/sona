@@ -53,7 +53,7 @@ class ChatStateInteractorTest {
     fun newChatCreatesWhenEmpty() = runBlocking {
         val repo = FakeChatRepository()
         val chatId = repo.createChat()
-        val chatStateFlow = ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined))
+        val chatStateFlow = ChatStateFlow(repo)
         val session = FakeChatSession()
         val interactor = ChatStateInteractor(session, repo, chatStateFlow)
         interactor.newChat()
@@ -65,7 +65,7 @@ class ChatStateInteractorTest {
         val repo = FakeChatRepository()
         val existing = repo.createChat()
         repo.messages[existing]?.add(ChatRepositoryMessage(existing, dev.langchain4j.data.message.UserMessage.from("hi"), "m"))
-        val chatStateFlow = ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined))
+        val chatStateFlow = ChatStateFlow(repo)
         val session = FakeChatSession()
         val interactor = ChatStateInteractor(session, repo, chatStateFlow)
         interactor.newChat()
@@ -75,7 +75,7 @@ class ChatStateInteractorTest {
     @Test
     fun openChatDelegates() = runBlocking {
         val repo = FakeChatRepository()
-        val chatStateFlow = ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined))
+        val chatStateFlow = ChatStateFlow(repo)
         val session = FakeChatSession()
         val interactor = ChatStateInteractor(session, repo, chatStateFlow)
         interactor.openChat("123")
@@ -86,7 +86,7 @@ class ChatStateInteractorTest {
     fun listChatsReturnsRepositoryData() = runBlocking {
         val repo = FakeChatRepository()
         val chat1 = repo.createChat()
-        val chatStateFlow = ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined))
+        val chatStateFlow = ChatStateFlow(repo)
         val session = FakeChatSession()
         val interactor = ChatStateInteractor(session, repo, chatStateFlow)
         val chats = interactor.listChats()
@@ -98,7 +98,7 @@ class ChatStateInteractorTest {
     fun deleteChatDelegatesToRepository() = runBlocking {
         val repo = FakeChatRepository()
         val id = repo.createChat()
-        val chatStateFlow = ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined))
+        val chatStateFlow = ChatStateFlow(repo)
         val session = FakeChatSession()
         val interactor = ChatStateInteractor(session, repo, chatStateFlow)
         interactor.deleteChat(id)
@@ -108,7 +108,7 @@ class ChatStateInteractorTest {
     @Test
     fun sendDelegatesToFlow() = runBlocking {
         val repo = FakeChatRepository()
-        val chatStateFlow = ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined))
+        val chatStateFlow = ChatStateFlow(repo)
         val session = FakeChatSession()
         val interactor = ChatStateInteractor(session, repo, chatStateFlow)
         interactor.send("hello")
@@ -118,7 +118,7 @@ class ChatStateInteractorTest {
     @Test
     fun stopDelegatesToFlow() = runBlocking {
         val repo = FakeChatRepository()
-        val chatStateFlow = ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined))
+        val chatStateFlow = ChatStateFlow(repo)
         val session = FakeChatSession()
         val interactor = ChatStateInteractor(session, repo, chatStateFlow)
         interactor.stop()
@@ -128,7 +128,7 @@ class ChatStateInteractorTest {
     @Test
     fun deleteFromDelegatesToFlow() = runBlocking {
         val repo = FakeChatRepository()
-        val chatStateFlow = ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined))
+        val chatStateFlow = ChatStateFlow(repo)
         val session = FakeChatSession()
         val interactor = ChatStateInteractor(session, repo, chatStateFlow)
         interactor.deleteFrom(5)
@@ -138,7 +138,7 @@ class ChatStateInteractorTest {
     @Test
     fun toggleAutoApproveToolsDelegates() = runBlocking {
         val repo = FakeChatRepository()
-        val chatStateFlow = ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined))
+        val chatStateFlow = ChatStateFlow(repo)
         val session = FakeChatSession()
         val interactor = ChatStateInteractor(session, repo, chatStateFlow)
         interactor.toggleAutoApproveTools()
