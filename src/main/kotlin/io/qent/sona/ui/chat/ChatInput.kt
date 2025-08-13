@@ -183,7 +183,7 @@ fun ChatInput(state: ChatState, text: MutableState<TextFieldValue>, focusRequest
                     .height(30.dp)
                     .width(30.dp)
                     .clip(CircleShape)
-                    .alpha(if (state.autoApproveTools) 0.6f else 0.3f)
+                    .alpha(if (state.autoApproveTools) 1f else 0.3f)
             ) {
                 Text("🤘")
             }
