@@ -65,13 +65,26 @@ class PluginMcpServersRepository(private val project: Project) : McpServersRepos
     }
 
     override suspend fun saveEnabled(enabled: Set<String>) {
-        val file = File(root, ".sona/sona.json")
-        if (!file.exists()) return
         val config = SonaConfig.load(root) ?: SonaConfig()
         val servers = config.mcpServers?.toMutableMap() ?: mutableMapOf()
-        servers.forEach { (name, server) ->
+        val defaults = list().associateBy { it.name }
+
+        (servers.keys + defaults.keys + enabled).forEach { name ->
+            val server = servers[name] ?: SonaConfig.McpServer().apply {
+                defaults[name]?.let { d ->
+                    command = d.command
+                    args = d.args
+                    env = d.env
+                    transport = d.transport
+                    url = d.url
+                    cwd = d.cwd
+                    headers = d.headers
+                }
+            }
             server.enabled = enabled.contains(name)
+            servers[name] = server
         }
+
         config.mcpServers = servers
         SonaConfig.save(root, config)
     }
@@ -82,15 +95,26 @@ class PluginMcpServersRepository(private val project: Project) : McpServersRepos
     }
 
     override suspend fun saveDisabledTools(disabled: Map<String, Set<String>>) {
-        val file = File(root, ".sona/sona.json")
-        if (!file.exists()) return
         val config = SonaConfig.load(root) ?: SonaConfig()
         val servers = config.mcpServers?.toMutableMap() ?: mutableMapOf()
-        disabled.forEach { (name, set) ->
-            val server = servers[name] ?: SonaConfig.McpServer()
-            server.disabledTools = set.toList()
+        val defaults = list().associateBy { it.name }
+
+        (servers.keys + defaults.keys + disabled.keys).forEach { name ->
+            val server = servers[name] ?: SonaConfig.McpServer().apply {
+                defaults[name]?.let { d ->
+                    command = d.command
+                    args = d.args
+                    env = d.env
+                    transport = d.transport
+                    url = d.url
+                    cwd = d.cwd
+                    headers = d.headers
+                }
+            }
+            disabled[name]?.let { set -> server.disabledTools = set.toList() }
             servers[name] = server
         }
+
         config.mcpServers = servers
         SonaConfig.save(root, config)
     }
