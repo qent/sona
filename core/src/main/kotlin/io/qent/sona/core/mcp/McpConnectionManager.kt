@@ -191,6 +191,7 @@ class McpConnectionManager(
 
 
     private fun createClient(config: McpServerConfig): DefaultMcpClient? {
+        log.log("Create mcp client for $config")
         config.env?.get("MEMORY_FILE_PATH")?.let { path ->
             runCatching {
                 val file = File(path)
@@ -203,14 +204,26 @@ class McpConnectionManager(
                     resolveCommand(config.command)?.let { add(it) }
                     config.args?.let { addAll(it) }
                 }
+                log.log("Launch: $cmd")
                 if (cmd.isEmpty()) return null
+                val env = buildMap {
+                    putAll(System.getenv())
+                    config.env?.let { putAll(it) }
+                    putIfAbsent("HOME", System.getProperty("user.home"))
+                    // Если нужен кэш в стабильном месте (ускорит холодный старт):
+                    // putIfAbsent("NPM_CONFIG_CACHE", File(project.basePath ?: System.getProperty("user.home"), ".npm-cache").absolutePath)
+                    // Тише вывод npm/npx:
+                    putIfAbsent("NPM_CONFIG_LOGLEVEL", "error")
+                }
+                log.log("env: $env")
                 StdioMcpTransport.Builder()
                     .command(cmd)
-                    .environment(config.env ?: emptyMap())
+                    .environment(env)
                     .build()
             }
             "http" -> {
                 val url = config.url ?: return null
+                log.log("Connect: ")
                 HttpMcpTransport.Builder()
                     .sseUrl(url)
                     .build()

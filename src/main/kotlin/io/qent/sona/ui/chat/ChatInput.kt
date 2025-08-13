@@ -84,7 +84,7 @@ fun ChatInput(state: ChatState, text: MutableState<TextFieldValue>, focusRequest
             Box(
                 Modifier
                     .weight(1f)
-                    .background(SonaTheme.colors.Background, RoundedCornerShape(12.dp))
+                    .background(SonaTheme.colors.InputBackground, RoundedCornerShape(12.dp))
                     .border(
                         1.dp,
                         if (isFocused) SonaTheme.colors.BorderFocused else SonaTheme.colors.BorderDefault,

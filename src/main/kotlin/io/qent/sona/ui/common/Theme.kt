@@ -27,7 +27,7 @@ private val DarkPalette = SonaColors(
     AiBubble = Color(0xFF292D36),
     UserText = Color.White,
     AiText = Color(0xFFD3D8DF),
-    InputBackground = Color(0xFF22262A),
+    InputBackground = Color(0xFF282C34),
     Placeholder = Color(0xFF7A818A),
     BubbleShadow = Color(0x22000000),
     BorderFocused = Color(0xFF3B72FF),
@@ -50,9 +50,9 @@ private val LightPalette = SonaColors(
     AvatarBackground = Color(0xFFC8C8C8),
 )
 
-private val LocalColors = staticCompositionLocalOf { DarkPalette }
-private val LocalMarkdownColors = staticCompositionLocalOf { MarkdownColors.Dark }
-private val LocalTypography = staticCompositionLocalOf { Typography.Dark }
+val LocalColors = staticCompositionLocalOf { DarkPalette }
+val LocalMarkdownColors = staticCompositionLocalOf { MarkdownColors.Dark }
+val LocalTypography = staticCompositionLocalOf { Typography.Dark }
 
 @Composable
 fun SonaTheme(dark: Boolean, content: @Composable () -> Unit) {
