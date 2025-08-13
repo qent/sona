@@ -74,10 +74,15 @@ class ToolsMapFactory(
                         tools.switchRole(name)
                     }
 
+                    "createPatch" -> {
+                        val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
+                        val patch = args["arg0"]?.toString() ?: return@create " Empty patch"
+                        tools.createPatch(patch).toString()
+                    }
                     "applyPatch" -> {
                         val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
-                        val path = args["arg0"]?.toString() ?: return@create " Empty patch"
-                        tools.applyPatch(path)
+                        val id = (args["arg0"] as? Number)?.toInt() ?: return@create " Empty patch id"
+                        tools.applyPatch(id)
                     }
 
                     else -> runBlocking {

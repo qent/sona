@@ -56,7 +56,8 @@ private class FakeTools : Tools {
     override fun getFocusedFileInfo() = FileStructureInfo("", emptyList())
     override fun getFileLines(path: String, fromLine: Int, toLine: Int) = ""
     override fun readFile(path: String) = ""
-    override fun applyPatch(patch: String) = ""
+    override fun createPatch(patch: String) = 0
+    override fun applyPatch(patchId: Int) = ""
     override fun switchRole(name: String) = ""
     override fun listPath(path: String) = DirectoryListing(emptyList(), emptyMap())
     override fun getFileDependencies(path: String) = FileDependenciesInfo(path, emptyList())

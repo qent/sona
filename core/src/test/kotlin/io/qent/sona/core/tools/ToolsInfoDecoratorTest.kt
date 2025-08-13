@@ -8,6 +8,15 @@ import io.qent.sona.core.permissions.FilePermissionManager
 import io.qent.sona.core.permissions.FilePermissionsRepository
 import io.qent.sona.core.permissions.FileDependenciesInfo
 import io.qent.sona.core.permissions.FileStructureInfo
+import io.qent.sona.core.chat.Chat
+import io.qent.sona.core.chat.ChatRepository
+import io.qent.sona.core.chat.ChatRepositoryMessage
+import io.qent.sona.core.chat.ChatSummary
+import io.qent.sona.core.chat.ChatStateFlow
+import io.qent.sona.core.model.TokenUsageInfo
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import dev.langchain4j.data.message.ChatMessage
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -25,7 +34,8 @@ private class FakeExternalTools(
     override fun getFocusedFileInfo(): FileStructureInfo? = focused
     override fun getFileLines(path: String, fromLine: Int, toLine: Int): FileInfo? = files[path]
     override fun readFile(path: String): FileInfo? = files[path]
-    override fun applyPatch(patch: String) = ""
+    override fun createPatch(chatId: String, patch: String) = 0
+    override fun applyPatch(chatId: String, patchId: Int) = ""
     override fun listPath(path: String): DirectoryListing? = dirs[path]
     override fun sendTerminalCommand(command: String) = ""
     override fun readTerminalOutput() = ""
@@ -37,6 +47,23 @@ private class FakeInternalTools : InternalTools {
     override fun switchRole(name: String): String { last = name; return name }
 }
 
+private fun testChatStateFlow(): ChatStateFlow {
+    val repo = object : ChatRepository {
+        override suspend fun createChat() = "1"
+        override suspend fun addMessage(chatId: String, message: ChatMessage, model: String, tokenUsage: TokenUsageInfo) {}
+        override suspend fun loadMessages(chatId: String) = emptyList<ChatRepositoryMessage>()
+        override suspend fun loadTokenUsage(chatId: String) = TokenUsageInfo()
+        override suspend fun isToolAllowed(chatId: String, toolName: String) = true
+        override suspend fun addAllowedTool(chatId: String, toolName: String) {}
+        override suspend fun listChats() = emptyList<ChatSummary>()
+        override suspend fun deleteChat(chatId: String) {}
+        override suspend fun deleteMessagesFrom(chatId: String, index: Int) {}
+    }
+    return ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined)).apply {
+        emit(Chat("1", TokenUsageInfo()))
+    }
+}
+
 class ToolsInfoDecoratorTest {
 
     @Test
@@ -45,7 +72,7 @@ class ToolsInfoDecoratorTest {
         val manager = FilePermissionManager(repo)
         val elem = FileElement("C", FileElementType.CLASS, true, 1 to 2)
         val info = FileStructureInfo("/a", listOf(elem))
-        val decorator = ToolsInfoDecorator(FakeInternalTools(), FakeExternalTools(info, emptyMap()), manager)
+        val decorator = ToolsInfoDecorator(testChatStateFlow(), FakeInternalTools(), FakeExternalTools(info, emptyMap()), manager)
         assertEquals(info, decorator.getFocusedFileInfo())
     }
 
@@ -54,14 +81,14 @@ class ToolsInfoDecoratorTest {
         val repo = StubRepository(emptyList(), emptyList())
         val manager = FilePermissionManager(repo)
         val info = FileInfo("/secret", "pw")
-        val decorator = ToolsInfoDecorator(FakeInternalTools(), FakeExternalTools(null, mapOf("/secret" to info)), manager)
+        val decorator = ToolsInfoDecorator(testChatStateFlow(), FakeInternalTools(), FakeExternalTools(null, mapOf("/secret" to info)), manager)
         assertEquals("Access to /secret denied", decorator.readFile("/secret"))
     }
 
     @Test
     fun `delegates role switching to internal tools`() {
         val internal = FakeInternalTools()
-        val decorator = ToolsInfoDecorator(internal, FakeExternalTools(null, emptyMap()), FilePermissionManager(StubRepository(listOf(".*"), emptyList())))
+        val decorator = ToolsInfoDecorator(testChatStateFlow(), internal, FakeExternalTools(null, emptyMap()), FilePermissionManager(StubRepository(listOf(".*"), emptyList())))
         assertEquals("R", decorator.switchRole("R"))
         assertEquals("R", internal.last)
     }
@@ -70,7 +97,7 @@ class ToolsInfoDecoratorTest {
     fun `readFile returns message when file not found`() {
         val repo = StubRepository(listOf(".*"), emptyList())
         val manager = FilePermissionManager(repo)
-        val decorator = ToolsInfoDecorator(FakeInternalTools(), FakeExternalTools(null, emptyMap()), manager)
+        val decorator = ToolsInfoDecorator(testChatStateFlow(), FakeInternalTools(), FakeExternalTools(null, emptyMap()), manager)
         assertEquals("File not found", decorator.readFile("/missing"))
     }
 
@@ -83,7 +110,7 @@ class ToolsInfoDecoratorTest {
             contents = mapOf("dir/" to listOf("inside.txt", "secret2.txt"))
         )
         val external = FakeExternalTools(null, emptyMap(), mapOf("/allowed" to listing))
-        val decorator = ToolsInfoDecorator(FakeInternalTools(), external, manager)
+        val decorator = ToolsInfoDecorator(testChatStateFlow(), FakeInternalTools(), external, manager)
         val result = decorator.listPath("/allowed")
         assertEquals(listOf("file.txt", "dir/"), result.items)
         assertEquals(mapOf("dir/" to listOf("inside.txt")), result.contents)

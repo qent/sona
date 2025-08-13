@@ -12,6 +12,7 @@ import io.qent.sona.core.chat.ChatRepository
 import io.qent.sona.core.chat.ChatRepositoryMessage
 import io.qent.sona.core.chat.ChatSummary
 import io.qent.sona.core.model.TokenUsageInfo
+import com.intellij.openapi.components.service
 import java.util.*
 
 @Service
@@ -131,6 +132,7 @@ class PluginChatRepository : ChatRepository, PersistentStateComponent<PluginChat
 
     override suspend fun deleteChat(chatId: String) {
         state.chats.removeIf { it.id == chatId }
+        service<PatchStorage>().deletePatches(chatId)
     }
 
     override suspend fun deleteMessagesFrom(chatId: String, index: Int) {

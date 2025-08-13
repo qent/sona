@@ -41,6 +41,7 @@ object Strings {
     val applyPatchFailed: String get() = bundle.getString("applyPatchFailed")
     val invalidPatch: String get() = bundle.getString("invalidPatch")
     val patchDiffOpened: String get() = bundle.getString("patchDiffOpened")
+    val patchApplied: String get() = bundle.getString("patchApplied")
     val typeMessage: String get() = bundle.getString("typeMessage")
     val architectPlaceholder: String get() = bundle.getString("architectPlaceholder")
     val codePlaceholder: String get() = bundle.getString("codePlaceholder")

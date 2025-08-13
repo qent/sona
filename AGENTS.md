@@ -31,6 +31,7 @@
   descriptions.
 - A tool lists files and directories for a given path, appending "/" to directory names and
   including the first-level contents of each directory.
+- Patches are handled in two steps: `createPatch` saves a unified diff for review and returns its id, while `applyPatch` applies the stored patch by id.
 - Two tools manage a dedicated "Sona" terminal: one sends commands for execution and another reads its output. Commands run from the project root by default.
 - A tool returns class and object dependencies for a specified file, including paths to files
   defining those dependencies.

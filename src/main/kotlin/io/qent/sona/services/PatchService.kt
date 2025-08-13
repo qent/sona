@@ -9,16 +9,19 @@ import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diff.impl.patch.PatchReader
 import com.intellij.openapi.diff.impl.patch.apply.GenericPatchApplier
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.impl.LoadTextUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vcs.changes.patch.AppliedTextPatch
 import com.intellij.openapi.vcs.changes.patch.tool.ApplyPatchDiffRequest
 import com.intellij.openapi.vfs.LocalFileSystem
 import io.qent.sona.Strings
+import io.qent.sona.repositories.PatchStorage
 import java.nio.file.Paths
 
 @Service(Service.Level.PROJECT)
@@ -26,7 +29,8 @@ class PatchService(private val project: Project) {
 
     private val logger = Logger.getInstance(PatchService::class.java)
 
-    fun applyPatch(patchText: String) {
+    fun createPatch(chatId: String, patchText: String): Int {
+        val id = service<PatchStorage>().createPatch(chatId, patchText)
         logger.info("=== Starting patch application ===")
         logger.info("Patch text length: ${patchText.length}")
         logger.info("Project base path: ${project.basePath}")
@@ -238,6 +242,48 @@ class PatchService(private val project: Project) {
                 ),
                 project
             )
+        }
+        return id
+    }
+
+    fun applyPatch(chatId: String, patchId: Int): Boolean {
+        val patchText = service<PatchStorage>().getPatch(chatId, patchId) ?: return false
+        return try {
+            val patches = PatchReader(patchText).readTextPatches()
+            val patch = patches.firstOrNull() ?: throw IllegalArgumentException(Strings.invalidPatch)
+            val relativePath =
+                patch.afterName ?: patch.beforeName ?: throw IllegalArgumentException(Strings.invalidPatch)
+            val fullPath = project.basePath?.let { Paths.get(it, relativePath).toString() } ?: relativePath
+            val file = LocalFileSystem.getInstance().findFileByPath(fullPath)
+                ?: throw IllegalArgumentException("File not found: $relativePath")
+            val fileDocManager = FileDocumentManager.getInstance()
+            val doc = fileDocManager.getDocument(file)
+            val localText = doc?.text ?: LoadTextUtil.loadText(file).toString()
+            val applier = GenericPatchApplier(localText, patch.hunks)
+            val applyResult = applier.execute()
+            if (!applyResult) throw IllegalArgumentException(Strings.applyPatchFailed)
+            ApplicationManager.getApplication().invokeAndWait {
+                WriteCommandAction.runWriteCommandAction(project) {
+                    val document = doc ?: fileDocManager.getDocument(file)
+                    if (document != null) {
+                        document.setText(applier.after)
+                        fileDocManager.saveDocument(document)
+                    }
+                }
+            }
+            true
+        } catch (e: Exception) {
+            logger.error("Error in applyPatch", e)
+            Notifications.Bus.notify(
+                Notification(
+                    "Sona",
+                    Strings.applyPatchFailed,
+                    e.message ?: Strings.invalidPatch,
+                    NotificationType.ERROR
+                ),
+                project
+            )
+            false
         }
     }
 }

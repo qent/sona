@@ -66,8 +66,8 @@ class StateProvider(
             return "$name role active"
         }
     }
-    private val tools: Tools = ToolsInfoDecorator(internalTools, externalTools, filePermissionManager)
-    private val chatStateFlow = ChatStateFlow(chatRepository, scope)
+    val chatStateFlow = ChatStateFlow(chatRepository, scope)
+    private val tools: Tools = ToolsInfoDecorator(chatStateFlow, internalTools, externalTools, filePermissionManager)
     private val log = object : Logger {
         override fun log(message: String) {
             runBlocking {

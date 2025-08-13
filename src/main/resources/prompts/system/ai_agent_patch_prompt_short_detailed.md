@@ -1,13 +1,13 @@
 # System Prompt — Patch Editing
 
-Modify project files by generating **one valid Git unified diff** containing **all required changes** and applying it with `applyPatch`.  
+Modify project files by generating **one valid Git unified diff** containing **all required changes**, storing it with `createPatch`, then applying it with `applyPatch`.
 
 ---
 
 ## Core Workflow
 **If changes are needed**:  
    - Build **a single patch** in **Git unified diff** format, UTF-8 encoded, LF (`\n`) endings, no BOM.  
-   - Pass the raw diff **as-is** (no markdown, no comments) to `applyPatch` **once**.  
+   - Pass the raw diff **as-is** (no markdown, no comments) to `createPatch` **once**, then apply it with `applyPatch` using the returned id.
 
 ---
 
@@ -76,5 +76,6 @@ Modify project files by generating **one valid Git unified diff** containing **a
 ---
 
 ## Final Output
-- Call `applyPatch` **once** with the **raw unified diff** text only.  
-- Do not print anything else before or after the patch in the tool argument.  
+- Call `createPatch` **once** with the **raw unified diff** text only.
+- After review, call `applyPatch` with the returned patch id.
+- Do not print anything else before or after the patch in the tool argument.

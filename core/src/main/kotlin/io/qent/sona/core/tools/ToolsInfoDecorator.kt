@@ -7,7 +7,10 @@ import io.qent.sona.core.permissions.FileDependenciesInfo
 import io.qent.sona.core.permissions.FileStructureInfo
 import java.nio.file.Paths
 
+import io.qent.sona.core.chat.ChatStateFlow
+
 class ToolsInfoDecorator(
+    private val chatStateFlow: ChatStateFlow,
     private val internalTools: InternalTools,
     private val externalTools: ExternalTools,
     private val filePermissionManager: FilePermissionManager,
@@ -61,16 +64,21 @@ class ToolsInfoDecorator(
         return FileDependenciesInfo(info.path, deps)
     }
 
-    @Tool("Apply a unified diff patch text content to the project")
-    override fun applyPatch(patch: String): String {
+    @Tool("Store a unified diff patch for later application and open a diff view. Returns patch id.")
+    override fun createPatch(patch: String): Int {
         val regex = Regex("^[-+]{3}\\s+(?:[ab]/)?(.+)", RegexOption.MULTILINE)
         val files = regex.findAll(patch).map { it.groupValues[1] }.toSet()
         for (file in files) {
             if (!filePermissionManager.isFileAllowed(file)) {
-                return "Access to $file denied"
+                throw IllegalArgumentException("Access to $file denied")
             }
         }
-        return externalTools.applyPatch(patch)
+        return externalTools.createPatch(chatStateFlow.currentState.chatId, patch)
+    }
+
+    @Tool("Apply previously stored patch by id")
+    override fun applyPatch(patchId: Int): String {
+        return externalTools.applyPatch(chatStateFlow.currentState.chatId, patchId)
     }
 
     override fun switchRole(name: String) = internalTools.switchRole(name)
