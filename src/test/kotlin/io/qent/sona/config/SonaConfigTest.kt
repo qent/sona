@@ -12,7 +12,8 @@ class SonaConfigTest {
     @Test
     fun `saving merges with existing json`() {
         val dir = Files.createTempDirectory("sonaTest").toFile()
-        val file = File(dir, "sona.json")
+        val file = File(dir, ".sona/sona.json")
+        file.parentFile.mkdirs()
         file.writeText("{\"foo\":\"bar\",\"permissions\":{\"files\":{\"whitelist\":[\"a\"]}}}")
 
         val config = SonaConfig()

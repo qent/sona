@@ -32,14 +32,15 @@ class SonaConfig {
 
     companion object {
         fun load(root: String): SonaConfig? {
-            val file = File(root, "sona.json")
+            val file = File(File(root, ".sona"), "sona.json")
             return runCatching {
                 if (file.exists()) file.reader().use { Gson().fromJson(it, SonaConfig::class.java) } else null
             }.getOrNull()
         }
 
         fun save(root: String, config: SonaConfig) {
-            val file = File(root, "sona.json")
+            val file = File(File(root, ".sona"), "sona.json")
+            file.parentFile?.mkdirs()
             val gson: Gson = GsonBuilder().setPrettyPrinting().create()
 
             val newJson = gson.toJsonTree(config).asJsonObject

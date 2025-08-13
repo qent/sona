@@ -94,7 +94,7 @@ private fun buildChatController(repo: FakeChatRepository): ChatDeps {
     val scope = CoroutineScope(Dispatchers.Unconfined)
     val mcpManager = McpConnectionManager(EmptyMcpRepository(), scope)
     val settingsRepo = FakeSettingsRepository()
-    val stateFlow = ChatStateFlow(repo, scope)
+    val stateFlow = ChatStateFlow(repo)
     val permissioned = PermissionedToolExecutor(stateFlow, repo)
     val toolsMapFactory = ToolsMapFactory(stateFlow, tools, mcpManager, permissioned, rolesRepo, presetsRepo)
     val agentFactory = ChatAgentFactory({ throw UnsupportedOperationException() }, { emptyList() }, toolsMapFactory, presetsRepo, rolesRepo, repo)

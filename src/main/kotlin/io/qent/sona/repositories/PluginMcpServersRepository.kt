@@ -50,7 +50,7 @@ class PluginMcpServersRepository(private val project: Project) : McpServersRepos
                     name = "memory",
                     command = "npx",
                     args = MEMORY_MCP_ARGS,
-                    env = mapOf("MEMORY_FILE_PATH" to File(root, "sona_memory.json").absolutePath),
+                    env = mapOf("MEMORY_FILE_PATH" to File(root, ".sona/sona_memory.json").absolutePath),
                     transport = "stdio"
                 )
             )
@@ -65,7 +65,7 @@ class PluginMcpServersRepository(private val project: Project) : McpServersRepos
     }
 
     override suspend fun saveEnabled(enabled: Set<String>) {
-        val file = File(root, "sona.json")
+        val file = File(root, ".sona/sona.json")
         if (!file.exists()) return
         val config = SonaConfig.load(root) ?: SonaConfig()
         val servers = config.mcpServers?.toMutableMap() ?: mutableMapOf()
@@ -82,7 +82,7 @@ class PluginMcpServersRepository(private val project: Project) : McpServersRepos
     }
 
     override suspend fun saveDisabledTools(disabled: Map<String, Set<String>>) {
-        val file = File(root, "sona.json")
+        val file = File(root, ".sona/sona.json")
         if (!file.exists()) return
         val config = SonaConfig.load(root) ?: SonaConfig()
         val servers = config.mcpServers?.toMutableMap() ?: mutableMapOf()
@@ -96,7 +96,7 @@ class PluginMcpServersRepository(private val project: Project) : McpServersRepos
     }
 
     fun openConfig() {
-        val file = File(root, "sona.json")
+        val file = File(root, ".sona/sona.json")
         if (!file.exists()) {
             val enabledSet = runBlocking { loadEnabled() }
             val servers = runBlocking { list() }

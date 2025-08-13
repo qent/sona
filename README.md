@@ -102,7 +102,7 @@ you switch to a different chat.
 
 Tool calls referenced by the model are hidden behind a gear icon in the top‑right corner of each AI message. Clicking the icon reveals the list of requested tools. When a tool starts running, the chat shows a dark terminal‑style bubble with animated dots that are replaced by the tool's output once it finishes.
 
-The available tools let the model read the focused file, read any file by absolute path, list directory contents, run terminal commands from the project root, read terminal output, create unified diff patches for review and apply them later by id, and switch the active role between Architect and Code. Directory listings append "/" to folder names and include the first-level contents of each directory. File access is guarded by a permission system with a whitelist (project root by default) and a blacklist blocking sensitive files such as `.env`. Custom lists can be supplied by creating a `sona.json` file in the project root:
+The available tools let the model read the focused file, read any file by absolute path, list directory contents, run terminal commands from the project root, read terminal output, create unified diff patches for review and apply them later by id, and switch the active role between Architect and Code. Directory listings append "/" to folder names and include the first-level contents of each directory. File access is guarded by a permission system with a whitelist (project root by default) and a blacklist blocking sensitive files such as `.env`. Custom lists can be supplied by creating a `sona.json` file inside `.sona` in the project root:
 
 ```
 {
@@ -126,19 +126,19 @@ not affect the plugin. Tools provided by MCP servers require the same user confi
 
 Sona ships with two predefined servers: `@jetbrains/mcp-proxy` and `memory`. The
 `memory` server uses `@modelcontextprotocol/server-memory` via `npx` and stores
-its state in `sona_memory.json` at the project root. When this server is enabled,
+its state in `.sona/sona_memory.json` at the project root. When this server is enabled,
 its usage instructions from `prompts/memory_instructions.md` are appended to the
 system messages sent with each request.
 
 The tool window includes a **Servers** action listing all configured MCP servers. Each server is shown as a card
 with a coloured status indicator – grey for disabled, red when a connection fails, yellow while connecting and
 green once connected and exposing tools. Clicking a card toggles the server on or off. A refresh button above
-the list reloads `sona.json` and reconnects previously enabled servers. A pinned **Редактировать конфигурацию**
-button at the bottom opens `sona.json`, creating it with the current server configuration and file permission
-lists when missing. Server enablement is stored in `sona.json` so only servers marked as enabled start
+the list reloads `.sona/sona.json` and reconnects previously enabled servers. A pinned **Редактировать конфигурацию**
+button at the bottom opens `.sona/sona.json`, creating it with the current server configuration and file permission
+lists when missing. Server enablement is stored in `.sona/sona.json` so only servers marked as enabled start
 automatically after restarting the IDE. Connected servers expand to show their tools with a green indicator next
 to each one. Clicking the indicator disables the tool, turning it grey and excluding it from future LLM requests.
-Disabled tool names persist in `sona.json` under the server's `disabledTools` array.
+Disabled tool names persist in `.sona/sona.json` under the server's `disabledTools` array.
 
 ```json
 {

@@ -64,7 +64,7 @@ API while `InternalTools` live in the core module for plugin interactions like
 switching roles. `ToolsInfoDecorator` combines them and routes file responses through a
 permission manager that checks absolute paths against a whitelist (project root by default)
 and a blacklist of sensitive files before exposing file contents to the model.
-File permissions can also be adjusted by adding a `sona.json` file at the project root with
+File permissions can also be adjusted by adding a `sona.json` file under `.sona` in the project root with
 `permissions.files.whitelist` and `blacklist` arrays of regex patterns.
 `sona.json` may additionally define an `mcpServers` object keyed by server name with Model
 Context Protocol server configurations including `enabled`, `command`, `args`, environment
@@ -76,8 +76,8 @@ disabled tools are stored in `sona.json`; only servers marked as enabled reconne
 automatically on restart.
 The plugin preconfigures two servers: `@jetbrains/mcp-proxy` and `memory`. The
 `memory` server runs `@modelcontextprotocol/server-memory` via `npx` and stores
-its data in `sona_memory.json` at the project root.
-When updating the configuration, merge new values into `sona.json` to preserve any
+its data in `.sona/sona_memory.json` inside the project root.
+When updating the configuration, merge new values into `.sona/sona.json` to preserve any
 user-provided fields instead of overwriting the file.
 `ChatController` receives a `Tools` decorator from `StateProvider` via its injected `ChatAgentFactory`.
 

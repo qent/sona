@@ -59,7 +59,7 @@ private fun testChatStateFlow(): ChatStateFlow {
         override suspend fun deleteChat(chatId: String) {}
         override suspend fun deleteMessagesFrom(chatId: String, index: Int) {}
     }
-    return ChatStateFlow(repo, CoroutineScope(Dispatchers.Unconfined)).apply {
+    return ChatStateFlow(repo).apply {
         emit(Chat("1", TokenUsageInfo()))
     }
 }
