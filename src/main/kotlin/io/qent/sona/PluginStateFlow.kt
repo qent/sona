@@ -184,6 +184,8 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
         }.launchIn(scope)
     }
 
+    fun currentChatId(): String = stateProvider.chatStateFlow.currentState.chatId
+
     private fun ignoreHttpsClientBuilder(): HttpClient.Builder {
         val trustAll: Array<TrustManager> = arrayOf(object : X509TrustManager {
             override fun checkClientTrusted(certs: Array<X509Certificate?>?, authType: String?) = Unit

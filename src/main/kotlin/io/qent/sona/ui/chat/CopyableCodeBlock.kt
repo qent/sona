@@ -139,7 +139,8 @@ fun CodeEditor(
                     toolTipText = Strings.applyPatch
                     addMouseListener(object : MouseAdapter() {
                         override fun mouseClicked(e: MouseEvent?) {
-                            project.service<PatchService>().applyPatch(code)
+                            val chatId = project.service<PluginStateFlow>().currentChatId()
+                            project.service<PatchService>().createPatch(chatId, code)
                         }
                     })
                 }
