@@ -37,7 +37,7 @@ The active role can also be changed directly from the chat via the selector
 under the message input. The text of the active role is sent as a system message
 with every request but is not stored in the chat history. Every request is also
 prefixed with a system message summarizing
-the current environment (OS, IDE, Java, Python, Node.js versions, file extension
+the current environment (OS, IDE, Java, Python, Node.js versions, project root path, file extension
 statistics and build systems). On startup the plugin also reads any `.md` files in
 `src/main/resources/prompts` and appends their text as additional system messages.
 A user-specific system prompt can be edited from the toolbar and is included with every request when set.
