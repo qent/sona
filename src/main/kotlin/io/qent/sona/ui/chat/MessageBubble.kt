@@ -42,14 +42,19 @@ fun MessageBubble(
     onEdit: () -> Unit,
     onScrollOutside: (Float) -> Unit,
 ) {
-    if (message is UiMessage.Ai && message.text.isEmpty()) return
+    val messageText = if (message is UiMessage.Ai && message.text.isEmpty()) {
+        if (message.toolRequests.isEmpty()) return
+        val toolNames = message.toolRequests.joinToString(", ") { it.name() }
+        String.format(Strings.toolCalling, toolNames)
+    } else {
+        message.text
+    }
 
     val isUser = message is UiMessage.User
     var hovered by remember { mutableStateOf(false) }
     val clipboard = LocalClipboardManager.current
     val background = if (isUser) SonaTheme.colors.UserBubble else SonaTheme.colors.Background
     val textColor = if (isUser) SonaTheme.colors.UserText else SonaTheme.colors.AiText
-    val messageText = message.text
     var showTools by remember { mutableStateOf(false) }
     val borderColor by remember { mutableStateOf(Color.White.copy(alpha = 0.12f)) }
 
@@ -84,7 +89,7 @@ fun MessageBubble(
                         .padding(horizontal = if (isUser) 8.dp else 0.dp)
                 ) {
                     if (message is UiMessage.Ai) {
-                        val mdState = rememberMarkdownState(message.text, immediate = true)
+                        val mdState = rememberMarkdownState(messageText, immediate = true)
                         Markdown(
                             mdState,
                             colors = SonaTheme.markdownColors,
@@ -112,7 +117,7 @@ fun MessageBubble(
                         )
                     } else if (message is UiMessage.User) {
                         Text(
-                            message.text,
+                            messageText,
                             color = textColor,
                             fontSize = 15.sp
                         )
