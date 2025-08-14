@@ -76,5 +76,6 @@ object Strings {
     val userSystemPromptActionDescription: String get() = bundle.getString("userSystemPromptActionDescription")
     val userSystemPrompt: String get() = bundle.getString("userSystemPrompt")
     val terminalCommandSent: String get() = bundle.getString("terminalCommandSent")
+    val toolCalling: String get() = bundle.getString("toolCalling")
 }
 

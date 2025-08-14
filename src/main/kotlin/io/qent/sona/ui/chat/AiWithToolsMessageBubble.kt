@@ -31,6 +31,12 @@ fun AiWithToolsMessageBubble(
     var expanded by remember { mutableStateOf(false) }
     val background = SonaTheme.colors.Background
     val borderColor = Color.White.copy(alpha = 0.12f)
+    val messageText = if (message.text.isEmpty() && message.toolRequests.isNotEmpty()) {
+        val toolNames = message.toolRequests.joinToString(", ") { it.name() }
+        String.format(Strings.toolCalling, toolNames)
+    } else {
+        message.text
+    }
 
     Column(Modifier.fillMaxWidth()) {
         // Header row: main text + toggle
@@ -41,7 +47,7 @@ fun AiWithToolsMessageBubble(
         ) {
             SelectionContainer(Modifier.weight(1f).padding(bottom = 12.dp).padding(horizontal = 8.dp)) {
                 Text(
-                    message.text,
+                    messageText,
                     color = LocalTypography.current.text.color,
                     fontSize = LocalTypography.current.text.fontSize,
                 )
