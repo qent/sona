@@ -39,6 +39,7 @@
   environment (OS, IDE, Java, Python, Node.js, project root path, file extension statistics, build systems) and is prepended to every LLM request.
 - Any `.md` files in `src/main/resources/prompts` are read at startup and their contents are appended as additional system messages.
 - ChatController leverages langchain4j `AiService` and `TokenStream` to emit partial responses and tool events via streaming callbacks.
+- When preparing messages for the `AiService`, append a `ToolExecutionResultMessage` with localized text `Strings.connectionError` after any `AiMessage` that requests a tool but lacks a following result message and persist it to the chat repository.
 - AI messages show a gear icon that toggles visibility of requested tools. Tool outputs stream into a terminal-style bubble with animated dots until completion.
 - Run `./gradlew build` before committing any changes.
 - After completing a task, make sure `AGENTS.md` and `README.md` reflect the latest behavior.

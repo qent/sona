@@ -49,7 +49,9 @@ private class FakeChatRepository : ChatRepository {
     override suspend fun addAllowedTool(chatId: String, toolName: String) { allowed.add(toolName) }
     override suspend fun listChats() = emptyList<ChatSummary>()
     override suspend fun deleteChat(chatId: String) {}
-    override suspend fun deleteMessagesFrom(chatId: String, index: Int) {}
+    override suspend fun deleteMessagesFrom(chatId: String, index: Int) {
+        messages[chatId]?.apply { if (index < size) subList(index, size).clear() }
+    }
 }
 
 private class FakeTools : Tools {
@@ -97,7 +99,7 @@ private fun buildChatController(repo: FakeChatRepository): ChatDeps {
     val stateFlow = ChatStateFlow(repo)
     val permissioned = PermissionedToolExecutor(stateFlow, repo)
     val toolsMapFactory = ToolsMapFactory(stateFlow, tools, mcpManager, permissioned, rolesRepo, presetsRepo)
-    val agentFactory = ChatAgentFactory({ throw UnsupportedOperationException() }, { emptyList() }, toolsMapFactory, presetsRepo, rolesRepo, repo)
+    val agentFactory = ChatAgentFactory({ throw UnsupportedOperationException() }, { emptyList() }, toolsMapFactory, presetsRepo, rolesRepo, repo, "error")
     val controller = ChatController(presetsRepo, repo, settingsRepo, stateFlow, agentFactory, scope)
     return ChatDeps(controller, stateFlow, permissioned, scope, mcpManager)
 }

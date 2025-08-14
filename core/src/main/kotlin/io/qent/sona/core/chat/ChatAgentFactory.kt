@@ -15,6 +15,7 @@ class ChatAgentFactory(
     private val presetsRepository: PresetsRepository,
     private val rolesRepository: RolesRepository,
     private val chatRepository: ChatRepository,
+    private val connectionErrorText: String,
 ) {
     suspend fun create(): SonaAiService {
         val preset = presetsRepository.load().let { it.presets[it.active] }
@@ -26,7 +27,7 @@ class ChatAgentFactory(
         return AiServices.builder(SonaAiService::class.java)
             .streamingChatModel(modelFactory(preset))
             .systemMessageProvider { (systemMessages() + roleMessage).joinToString("\n") }
-            .chatMemoryProvider { id -> ChatRepositoryChatMemoryStore(chatRepository, id.toString()) }
+            .chatMemoryProvider { id -> ChatRepositoryChatMemoryStore(chatRepository, id.toString(), connectionErrorText) }
             .tools(toolsMap)
             .build()
     }
