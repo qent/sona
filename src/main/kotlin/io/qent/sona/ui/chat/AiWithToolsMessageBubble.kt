@@ -15,6 +15,8 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.mikepenz.markdown.compose.Markdown
+import com.mikepenz.markdown.model.rememberMarkdownState
 import dev.langchain4j.agent.tool.ToolExecutionRequest
 import io.qent.sona.Strings
 import io.qent.sona.core.state.UiMessage
@@ -46,10 +48,11 @@ fun AiWithToolsMessageBubble(
             verticalAlignment = Alignment.Top
         ) {
             SelectionContainer(Modifier.weight(1f).padding(bottom = 12.dp).padding(horizontal = 8.dp)) {
-                Text(
-                    messageText,
-                    color = LocalTypography.current.text.color,
-                    fontSize = LocalTypography.current.text.fontSize,
+                val mdState = rememberMarkdownState(messageText, immediate = true)
+                Markdown(
+                    mdState,
+                    colors = SonaTheme.markdownColors,
+                    typography = SonaTheme.markdownTypography
                 )
             }
 
