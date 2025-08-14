@@ -1,16 +1,16 @@
 package io.qent.sona.core.mcp
 
-import dev.langchain4j.agent.tool.ToolExecutionRequest as AgentToolExecutionRequest
 import dev.langchain4j.mcp.client.DefaultMcpClient
 import dev.langchain4j.mcp.client.McpClient
 import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport
 import dev.langchain4j.mcp.client.transport.stdio.StdioMcpTransport
+import io.qent.sona.core.Logger
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import io.qent.sona.core.Logger
 import java.io.File
+import dev.langchain4j.agent.tool.ToolExecutionRequest as AgentToolExecutionRequest
 
 class McpConnectionManager(
     private val repository: McpServersRepository,
@@ -156,7 +156,6 @@ class McpConnectionManager(
     }
 
 
-
     suspend fun reload() {
         clients.values.forEach { runCatching { it.close() } }
         clients.clear()
@@ -206,21 +205,15 @@ class McpConnectionManager(
                 }
                 log.log("Launch: $cmd")
                 if (cmd.isEmpty()) return null
-                val env = buildMap {
-                    putAll(System.getenv())
-                    config.env?.let { putAll(it) }
-                    putIfAbsent("HOME", System.getProperty("user.home"))
-                    // Если нужен кэш в стабильном месте (ускорит холодный старт):
-                    // putIfAbsent("NPM_CONFIG_CACHE", File(project.basePath ?: System.getProperty("user.home"), ".npm-cache").absolutePath)
-                    // Тише вывод npm/npx:
-                    putIfAbsent("NPM_CONFIG_LOGLEVEL", "error")
-                }
-                log.log("env: $env")
+
+                val environment = buildNormalizedNodeEnv(config)
+                log.log("env: $environment")
                 StdioMcpTransport.Builder()
                     .command(cmd)
-                    .environment(env)
+                    .environment(environment)
                     .build()
             }
+
             "http" -> {
                 val url = config.url ?: return null
                 log.log("Connect: ")
@@ -228,6 +221,7 @@ class McpConnectionManager(
                     .sseUrl(url)
                     .build()
             }
+
             else -> {
                 log.log("Unsupported MCP transport: ${config.transport}")
                 return null
@@ -286,8 +280,6 @@ class McpConnectionManager(
         return candidates.firstOrNull { it.exists() && it.canExecute() }?.absolutePath
     }
 
-    fun hasTool(name: String): Boolean = tools.containsKey(name)
-
     fun listTools() = try {
         statuses.values.filter { it.status is McpServerStatus.Status.CONNECTED }
             .flatMap { status -> status.tools.filter { it.name() !in status.disabledTools } }
@@ -313,6 +305,29 @@ class McpConnectionManager(
     fun stop() {
         clients.values.forEach { runCatching { it.close() } }
         scope.cancel()
+    }
+
+    /**
+     * Builds robust environment for Node/npm-based CLIs launched via npx/mcp-server.
+     * - merges System env and config.env
+     * - ensures HOME
+     * - normalizes PATH to include Homebrew/bin and common user bins
+     * - tames npm/npx verbosity to avoid stdout noise
+     */
+    private fun buildNormalizedNodeEnv(config: McpServerConfig): Map<String, String> {
+        val base = HashMap(System.getenv())
+        config.env?.let { base.putAll(it) }
+        base.putIfAbsent("HOME", System.getProperty("user.home") ?: "")
+        val currentPath = base["PATH"].orEmpty()
+        val parts = currentPath.split(':').filter { it.isNotBlank() }.toMutableList()
+        fun addFront(p: String) {
+            if (p.isNotBlank() && parts.none { it == p }) parts.add(0, p)
+        }
+        addFront("/opt/homebrew/bin")
+        addFront("/usr/local/bin")
+        base["PATH"] = parts.joinToString(":")
+        base.putIfAbsent("NPM_CONFIG_LOGLEVEL", "error")
+        return base
     }
 }
 
