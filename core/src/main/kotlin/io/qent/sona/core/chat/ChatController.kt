@@ -13,6 +13,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
@@ -37,6 +38,7 @@ class ChatController(
     private val currentState get() = chatStateFlow.currentState
 
     private var currentStream: TokenStream? = null
+    private var streamJob: Job? = null
     private var ignoreCallbacks = false
 
     override suspend fun send(text: String) {
@@ -214,7 +216,30 @@ class ChatController(
                 currentStream?.start()
             }
 
-            startStream()
+            streamJob?.cancel()
+            streamJob = scope.launch {
+                try {
+                    startStream()
+                } catch (_: CancellationException) {
+                    log.log("send cancelled")
+                    currentStream = null
+                    chatStateFlow.emit(currentState.copy(requestInProgress = false, isStreaming = false))
+                } catch (e: Exception) {
+                    log.log("send exception: ${e.message}")
+                    val errorMessage = ChatRepositoryMessage(
+                        chatId,
+                        AiMessage.from("Error: ${e.message}\n\n${e.stackTrace}"),
+                        preset.model
+                    )
+                    chatStateFlow.emit(
+                        currentState.copy(
+                            messages = currentState.messages + errorMessage,
+                            requestInProgress = false,
+                            isStreaming = false
+                        )
+                    )
+                }
+            }
         } catch (_: CancellationException) {
             log.log("send cancelled")
             currentStream = null
@@ -254,6 +279,8 @@ class ChatController(
         log.log("stop")
         ignoreCallbacks = true
         currentStream?.ignoreErrors()
+        streamJob?.cancel()
+        streamJob = null
         currentStream = null
         chatStateFlow.emit(currentState.copy(requestInProgress = false, isStreaming = false))
     }
