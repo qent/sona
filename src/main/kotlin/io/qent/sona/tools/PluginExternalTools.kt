@@ -2,12 +2,15 @@ package io.qent.sona.tools
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.ModalityState
+import com.intellij.util.Alarm
 import com.intellij.openapi.components.service
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiManager
+import com.intellij.terminal.ui.TerminalWidget
 import io.qent.sona.Strings
 import io.qent.sona.core.permissions.DirectoryListing
 import io.qent.sona.core.permissions.FileDependenciesInfo
@@ -18,8 +21,9 @@ import io.qent.sona.services.PatchService
 import io.qent.sona.tools.dependencies.JavaFileDependenciesProvider
 import io.qent.sona.tools.dependencies.KotlinFileDependenciesProvider
 import io.qent.sona.tools.structure.*
+import kotlinx.coroutines.flow.lastOrNull
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.plugins.terminal.ShellTerminalWidget
 import org.jetbrains.plugins.terminal.TerminalToolWindowManager
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -32,7 +36,7 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
     private val jsProvider = JavaScriptFileStructureProvider()
     private val javaDepsProvider = JavaFileDependenciesProvider()
     private val kotlinDepsProvider = KotlinFileDependenciesProvider()
-    private var terminalWidget: ShellTerminalWidget? = null
+    private var terminalWidget: TerminalWidget? = null
 
     override fun getFocusedFileInfo(): FileStructureInfo? {
         return runReadAction {
@@ -145,11 +149,11 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
         }
     }
 
-    private fun getTerminal(): ShellTerminalWidget {
+    private fun getTerminal(): TerminalWidget {
         return if (ApplicationManager.getApplication().isDispatchThread) {
             getTerminalInternal()
         } else {
-            var terminal: ShellTerminalWidget? = null
+            var terminal: TerminalWidget? = null
             ApplicationManager.getApplication().invokeAndWait {
                 terminal = getTerminalInternal()
             }
@@ -157,28 +161,34 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
         }
     }
 
-    private fun getTerminalInternal(): ShellTerminalWidget {
+    private fun getTerminalInternal(): TerminalWidget {
         val widget = terminalWidget
         if (widget != null && !Disposer.isDisposed(widget)) return widget
         val workingDir = project.basePath ?: System.getProperty("user.dir")
         val terminalManager = TerminalToolWindowManager.getInstance(project)
         val newWidget = terminalManager.createShellWidget(workingDir, "Sona", true, true)
-        terminalWidget = newWidget as ShellTerminalWidget
+        terminalWidget = newWidget
         return newWidget
     }
 
     override fun sendTerminalCommand(command: String): String {
-        if (ApplicationManager.getApplication().isDispatchThread) {
-            getTerminal().executeCommand(command)
-        } else {
-            ApplicationManager.getApplication().invokeLater {
-                getTerminal().executeCommand(command)
-            }
-        }
+        // Schedule command execution after the terminal widget is created & UI is ready
+        ApplicationManager.getApplication().invokeLater({
+            val widget = getTerminal()
+            if (Disposer.isDisposed(widget)) return@invokeLater
+            // Delay slightly to allow the shell session to initialize (prompt to appear)
+            // Tie the alarm lifecycle to the widget to avoid leaks if the tab is closed
+            Alarm(Alarm.ThreadToUse.SWING_THREAD, widget).addRequest({
+                if (!Disposer.isDisposed(widget)) {
+                    widget.sendCommandToExecute(command)
+                }
+            }, 100)
+        }, ModalityState.NON_MODAL)
         return Strings.terminalCommandSent
     }
 
     override fun readTerminalOutput(): String {
-        return getTerminal().terminalTextBuffer.toString()
+        // TODO: return terminal content without hung if execution in progress (return that command execution in progress)
+        return ""
     }
 }
