@@ -256,6 +256,7 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
         val python = runCommand("python", "--version")
         val node = runCommand("node", "--version")
         val base = project.basePath?.let { File(it) }
+        val root = base?.absolutePath ?: "Unknown"
         val builds = detectBuildSystems(base)
         return listOf(
             "OS: $os",
@@ -264,6 +265,7 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
             "Python: $python",
             "Node: $node",
             "Build: $builds",
+            "Project root: $root",
         ).joinToString("\n")
     }
 
