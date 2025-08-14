@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
@@ -61,8 +62,10 @@ private fun Messages(
             .fillMaxWidth()
             .padding(horizontal = 8.dp)
     ) {
-        items(state.messages.size) { index ->
-            val message = state.messages[index]
+        itemsIndexed(
+            state.messages,
+            key = { _, message -> message.hashCode() }
+        ) { index, message ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Bottom
@@ -76,9 +79,10 @@ private fun Messages(
                 } else null
 
                 if (message is UiMessage.Ai || message is UiMessage.User) {
+                    val messageId = message.hashCode()
                     MessageBubble(
                         project,
-                        index,
+                        messageId,
                         message,
                         bottomContent = bottom,
                         onDelete = { state.onDeleteFrom(index) },
