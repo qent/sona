@@ -10,6 +10,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiManager
+import com.intellij.terminal.JBTerminalWidget
 import com.intellij.terminal.ui.TerminalWidget
 import io.qent.sona.Strings
 import io.qent.sona.core.permissions.DirectoryListing
@@ -188,7 +189,15 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
     }
 
     override fun readTerminalOutput(): String {
-        // TODO: return terminal content without hung if execution in progress (return that command execution in progress)
-        return ""
+        val widget = terminalWidget?.takeIf { !Disposer.isDisposed(it) }
+            ?: TerminalToolWindowManager.getInstance(project)
+                .terminalWidgets.firstOrNull { it.hasFocus() }
+            ?: return ""
+
+        if (widget.isCommandRunning()) {
+            return "Strings.terminalCommandRunning"
+        }
+
+        return JBTerminalWidget.asJediTermWidget(widget)?.text.orEmpty()
     }
 }
