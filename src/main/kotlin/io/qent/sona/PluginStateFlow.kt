@@ -176,6 +176,7 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
             editConfig = { project.service<PluginMcpServersRepository>().openConfig() },
             scope = scope,
             systemMessages = { createSystemMessages() },
+            connectionErrorText = Strings.connectionError,
             logger = IdeaLogger,
         )
 

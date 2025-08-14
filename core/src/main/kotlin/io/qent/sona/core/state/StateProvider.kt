@@ -55,6 +55,7 @@ class StateProvider(
     private val editConfig: () -> Unit,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default),
     systemMessages: () -> List<SystemMessage> = { emptyList() },
+    connectionErrorText: String,
     logger: Logger = Logger.NoOp,
 ) {
     private val filePermissionManager = FilePermissionManager(filePermissionRepository)
@@ -91,7 +92,8 @@ class StateProvider(
         toolsMapFactory,
         presetsRepository,
         rolesRepository,
-        chatRepository
+        chatRepository,
+        connectionErrorText,
     )
     private val chatController = ChatController(
         presetsRepository,
