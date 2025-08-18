@@ -233,12 +233,19 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
                 messages += SystemMessage.from(it.reader().readText())
             }
         }
+        messages += loadProjectSystemPrompts()
         return messages
     }
 
     private fun isMemoryServerEnabled(): Boolean {
         val repo = project.service<PluginMcpServersRepository>()
         return runBlocking { repo.loadEnabled().contains("memory") }
+    }
+
+    private fun loadProjectSystemPrompts(): List<SystemMessage> {
+        val base = project.basePath ?: return emptyList()
+        val path = Paths.get(base, ".sona", "prompts")
+        return if (Files.isDirectory(path)) loadMessagesFromPath(path) else emptyList()
     }
 
     private fun loadMessagesFromPath(path: Path): List<SystemMessage> {

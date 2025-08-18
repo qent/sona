@@ -39,7 +39,8 @@ with every request but is not stored in the chat history. Every request is also
 prefixed with a system message summarizing
 the current environment (OS, IDE, Java, Python, Node.js versions, project root path, file extension
 statistics and build systems). On startup the plugin also reads any `.md` files in
-`src/main/resources/prompts` and appends their text as additional system messages.
+`src/main/resources/prompts` and appends their text as additional system messages. If the user's project
+contains a `.sona/prompts` directory, any `.md` files inside are also read and added as system messages.
 A user-specific system prompt can be edited from the toolbar and is included with every request when set.
 
 Models can also switch roles themselves using a tool that selects a role by name.
