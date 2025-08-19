@@ -71,7 +71,7 @@ private class FakeTools : Tools {
 }
 
 private class FakeSettingsRepository : SettingsRepository {
-    override suspend fun load() = Settings(false, false, false, 0, false)
+    override suspend fun load() = Settings(false, false, false, 0, false, true)
 }
 
 private class EmptyMcpRepository : McpServersRepository {

@@ -201,9 +201,12 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
 
     private fun createSystemMessages(): List<SystemMessage> {
         val env = SystemMessage.from(environmentInfo())
+        val english = if (settingsRepository.state.answerInEnglish) {
+            listOf(SystemMessage.from("Always respond in English, regardless of the request language."))
+        } else emptyList()
         val user = runBlocking { userPromptRepository.load() }
         val userMessages = if (user.isNotBlank()) listOf(SystemMessage.from(user)) else emptyList()
-        return listOf(env) + userMessages + loadPromptMessages()
+        return listOf(env) + english + userMessages + loadPromptMessages()
     }
 
     private fun loadPromptMessages(): List<SystemMessage> {
