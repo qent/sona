@@ -26,6 +26,13 @@ data class TokenUsageInfo(
         cacheCreationInputTokens + other.cacheCreationInputTokens,
         cacheReadInputTokens + other.cacheReadInputTokens,
     )
+
+    operator fun minus(other: TokenUsageInfo) = TokenUsageInfo(
+        outputTokens - other.outputTokens,
+        inputTokens - other.inputTokens,
+        cacheCreationInputTokens - other.cacheCreationInputTokens,
+        cacheReadInputTokens - other.cacheReadInputTokens,
+    )
 }
 
 /** Convert LangChain4j [TokenUsage] to [TokenUsageInfo]. */

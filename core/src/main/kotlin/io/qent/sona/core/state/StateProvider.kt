@@ -41,6 +41,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 import io.qent.sona.core.Logger
+import io.qent.sona.core.tokens.DefaultTokenCounter
 
 class StateProvider(
     presetsRepository: PresetsRepository,
@@ -95,6 +96,14 @@ class StateProvider(
         chatRepository,
         connectionErrorText,
     )
+    private val tokenCounter = DefaultTokenCounter()
+    private val systemMessageText = {
+        runBlocking {
+            val roles = rolesRepository.load()
+            val roleText = roles.roles[roles.active].text
+            (systemMessages() + SystemMessage.from(roleText)).joinToString("\n") { it.text() }
+        }
+    }
     private val chatController = ChatController(
         presetsRepository,
         chatRepository,
@@ -102,6 +111,8 @@ class StateProvider(
         chatStateFlow,
         chatAgentFactory,
         scope,
+        tokenCounter,
+        systemMessageText,
         log
     )
 

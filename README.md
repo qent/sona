@@ -200,11 +200,13 @@ data class Chat(
 `StateProvider` operate purely on Kotlin flows without any IntelliJ types.
 
 `tokenUsage` represents the cumulative input, output and cached tokens
-spent for all AI responses in the chat. Each AI message also
-stores its own token usage including cached tokens while user messages
-always record zeros. Providers that do not expose cache statistics
-simply report zero cached tokens. Removing messages does not affect the
-total usage stored for the chat.
+spent for the entire conversation. Every message stored in the chat
+(system, user, tool and AI) records its own token usage. Providers that
+do not expose cache statistics simply report zero cached tokens.
+Removing messages does not affect the total usage stored for the chat.
+Token counts are obtained via a pluggable `TokenCounter` interface that
+can use provider specific implementations such as the official
+Anthropic token counting API.
 
 Repositories for settings and chat history are declared as interfaces in
 `core` so that the UI module can provide IDE specific implementations.
