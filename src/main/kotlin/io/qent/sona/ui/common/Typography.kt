@@ -7,6 +7,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.sp
 import com.mikepenz.markdown.model.DefaultMarkdownColors
@@ -45,32 +46,50 @@ object Typography {
         h1 = TextStyle(
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
-            color = MarkdownDarkTextColor
+            color = MarkdownDarkTextColor,
+            lineHeight = 44.sp,
+            lineHeightStyle = LineHeightStyle(alignment = LineHeightStyle.Alignment.Proportional, trim = LineHeightStyle.Trim.None),
+            letterSpacing = 0.2.sp
         ),
         h2 = TextStyle(
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = MarkdownDarkTextColor
+            color = MarkdownDarkTextColor,
+            lineHeight = 40.sp,
+            lineHeightStyle = LineHeightStyle(alignment = LineHeightStyle.Alignment.Proportional, trim = LineHeightStyle.Trim.None),
+            letterSpacing = 0.2.sp
         ),
         h3 = TextStyle(
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = MarkdownDarkTextColor
+            color = MarkdownDarkTextColor,
+            lineHeight = 36.sp,
+            lineHeightStyle = LineHeightStyle(alignment = LineHeightStyle.Alignment.Proportional, trim = LineHeightStyle.Trim.None),
+            letterSpacing = 0.2.sp
         ),
         h4 = TextStyle(
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            color = MarkdownDarkTextColor
+            color = MarkdownDarkTextColor,
+            lineHeight = 32.sp,
+            lineHeightStyle = LineHeightStyle(alignment = LineHeightStyle.Alignment.Proportional, trim = LineHeightStyle.Trim.None),
+            letterSpacing = 0.15.sp
         ),
         h5 = TextStyle(
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
-            color = MarkdownDarkTextColor
+            color = MarkdownDarkTextColor,
+            lineHeight = 28.sp,
+            lineHeightStyle = LineHeightStyle(alignment = LineHeightStyle.Alignment.Proportional, trim = LineHeightStyle.Trim.None),
+            letterSpacing = 0.15.sp
         ),
         h6 = TextStyle(
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
-            color = MarkdownDarkTextColor
+            color = MarkdownDarkTextColor,
+            lineHeight = 24.sp,
+            lineHeightStyle = LineHeightStyle(alignment = LineHeightStyle.Alignment.Proportional, trim = LineHeightStyle.Trim.None),
+            letterSpacing = 0.15.sp
         ),
         text = TextStyle(
             fontSize = 14.sp,
@@ -136,12 +155,54 @@ object Typography {
     )
 
     val Light = DefaultMarkdownTypography(
-        h1 = TextStyle(fontSize = 28.sp, fontWeight = FontWeight.Bold, color = MarkdownLightTextColor),
-        h2 = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MarkdownLightTextColor),
-        h3 = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MarkdownLightTextColor),
-        h4 = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MarkdownLightTextColor),
-        h5 = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = MarkdownLightTextColor),
-        h6 = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MarkdownLightTextColor),
+        h1 = TextStyle(
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            color = MarkdownLightTextColor,
+            lineHeight = 44.sp,
+            lineHeightStyle = LineHeightStyle(alignment = LineHeightStyle.Alignment.Proportional, trim = LineHeightStyle.Trim.None),
+            letterSpacing = 0.2.sp
+        ),
+        h2 = TextStyle(
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = MarkdownLightTextColor,
+            lineHeight = 40.sp,
+            lineHeightStyle = LineHeightStyle(alignment = LineHeightStyle.Alignment.Proportional, trim = LineHeightStyle.Trim.None),
+            letterSpacing = 0.2.sp
+        ),
+        h3 = TextStyle(
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = MarkdownLightTextColor,
+            lineHeight = 36.sp,
+            lineHeightStyle = LineHeightStyle(alignment = LineHeightStyle.Alignment.Proportional, trim = LineHeightStyle.Trim.None),
+            letterSpacing = 0.2.sp
+        ),
+        h4 = TextStyle(
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = MarkdownLightTextColor,
+            lineHeight = 32.sp,
+            lineHeightStyle = LineHeightStyle(alignment = LineHeightStyle.Alignment.Proportional, trim = LineHeightStyle.Trim.None),
+            letterSpacing = 0.15.sp
+        ),
+        h5 = TextStyle(
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MarkdownLightTextColor,
+            lineHeight = 28.sp,
+            lineHeightStyle = LineHeightStyle(alignment = LineHeightStyle.Alignment.Proportional, trim = LineHeightStyle.Trim.None),
+            letterSpacing = 0.15.sp
+        ),
+        h6 = TextStyle(
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MarkdownLightTextColor,
+            lineHeight = 24.sp,
+            lineHeightStyle = LineHeightStyle(alignment = LineHeightStyle.Alignment.Proportional, trim = LineHeightStyle.Trim.None),
+            letterSpacing = 0.15.sp
+        ),
         text = TextStyle(fontSize = 14.sp, color = MarkdownLightTextColor),
         code = TextStyle(
             fontSize = 14.sp,

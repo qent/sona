@@ -55,7 +55,7 @@ fun ServersPanel(state: State.ServersState) {
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
                     style = SonaTheme.markdownTypography.h5
                 )
-                ActionButton(onClick = state.onReload, Modifier.padding(4.dp)) {
+                ActionButton(onClick = state.onReload, Modifier.padding(12.dp)) {
                     Text("\u27f3", Modifier.padding(4.dp), fontSize = 24.sp)
                 }
             }

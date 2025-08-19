@@ -81,8 +81,8 @@ fun CodeEditor(
         val factory = EditorFactory.getInstance()
         (factory.createEditor(document, project, fileType, true) as EditorEx).apply {
             settings.apply {
-                isLineNumbersShown     = false
-                isFoldingOutlineShown  = false
+                isLineNumbersShown     = true
+                isFoldingOutlineShown  = true
                 isIndentGuidesShown    = false
                 isRightMarginShown     = false
                 additionalColumnsCount = 0
@@ -97,8 +97,8 @@ fun CodeEditor(
 
     DisposableEffect(key1 = Unit) {
         onDispose {
-            val swingInteropViewGroup = editor.component.parent.parent
-            swingInteropViewGroup.parent.remove(swingInteropViewGroup)
+            val swingInteropViewGroup = editor.component.parent?.parent
+            swingInteropViewGroup?.parent?.remove(swingInteropViewGroup)
             EditorFactory.getInstance().releaseEditor(editor)
         }
     }
@@ -109,7 +109,7 @@ fun CodeEditor(
     }
 
     val heightPx = remember(editor.document.lineCount) {
-        min(editor.document.lineCount * 25f, 200.dp.value)
+        min((editor.document.lineCount + 1) * 23f, 200.dp.value)
     }
 
     SwingPanel(
@@ -130,8 +130,19 @@ fun CodeEditor(
                     override fun mouseClicked(e: MouseEvent?) {
                         onCopy()
                     }
+
+                    override fun mousePressed(e: MouseEvent?) {
+                        icon = IconLoader.getDisabledIcon(copyIcon)
+                        repaint()
+                    }
+                    
+                    override fun mouseReleased(e: MouseEvent?) {
+                        icon = copyIcon
+                        repaint()
+                    }
                 })
             }
+            
             val patchLabel = if (isPatch) {
                 val patchIcon = IconLoader.getIcon("/icons/applyPatch.svg", PluginStateFlow::class.java)
                 JLabel(patchIcon).apply {
@@ -142,6 +153,16 @@ fun CodeEditor(
                             val chatId = project.service<PluginStateFlow>().currentChatId()
                             project.service<PatchService>().createPatch(chatId, code)
                         }
+                        
+                        override fun mousePressed(e: MouseEvent?) {
+                            icon = IconLoader.getDisabledIcon(patchIcon)
+                            repaint()
+                        }
+                        
+                        override fun mouseReleased(e: MouseEvent?) {
+                            icon = patchIcon
+                            repaint()
+                        }
                     })
                 }
             } else null
@@ -149,11 +170,9 @@ fun CodeEditor(
             val overlayPanel = object : JPanel(null) {
                 override fun doLayout() {
                     super.doLayout()
-                    var x = width - 32
+                    val x = width - 32
                     copyLabel.setBounds(x, 4, 28, 28)
-                    if (patchLabel != null) {
-                        patchLabel.setBounds(x - 32, 4, 28, 28)
-                    }
+                    patchLabel?.setBounds(x - 32, 4, 28, 28)
                 }
             }.apply {
                 isOpaque = false
