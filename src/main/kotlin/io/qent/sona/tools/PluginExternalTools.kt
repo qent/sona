@@ -74,26 +74,13 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
         }
     }
 
-    override fun createPatch(chatId: String, patch: String): Int {
-        var id = 0
-        val runnable = {
-            id = project.service<PatchService>().createPatch(chatId, patch)
-        }
-        if (ApplicationManager.getApplication().isDispatchThread) {
-            runnable()
-        } else {
-            ApplicationManager.getApplication().invokeAndWait { runnable() }
-        }
-        return id
-    }
-
-    override fun applyPatch(chatId: String, patchId: Int): String {
+    override fun applyPatch(chatId: String, patch: String): String {
         val result = if (ApplicationManager.getApplication().isDispatchThread) {
-            project.service<PatchService>().applyPatch(chatId, patchId)
+            project.service<PatchService>().applyPatch(patch)
         } else {
             var success = false
             ApplicationManager.getApplication().invokeAndWait {
-                success = project.service<PatchService>().applyPatch(chatId, patchId)
+                success = project.service<PatchService>().applyPatch(patch)
             }
             success
         }

@@ -132,7 +132,6 @@ class PluginChatRepository : ChatRepository, PersistentStateComponent<PluginChat
 
     override suspend fun deleteChat(chatId: String) {
         state.chats.removeIf { it.id == chatId }
-        service<PatchStorage>().deletePatches(chatId)
     }
 
     override suspend fun deleteMessagesFrom(chatId: String, index: Int) {

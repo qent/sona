@@ -58,8 +58,8 @@ class ToolsInfoDecorator(
         return FileDependenciesInfo(info.path, deps)
     }
 
-    @Tool("Store a unified diff patch for later application and open a diff view. Returns patch id.")
-    override fun createPatch(patch: String): Int {
+    @Tool("Apply a unified diff patch")
+    override fun applyPatch(patch: String): String {
         val regex = Regex("^[-+]{3}\\s+(?:[ab]/)?(.+)", RegexOption.MULTILINE)
         val files = regex.findAll(patch).map { it.groupValues[1] }.toSet()
         for (file in files) {
@@ -67,12 +67,7 @@ class ToolsInfoDecorator(
                 throw IllegalArgumentException("Access to $file denied")
             }
         }
-        return externalTools.createPatch(chatStateFlow.currentState.chatId, patch)
-    }
-
-    @Tool("Apply previously stored patch by id")
-    override fun applyPatch(patchId: Int): String {
-        return externalTools.applyPatch(chatStateFlow.currentState.chatId, patchId)
+        return externalTools.applyPatch(chatStateFlow.currentState.chatId, patch)
     }
 
     override fun switchRole(name: String) = internalTools.switchRole(name)

@@ -9,5 +9,6 @@ data class Chat(
     val requestInProgress: Boolean = false,
     val isStreaming: Boolean = false,
     val toolRequest: String? = null,
+    val pendingPatch: String? = null,
     val autoApproveTools: Boolean = false,
 )

@@ -105,7 +105,7 @@ you switch to a different chat.
 Tool calls referenced by the model are hidden behind a gear icon in the top‑right corner of each AI message. Clicking the icon reveals the list of requested tools. When a tool starts running, the chat shows a dark terminal‑style bubble with animated dots that are replaced by the tool's output once it finishes.
 If the model message contains only a tool request, the chat displays a note like "Sona is calling tool '<tool>'" instead of an empty response.
 
-The available tools let the model read the focused file, read any file by absolute path and line range, list directory contents, run terminal commands from the project root, read terminal output, create unified diff patches for review and apply them later by id, and switch the active role between Architect and Code. Directory listings append "/" to folder names and include the first-level contents of each directory. File access is guarded by a permission system with a whitelist (project root by default) and a blacklist blocking sensitive files such as `.env`. Custom lists can be supplied by creating a `sona.json` file inside `.sona` in the project root:
+The available tools let the model read the focused file, read any file by absolute path and line range, list directory contents, run terminal commands from the project root, read terminal output, apply unified diff patches through `applyPatch`, and switch the active role between Architect and Code. Directory listings append "/" to folder names and include the first-level contents of each directory. File access is guarded by a permission system with a whitelist (project root by default) and a blacklist blocking sensitive files such as `.env`. Custom lists can be supplied by creating a `sona.json` file inside `.sona` in the project root:
 
 ```
 {
@@ -163,7 +163,7 @@ When hovering a user message, copy, edit, and delete icons appear beneath its bo
 The clipboard button copies the message text while the pencil icon removes that message and all following messages,
 then places the text into the input field for further editing.
 The trash icon simply removes the message and subsequent history from both the chat view and persistent history.
-AI and tool messages only expose the copy icon. Code blocks additionally show an **Apply patch** button that opens a diff view to review changes; the patch can then be applied through the chat.
+AI and tool messages only expose the copy icon. Code blocks additionally show an **Apply patch** button that opens a diff view to review changes; the patch can then be applied through the chat using the `applyPatch` tool.
 
 Chat messages are now selectable so you can highlight and copy any portion of
 the text directly. Code blocks render using the IDE editor component, providing

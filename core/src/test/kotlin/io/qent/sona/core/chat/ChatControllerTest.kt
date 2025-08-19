@@ -60,8 +60,7 @@ private class FakeChatRepository : ChatRepository {
 private class FakeTools : Tools {
     override fun getFocusedFileInfo() = FileStructureInfo("", emptyList(), 0)
     override fun getFileLines(path: String, fromLine: Int, toLine: Int) = ""
-    override fun createPatch(patch: String) = 0
-    override fun applyPatch(patchId: Int) = ""
+    override fun applyPatch(patch: String) = ""
     override fun switchRole(name: String) = ""
     override fun listPath(path: String) = DirectoryListing(emptyList(), emptyMap())
     override fun getFileDependencies(path: String) = FileDependenciesInfo(path, emptyList())
@@ -151,7 +150,7 @@ class ChatControllerTest {
         yield()
         deps.stateFlow.loadChat("1")
         channel.receive() // initial state
-        val executor = deps.permissionedToolExecutor.create("1", "m", "tool") { "done" }
+        val executor = deps.permissionedToolExecutor.create("1", "m") { "done" }
         val req = ToolExecutionRequest.builder().id("x").name("tool").arguments("{}" ).build()
         val deferred = async { executor.execute(req, null) }
         val toolState = withTimeout(1000) { channel.receive() }

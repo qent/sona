@@ -1,5 +1,6 @@
 package io.qent.sona.core.chat
 
+import com.google.gson.Gson
 import dev.langchain4j.agent.tool.ToolExecutionRequest
 import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.data.message.ToolExecutionResultMessage
@@ -28,16 +29,16 @@ class PermissionedToolExecutor(
         toolContinuation?.resume(ToolDecision(allow, always))
         toolContinuation = null
         log.log("emit: tool request = null")
-        chatStateFlow.emit(currentChatState.copy(toolRequest = null, requestInProgress = true))
+        chatStateFlow.emit(currentChatState.copy(toolRequest = null, pendingPatch = null, requestInProgress = true))
     }
 
     fun create(
         chatId: String,
         model: String,
-        name: String,
         run: (ToolExecutionRequest) -> String
     ) = ToolExecutor { request, memoryId ->
-        log.log("tool execute request: ${request.name()}")
+        val name = request.name()
+        log.log("tool execute request: $name")
         runBlocking {
             // fix empty lastAiMessage tools
             val messages = currentChatState.messages.toMutableList()
@@ -63,7 +64,7 @@ class PermissionedToolExecutor(
                 log.log("autoApproveTools = ${currentChatState.autoApproveTools} or tool allowed at chat")
                 ToolDecision(true, false)
             } else {
-                requestToolPermission(name)
+                requestToolPermission(request)
             }
         }
         log.log("tool decision: allow=${decision.allow} always=${decision.always}")
@@ -90,14 +91,26 @@ class PermissionedToolExecutor(
         } else "Tool execution cancelled"
     }
 
-    private suspend fun requestToolPermission(toolName: String): ToolDecision {
+    private val gson = Gson()
+
+    private suspend fun requestToolPermission(request: ToolExecutionRequest): ToolDecision {
+        val toolName = request.name()
         log.log("requestToolPermission: $toolName")
+        val patch = if (toolName == "applyPatch") {
+            try {
+                val args = gson.fromJson(request.arguments(), Map::class.java) as Map<*, *>
+                args["arg0"]?.toString()
+            } catch (_: Exception) {
+                null
+            }
+        } else null
         return suspendCancellableCoroutine { cont ->
             toolContinuation = cont
             log.log("emit: tool request = $toolName")
             chatStateFlow.emit(
                 currentChatState.copy(
                     toolRequest = toolName,
+                    pendingPatch = patch,
                     requestInProgress = false
                 )
             )
