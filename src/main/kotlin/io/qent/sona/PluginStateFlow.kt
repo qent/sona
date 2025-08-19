@@ -228,6 +228,10 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
                 }
             }
         }
+
+        val roleName = runBlocking { rolesRepository.load().let { it.roles[it.active].name } }
+        messages += loadProjectPromptMessages(project.basePath, roleName)
+
         if (isMemoryServerEnabled()) {
             this::class.java.classLoader.getResourceAsStream("prompts/memory_instructions.md")?.use {
                 messages += SystemMessage.from(it.reader().readText())
@@ -239,15 +243,6 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
     private fun isMemoryServerEnabled(): Boolean {
         val repo = project.service<PluginMcpServersRepository>()
         return runBlocking { repo.loadEnabled().contains("memory") }
-    }
-
-    private fun loadMessagesFromPath(path: Path): List<SystemMessage> {
-        val messages = mutableListOf<SystemMessage>()
-        Files.list(path).use { stream ->
-            stream.filter { Files.isRegularFile(it) && it.toString().endsWith(".md") }
-                .forEach { p -> messages += SystemMessage.from(Files.readString(p)) }
-        }
-        return messages
     }
 
     private fun environmentInfo(): String {
@@ -310,4 +305,28 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
         stateProvider.dispose()
         scope.cancel()
     }
+}
+
+internal fun loadMessagesFromPath(path: Path): List<SystemMessage> {
+    val messages = mutableListOf<SystemMessage>()
+    Files.list(path).use { stream ->
+        stream.filter { Files.isRegularFile(it) && it.toString().endsWith(".md") }
+            .forEach { p -> messages += SystemMessage.from(Files.readString(p)) }
+    }
+    return messages
+}
+
+internal fun loadProjectPromptMessages(basePath: String?, role: String): List<SystemMessage> {
+    val promptsDir = basePath?.let { Paths.get(it, ".sona", "prompts") } ?: return emptyList()
+    if (!Files.isDirectory(promptsDir)) return emptyList()
+
+    val messages = mutableListOf<SystemMessage>()
+    messages += loadMessagesFromPath(promptsDir)
+
+    val roleDir = promptsDir.resolve(role.lowercase())
+    if (Files.isDirectory(roleDir)) {
+        messages += loadMessagesFromPath(roleDir)
+    }
+
+    return messages
 }
