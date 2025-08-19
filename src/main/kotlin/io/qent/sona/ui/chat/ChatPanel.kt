@@ -1,5 +1,4 @@
 package io.qent.sona.ui.chat
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.*
@@ -18,10 +17,12 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.components.service
 import io.qent.sona.Strings
 import io.qent.sona.core.state.State.ChatState
 import io.qent.sona.core.state.UiMessage
 import io.qent.sona.ui.common.SonaTheme
+import io.qent.sona.services.PatchService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.ui.component.ActionButton
@@ -72,10 +73,22 @@ private fun Messages(
             ) {
                 val bottom: (@Composable () -> Unit)? = if (
                     message is UiMessage.Ai &&
-                    state.toolRequest &&
+                    state.toolRequest != null &&
                     index == state.messages.lastIndex
                 ) {
-                    @Composable { ToolPermissionButtons(state.onAllowTool, state.onAlwaysAllowTool, state.onDenyTool) }
+                    if (state.toolRequest == "applyPatch") {
+                        @Composable {
+                            PatchPermissionButtons(
+                                onApply = state.onAllowTool,
+                                onViewDiff = {
+                                    state.pendingPatch?.let { project.service<PatchService>().showPatchDiff(it) }
+                                },
+                                onCancel = state.onDenyTool
+                            )
+                        }
+                    } else {
+                        @Composable { ToolPermissionButtons(state.onAllowTool, state.onAlwaysAllowTool, state.onDenyTool) }
+                    }
                 } else null
 
                 if (message is UiMessage.Ai || message is UiMessage.User) {
@@ -135,6 +148,33 @@ private fun ToolPermissionButtons(
             }
             ActionButton(onClick = onAlways, modifier = Modifier.weight(2f)) {
                 Text(Strings.alwaysInThisChat)
+            }
+            ActionButton(onClick = onCancel, modifier = Modifier.weight(1f)) {
+                Text(Strings.cancel)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PatchPermissionButtons(
+    onApply: () -> Unit,
+    onViewDiff: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .padding(top = 2.dp)
+            .fillMaxWidth()
+            .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(4.dp))
+            .padding(2.dp)
+    ) {
+        Row(Modifier.fillMaxWidth()) {
+            ActionButton(onClick = onApply, modifier = Modifier.weight(1f)) {
+                Text(Strings.applyPatch, fontWeight = FontWeight.Bold)
+            }
+            ActionButton(onClick = onViewDiff, modifier = Modifier.weight(2f)) {
+                Text(Strings.viewDiff)
             }
             ActionButton(onClick = onCancel, modifier = Modifier.weight(1f)) {
                 Text(Strings.cancel)

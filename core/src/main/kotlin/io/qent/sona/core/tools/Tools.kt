@@ -7,8 +7,7 @@ import io.qent.sona.core.permissions.FileStructureInfo
 interface Tools : InternalTools {
     fun getFocusedFileInfo(): FileStructureInfo
     fun getFileLines(path: String, fromLine: Int, toLine: Int): String
-    fun createPatch(patch: String): Int
-    fun applyPatch(patchId: Int): String
+    fun applyPatch(patch: String): String
     fun listPath(path: String): DirectoryListing
     fun sendTerminalCommand(command: String): String
     fun readTerminalOutput(): String

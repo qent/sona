@@ -52,7 +52,7 @@ class ChatController(
         log.log("send: chatId=$chatId preset=${preset.model} text=$text")
 
         try {
-            var baseMessages = currentState.messages
+            val baseMessages = currentState.messages.toMutableList()
             var totalUsage = currentState.tokenUsage
 
             if (baseMessages.isEmpty()) {

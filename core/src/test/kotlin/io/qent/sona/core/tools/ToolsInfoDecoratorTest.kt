@@ -33,8 +33,7 @@ private class FakeExternalTools(
 ) : ExternalTools {
     override fun getFocusedFileInfo(): FileStructureInfo? = focused
     override fun getFileLines(path: String, fromLine: Int, toLine: Int): FileInfo? = files[path]
-    override fun createPatch(chatId: String, patch: String) = 0
-    override fun applyPatch(chatId: String, patchId: Int) = ""
+    override fun applyPatch(chatId: String, patch: String) = ""
     override fun listPath(path: String): DirectoryListing? = dirs[path]
     override fun sendTerminalCommand(command: String) = ""
     override fun readTerminalOutput() = ""

@@ -74,7 +74,6 @@
         <applicationService serviceImplementation="io.qent.sona.repositories.PluginRolesRepository"/>
         <applicationService serviceImplementation="io.qent.sona.repositories.PluginPresetsRepository"/>
         <applicationService serviceImplementation="io.qent.sona.repositories.PluginUserPromptRepository"/>
-        <applicationService serviceImplementation="io.qent.sona.repositories.PatchStorage"/>
         <applicationService serviceImplementation="io.qent.sona.services.ThemeService"/>
         <projectService serviceImplementation="io.qent.sona.repositories.PluginMcpServersRepository"/>
 

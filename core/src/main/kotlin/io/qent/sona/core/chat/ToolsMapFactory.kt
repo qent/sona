@@ -29,7 +29,7 @@ class ToolsMapFactory(
         } + mcpManager.listTools()
 
         return specifications.associateWith { spec: ToolSpecification ->
-            permissionedToolExecutor.create(chatStateFlow.currentState.chatId, preset.model, spec.name()) { req ->
+            permissionedToolExecutor.create(chatStateFlow.currentState.chatId, preset.model) { req ->
                 when (spec.name()) {
                     "getFocusedFileInfo" -> gson.toJson(tools.getFocusedFileInfo())
                     "getFileLines" -> {
@@ -68,15 +68,10 @@ class ToolsMapFactory(
                         tools.switchRole(name)
                     }
 
-                    "createPatch" -> {
-                        val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
-                        val patch = args["arg0"]?.toString() ?: return@create " Empty patch"
-                        tools.createPatch(patch).toString()
-                    }
                     "applyPatch" -> {
                         val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
-                        val id = (args["arg0"] as? Number)?.toInt() ?: return@create " Empty patch id"
-                        tools.applyPatch(id)
+                        val patch = args["arg0"]?.toString() ?: return@create " Empty patch"
+                        tools.applyPatch(patch)
                     }
 
                     else -> runBlocking {
