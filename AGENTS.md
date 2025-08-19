@@ -13,7 +13,8 @@
     the Roles screen. Each role has a name, a short description for tool usage,
     and a detailed system prompt. The default Architect and Code roles cannot be
     deleted.
-- LLM connection details are organised as presets via `PresetsRepository`. At least one preset must exist for the chat
+- LLM connection details are organised as presets via `PresetsRepository`. API keys are stored via the IDE password
+  store and never written to `presets.xml`. At least one preset must exist for the chat
   to work and they are managed from the Presets screen.
 - Supported LLM providers and models are defined in `core/src/main/resources/providers.json` so new options can be
   added without modifying the code. A `Custom OpenAI` provider is registered in code for manual model entry and
