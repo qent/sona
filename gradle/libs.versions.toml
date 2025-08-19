@@ -14,6 +14,7 @@ langchain4j_google_ai_gemini = "1.2.0"
 gson = "2.10.1"
 langchain4j_mcp = "1.0.0-beta5"
 langchain4j_http_client_jdk = "1.2.0"
+anthropic_java = "2.5.1"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -27,6 +28,8 @@ langchain4j-google-ai-gemini = { group = "dev.langchain4j", name = "langchain4j-
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 langchain4j-mcp = { group = "dev.langchain4j", name = "langchain4j-mcp", version.ref = "langchain4j_mcp" }
 langchain4j-http-client-jdk = { group = "dev.langchain4j", name = "langchain4j-http-client-jdk", version.ref = "langchain4j_http_client_jdk" }
+anthropic-java-core = { group = "com.anthropic", name = "anthropic-java-core", version.ref = "anthropic_java" }
+anthropic-java-client-okhttp = { group = "com.anthropic", name = "anthropic-java-client-okhttp", version.ref = "anthropic_java" }
 [plugins]
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
 intelliJPlatform = { id = "org.jetbrains.intellij.platform", version.ref = "intelliJPlatform" }

@@ -19,6 +19,7 @@ import io.qent.sona.core.permissions.DirectoryListing
 import io.qent.sona.core.permissions.FileStructureInfo
 import io.qent.sona.core.permissions.FileDependenciesInfo
 import io.qent.sona.core.tools.Tools
+import io.qent.sona.core.tokens.TokenCounter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.junit.Assert.assertEquals
@@ -42,6 +43,8 @@ private class FakeChatRepository : ChatRepository {
     override suspend fun createChat(): String = "1"
     override suspend fun addMessage(chatId: String, message: dev.langchain4j.data.message.ChatMessage, model: String, tokenUsage: TokenUsageInfo) {
         messages.getOrPut(chatId) { mutableListOf() }.add(ChatRepositoryMessage(chatId, message, model, tokenUsage))
+        val current = usage[chatId] ?: TokenUsageInfo()
+        usage[chatId] = current + tokenUsage
     }
     override suspend fun loadMessages(chatId: String) = messages[chatId] ?: emptyList()
     override suspend fun loadTokenUsage(chatId: String) = usage[chatId] ?: TokenUsageInfo()
@@ -100,7 +103,8 @@ private fun buildChatController(repo: FakeChatRepository): ChatDeps {
     val permissioned = PermissionedToolExecutor(stateFlow, repo)
     val toolsMapFactory = ToolsMapFactory(stateFlow, tools, mcpManager, permissioned, rolesRepo, presetsRepo)
     val agentFactory = ChatAgentFactory({ throw UnsupportedOperationException() }, { emptyList() }, toolsMapFactory, presetsRepo, rolesRepo, repo, "error")
-    val controller = ChatController(presetsRepo, repo, settingsRepo, stateFlow, agentFactory, scope)
+    val tokenCounter = object : TokenCounter { override suspend fun count(text: String, preset: Preset) = 0 }
+    val controller = ChatController(presetsRepo, repo, settingsRepo, stateFlow, agentFactory, scope, tokenCounter, { "" })
     return ChatDeps(controller, stateFlow, permissioned, scope, mcpManager)
 }
 
