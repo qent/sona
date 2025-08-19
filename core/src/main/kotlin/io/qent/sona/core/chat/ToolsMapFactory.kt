@@ -40,12 +40,6 @@ class ToolsMapFactory(
                         tools.getFileLines(path, from, to)
                     }
 
-                    "readFile" -> {
-                        val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
-                        val path = args["arg0"]?.toString() ?: return@create "Empty file path"
-                        tools.readFile(path)
-                    }
-
                     "listPath" -> {
                         val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
                         val path = args["arg0"]?.toString() ?: return@create "Empty path"

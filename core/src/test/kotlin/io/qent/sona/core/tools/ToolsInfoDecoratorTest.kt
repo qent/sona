@@ -33,7 +33,6 @@ private class FakeExternalTools(
 ) : ExternalTools {
     override fun getFocusedFileInfo(): FileStructureInfo? = focused
     override fun getFileLines(path: String, fromLine: Int, toLine: Int): FileInfo? = files[path]
-    override fun readFile(path: String): FileInfo? = files[path]
     override fun createPatch(chatId: String, patch: String) = 0
     override fun applyPatch(chatId: String, patchId: Int) = ""
     override fun listPath(path: String): DirectoryListing? = dirs[path]
@@ -71,18 +70,18 @@ class ToolsInfoDecoratorTest {
         val repo = StubRepository(listOf(".*"), emptyList())
         val manager = FilePermissionManager(repo)
         val elem = FileElement("C", FileElementType.CLASS, true, 1 to 2)
-        val info = FileStructureInfo("/a", listOf(elem))
+        val info = FileStructureInfo("/a", listOf(elem), 10)
         val decorator = ToolsInfoDecorator(testChatStateFlow(), FakeInternalTools(), FakeExternalTools(info, emptyMap()), manager)
         assertEquals(info, decorator.getFocusedFileInfo())
     }
 
     @Test
-    fun `readFile denies access when not whitelisted`() {
+    fun `getFileLines denies access when not whitelisted`() {
         val repo = StubRepository(emptyList(), emptyList())
         val manager = FilePermissionManager(repo)
         val info = FileInfo("/secret", "pw")
         val decorator = ToolsInfoDecorator(testChatStateFlow(), FakeInternalTools(), FakeExternalTools(null, mapOf("/secret" to info)), manager)
-        assertEquals("Access to /secret denied", decorator.readFile("/secret"))
+        assertEquals("Access to /secret denied", decorator.getFileLines("/secret", 1, 2))
     }
 
     @Test
@@ -94,11 +93,11 @@ class ToolsInfoDecoratorTest {
     }
 
     @Test
-    fun `readFile returns message when file not found`() {
+    fun `getFileLines returns message when file not found`() {
         val repo = StubRepository(listOf(".*"), emptyList())
         val manager = FilePermissionManager(repo)
         val decorator = ToolsInfoDecorator(testChatStateFlow(), FakeInternalTools(), FakeExternalTools(null, emptyMap()), manager)
-        assertEquals("File not found", decorator.readFile("/missing"))
+        assertEquals("File not found", decorator.getFileLines("/missing", 1, 2))
     }
 
     @Test
