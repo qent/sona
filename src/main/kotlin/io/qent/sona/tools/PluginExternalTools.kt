@@ -57,7 +57,7 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
                 }
             }
             val elements = provider?.collect(psiFile, document).orEmpty()
-            FileStructureInfo(file.path, elements)
+            FileStructureInfo(file.path, elements, document.lineCount)
         }
     }
 
@@ -68,16 +68,6 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
             val start = fromLine.coerceAtLeast(1) - 1
             val end = toLine.coerceAtMost(lines.size)
             val content = if (start < end) lines.subList(start, end).joinToString("\n") else ""
-            FileInfo(p.toAbsolutePath().toString(), content)
-        } catch (_: Exception) {
-            null
-        }
-    }
-
-    override fun readFile(path: String): FileInfo? {
-        return try {
-            val p = Paths.get(path)
-            val content = Files.readString(p)
             FileInfo(p.toAbsolutePath().toString(), content)
         } catch (_: Exception) {
             null

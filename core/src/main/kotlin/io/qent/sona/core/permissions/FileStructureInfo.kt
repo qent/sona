@@ -3,6 +3,7 @@ package io.qent.sona.core.permissions
 data class FileStructureInfo(
     val path: String,
     val elements: List<FileElement>,
+    val lineCount: Int,
 )
 
 data class FileElement(

@@ -8,7 +8,6 @@ import io.qent.sona.core.permissions.FileStructureInfo
 interface ExternalTools {
     fun getFocusedFileInfo(): FileStructureInfo?
     fun getFileLines(path: String, fromLine: Int, toLine: Int): FileInfo?
-    fun readFile(path: String): FileInfo?
     fun createPatch(chatId: String, patch: String): Int
     fun applyPatch(chatId: String, patchId: Int): String
     fun listPath(path: String): DirectoryListing?

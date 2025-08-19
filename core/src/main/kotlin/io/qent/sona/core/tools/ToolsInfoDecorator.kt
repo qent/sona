@@ -18,19 +18,13 @@ class ToolsInfoDecorator(
 
     @Tool("Return structure of file opened at current focused editor")
     override fun getFocusedFileInfo(): FileStructureInfo {
-        val info = externalTools.getFocusedFileInfo() ?: return FileStructureInfo("", emptyList())
-        return if (filePermissionManager.isFileAllowed(info.path)) info else FileStructureInfo("", emptyList())
+        val info = externalTools.getFocusedFileInfo() ?: return FileStructureInfo("", emptyList(), 0)
+        return if (filePermissionManager.isFileAllowed(info.path)) info else FileStructureInfo("", emptyList(), 0)
     }
 
     @Tool("Return content of file at given absolute path and line range")
     override fun getFileLines(path: String, fromLine: Int, toLine: Int): String {
         val fileInfo = externalTools.getFileLines(path, fromLine, toLine) ?: return "File not found"
-        return filePermissionManager.getFileContent(fileInfo)
-    }
-
-    @Tool("Return content of file at given absolute path")
-    override fun readFile(path: String): String {
-        val fileInfo = externalTools.readFile(path) ?: return "File not found"
         return filePermissionManager.getFileContent(fileInfo)
     }
 

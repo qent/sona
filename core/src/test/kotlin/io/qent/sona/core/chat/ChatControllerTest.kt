@@ -58,9 +58,8 @@ private class FakeChatRepository : ChatRepository {
 }
 
 private class FakeTools : Tools {
-    override fun getFocusedFileInfo() = FileStructureInfo("", emptyList())
+    override fun getFocusedFileInfo() = FileStructureInfo("", emptyList(), 0)
     override fun getFileLines(path: String, fromLine: Int, toLine: Int) = ""
-    override fun readFile(path: String) = ""
     override fun createPatch(patch: String) = 0
     override fun applyPatch(patchId: Int) = ""
     override fun switchRole(name: String) = ""
