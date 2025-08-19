@@ -52,7 +52,8 @@ task..." prompt. Once messages are present, the placeholder becomes
 
 ## Presets
 
-LLM credentials are stored as presets. Each preset defines the provider, model,
+LLM credentials are stored as presets. API tokens are kept in the IDE password
+store rather than `presets.xml`. Each preset defines the provider, model,
 API endpoint and token. Manage presets from the Presets screen opened via the
 tool window actions. At least one preset must exist for the chat to function.
 Supported providers and their models are listed in `core/src/main/resources/providers.json`

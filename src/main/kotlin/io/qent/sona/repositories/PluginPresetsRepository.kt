@@ -1,10 +1,12 @@
 package io.qent.sona.repositories
 
+import com.intellij.credentialStore.CredentialAttributes
+import com.intellij.credentialStore.generateServiceName
+import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
-import io.qent.sona.core.presets.LlmProvider
 import io.qent.sona.core.presets.LlmProviders
 import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.presets.Presets
@@ -20,7 +22,6 @@ class PluginPresetsRepository : PresetsRepository,
         var provider: String = LlmProviders.default.name,
         var apiEndpoint: String = LlmProviders.default.defaultEndpoint,
         var model: String = LlmProviders.default.models.first().name,
-        var apiKey: String = "",
     )
 
     data class PluginPresetsState(
@@ -37,14 +38,16 @@ class PluginPresetsRepository : PresetsRepository,
     }
 
     override suspend fun load(): Presets {
+        val passwordSafe = PasswordSafe.instance
         val presets = state.presets.map { stored ->
             val provider = LlmProviders.find(stored.provider) ?: LlmProviders.default
+            val apiKey = passwordSafe.getPassword(credentials(stored.name)) ?: ""
             Preset(
                 stored.name,
                 provider,
                 stored.apiEndpoint.ifEmpty { provider.defaultEndpoint },
                 stored.model.ifEmpty { provider.models.firstOrNull()?.name ?: "" },
-                stored.apiKey,
+                apiKey,
             )
         }
         val active = state.active.coerceIn(0, (presets.size - 1).coerceAtLeast(0))
@@ -52,6 +55,18 @@ class PluginPresetsRepository : PresetsRepository,
     }
 
     override suspend fun save(presets: Presets) {
+        val passwordSafe = PasswordSafe.instance
+
+        val existingNames = state.presets.map { it.name }.toSet()
+        val newNames = presets.presets.map { it.name }.toSet()
+        for (deleted in existingNames - newNames) {
+            passwordSafe.setPassword(credentials(deleted), null)
+        }
+
+        presets.presets.forEach { preset ->
+            passwordSafe.setPassword(credentials(preset.name), preset.apiKey)
+        }
+
         state = PluginPresetsState(
             active = presets.active,
             presets = presets.presets.map {
@@ -60,10 +75,12 @@ class PluginPresetsRepository : PresetsRepository,
                     provider = it.provider.name,
                     apiEndpoint = it.apiEndpoint,
                     model = it.model,
-                    apiKey = it.apiKey,
                 )
             }.toMutableList()
         )
     }
+
+    private fun credentials(name: String): CredentialAttributes =
+        CredentialAttributes(generateServiceName("Sona Preset", name))
 }
 
