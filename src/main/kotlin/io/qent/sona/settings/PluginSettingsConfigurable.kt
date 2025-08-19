@@ -19,6 +19,7 @@ import org.jetbrains.jewel.ui.component.TextField
 class PluginSettingsConfigurable : Configurable {
 
     private val repo = service<PluginSettingsRepository>()
+    private var currentAnswerInEnglish = repo.state.answerInEnglish
     private var currentIgnoreHttpsErrors = repo.state.ignoreHttpsErrors
     private var currentEnablePluginLogging = repo.state.enablePluginLogging
     private var currentCacheSystemPrompts = repo.state.cacheSystemPrompts
@@ -28,11 +29,13 @@ class PluginSettingsConfigurable : Configurable {
     override fun createComponent() = JewelComposePanel {
         val themeService = service<ThemeService>()
         val dark by themeService.isDark.collectAsState()
+        var answerInEnglish by remember { mutableStateOf(currentAnswerInEnglish) }
         var ignoreHttps by remember { mutableStateOf(currentIgnoreHttpsErrors) }
         var enableLogging by remember { mutableStateOf(currentEnablePluginLogging) }
         var cacheSystemPrompts by remember { mutableStateOf(currentCacheSystemPrompts) }
         var cacheToolDescriptions by remember { mutableStateOf(currentCacheToolDescriptions) }
         val apiRetriesState = rememberTextFieldState(currentApiRetries.toString())
+        LaunchedEffect(answerInEnglish) { currentAnswerInEnglish = answerInEnglish }
         LaunchedEffect(ignoreHttps) { currentIgnoreHttpsErrors = ignoreHttps }
         LaunchedEffect(enableLogging) { currentEnablePluginLogging = enableLogging }
         LaunchedEffect(cacheSystemPrompts) { currentCacheSystemPrompts = cacheSystemPrompts }
@@ -43,6 +46,12 @@ class PluginSettingsConfigurable : Configurable {
         SonaTheme(dark = dark) {
             Column(modifier = Modifier.width(600.dp).padding(16.dp)) {
                 Text(Strings.pluginSettings)
+                Spacer(Modifier.height(8.dp))
+                Row {
+                    Checkbox(checked = answerInEnglish, onCheckedChange = { answerInEnglish = it })
+                    Spacer(Modifier.width(8.dp))
+                      Text(Strings.answerInEnglish)
+                }
                 Spacer(Modifier.height(8.dp))
                 Row {
                     Checkbox(checked = ignoreHttps, onCheckedChange = { ignoreHttps = it })
@@ -81,7 +90,8 @@ class PluginSettingsConfigurable : Configurable {
 
     override fun isModified(): Boolean {
         val saved = repo.state
-        return currentIgnoreHttpsErrors != saved.ignoreHttpsErrors ||
+        return currentAnswerInEnglish != saved.answerInEnglish ||
+            currentIgnoreHttpsErrors != saved.ignoreHttpsErrors ||
             currentEnablePluginLogging != saved.enablePluginLogging ||
             currentCacheSystemPrompts != saved.cacheSystemPrompts ||
             currentCacheToolDescriptions != saved.cacheToolDescriptions ||
@@ -96,6 +106,7 @@ class PluginSettingsConfigurable : Configurable {
                 currentCacheSystemPrompts,
                 currentCacheToolDescriptions,
                 currentApiRetries,
+                currentAnswerInEnglish,
             )
         )
     }

@@ -6,4 +6,5 @@ data class Settings(
     val cacheToolDescriptions: Boolean,
     val apiRetries: Int,
     val enablePluginLogging: Boolean,
+    val answerInEnglish: Boolean,
 )

@@ -19,7 +19,7 @@
 - Supported LLM providers and models are defined in `core/src/main/resources/providers.json` so new options can be
   added without modifying the code. A `Custom OpenAI` provider is registered in code for manual model entry and
   always reports zero token cost.
-- Plugin settings contain "Ignore HTTPS errors" and "Enable plugin logging" flags
+- Plugin settings contain "Answer in English", "Ignore HTTPS errors" and "Enable plugin logging" flags
   and an "Anthropic Settings" section to cache system prompts and tool descriptions
   in requests.
 - Plugin settings also provide a global "LLM API retries" field controlling how

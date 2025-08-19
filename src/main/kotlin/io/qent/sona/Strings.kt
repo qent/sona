@@ -51,6 +51,7 @@ object Strings {
     val editConfiguration: String get() = bundle.getString("editConfiguration")
     val pluginSettings: String get() = bundle.getString("pluginSettings")
     val ignoreHttpsErrors: String get() = bundle.getString("ignoreHttpsErrors")
+    val answerInEnglish: String get() = bundle.getString("answerInEnglish")
     val enablePluginLogging: String get() = bundle.getString("enablePluginLogging")
     val anthropicSettings: String get() = bundle.getString("anthropicSettings")
     val cacheSystemPrompts: String get() = bundle.getString("cacheSystemPrompts")

@@ -18,6 +18,7 @@ class PluginSettingsRepository :
         var cacheSystemPrompts: Boolean = true,
         var cacheToolDescriptions: Boolean = true,
         var apiRetries: Int = 0,
+        var answerInEnglish: Boolean = true,
     )
 
     private var pluginSettingsState = PluginSettingsState()
@@ -34,5 +35,6 @@ class PluginSettingsRepository :
         pluginSettingsState.cacheToolDescriptions,
         pluginSettingsState.apiRetries,
         pluginSettingsState.enablePluginLogging,
+        pluginSettingsState.answerInEnglish,
     )
 }
