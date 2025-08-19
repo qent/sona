@@ -41,6 +41,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 import io.qent.sona.core.Logger
+import io.qent.sona.core.data.SearchResult
+import io.qent.sona.core.search.SearchAgentFactory
 import io.qent.sona.core.tokens.DefaultTokenCounter
 
 class StateProvider(
@@ -66,6 +68,17 @@ class StateProvider(
                 rolesListInteractor.selectRole(name)
             }
             return "$name role active"
+        }
+
+        override fun search(searchRequest: String): List<SearchResult> = runBlocking {
+            val searchAgentResponse = SearchAgentFactory(
+                modelFactory,
+                presetsRepository.load().let { presets ->
+                    presets.presets[presets.active]
+                }
+            ).create().chat(searchRequest)
+            TODO("Convert searchAgentResponse to the List<SearchResult>")
+            emptyList()
         }
     }
     val chatStateFlow = ChatStateFlow(chatRepository)

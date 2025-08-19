@@ -1,5 +1,7 @@
 package io.qent.sona.core.permissions
 
+import io.qent.sona.core.data.FileLines
+
 class FilePermissionManager(
     private val repository: FilePermissionsRepository,
 ) {
@@ -10,7 +12,7 @@ class FilePermissionManager(
         return whitelisted && !blacklisted
     }
 
-    fun getFileContent(fileInfo: FileInfo): String {
+    fun getFileContent(fileInfo: FileLines): String {
         val path = fileInfo.path
         return if (isFileAllowed(path)) {
             fileInfo.content

@@ -13,17 +13,15 @@ import com.intellij.psi.PsiManager
 import com.intellij.terminal.JBTerminalWidget
 import com.intellij.terminal.ui.TerminalWidget
 import io.qent.sona.Strings
-import io.qent.sona.core.permissions.DirectoryListing
-import io.qent.sona.core.permissions.FileDependenciesInfo
-import io.qent.sona.core.permissions.FileInfo
-import io.qent.sona.core.permissions.FileStructureInfo
+import io.qent.sona.core.data.DirectoryListing
+import io.qent.sona.core.data.FileDependenciesInfo
+import io.qent.sona.core.data.FileLines
+import io.qent.sona.core.data.FileStructureInfo
 import io.qent.sona.core.tools.ExternalTools
 import io.qent.sona.services.PatchService
 import io.qent.sona.tools.dependencies.JavaFileDependenciesProvider
 import io.qent.sona.tools.dependencies.KotlinFileDependenciesProvider
 import io.qent.sona.tools.structure.*
-import kotlinx.coroutines.flow.lastOrNull
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.plugins.terminal.TerminalToolWindowManager
 import java.nio.file.Files
@@ -61,14 +59,13 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
         }
     }
 
-    override fun getFileLines(path: String, fromLine: Int, toLine: Int): FileInfo? {
+    override fun getFileLines(path: String, fromLine: Int, toLine: Int): String? {
         return try {
             val p = Paths.get(path)
             val lines = Files.readAllLines(p)
             val start = fromLine.coerceAtLeast(1) - 1
             val end = toLine.coerceAtMost(lines.size)
-            val content = if (start < end) lines.subList(start, end).joinToString("\n") else ""
-            FileInfo(p.toAbsolutePath().toString(), content)
+            return if (start < end) lines.subList(start, end).joinToString("\n") else ""
         } catch (_: Exception) {
             null
         }
@@ -125,6 +122,18 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
             val deps = provider.collect(psiFile)
             FileDependenciesInfo(path, deps)
         }
+    }
+
+    override fun findFilesByNames(pattern: String, offset: Int, limit: Int): List<String> {
+        TODO("Return list of files paths search results by pattern")
+    }
+
+    override fun findClasses(pattern: String, offset: Int, limit: Int): List<FileStructureInfo> {
+        TODO("Return list of FileStructureInfo of classes founded by search by pattern")
+    }
+
+    override fun findText(pattern: String, offset: Int, limit: Int): Map<String, Map<Int, String>> {
+        TODO("Return map of files path to lines numbers with lines content of search by pattern")
     }
 
     private fun getTerminal(): TerminalWidget {

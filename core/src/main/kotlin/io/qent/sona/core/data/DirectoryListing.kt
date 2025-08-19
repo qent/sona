@@ -1,4 +1,4 @@
-package io.qent.sona.core.permissions
+package io.qent.sona.core.data
 
 data class DirectoryListing(
     val items: List<String>,

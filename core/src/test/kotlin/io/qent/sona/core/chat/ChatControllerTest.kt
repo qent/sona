@@ -15,9 +15,9 @@ import io.qent.sona.core.roles.Roles
 import io.qent.sona.core.roles.RolesRepository
 import io.qent.sona.core.settings.Settings
 import io.qent.sona.core.settings.SettingsRepository
-import io.qent.sona.core.permissions.DirectoryListing
-import io.qent.sona.core.permissions.FileStructureInfo
-import io.qent.sona.core.permissions.FileDependenciesInfo
+import io.qent.sona.core.data.DirectoryListing
+import io.qent.sona.core.data.FileStructureInfo
+import io.qent.sona.core.data.FileDependenciesInfo
 import io.qent.sona.core.tools.Tools
 import io.qent.sona.core.tokens.TokenCounter
 import kotlinx.coroutines.*

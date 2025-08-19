@@ -2,7 +2,7 @@ package io.qent.sona.tools.dependencies
 
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiFile
-import io.qent.sona.core.permissions.FileDependency
+import io.qent.sona.core.data.FileDependency
 import org.jetbrains.kotlin.psi.*
 
 class KotlinFileDependenciesProvider : FileDependenciesProvider {

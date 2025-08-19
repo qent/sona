@@ -1,10 +1,10 @@
 package io.qent.sona.core.tools
 
 import dev.langchain4j.agent.tool.Tool
-import io.qent.sona.core.permissions.DirectoryListing
+import io.qent.sona.core.data.DirectoryListing
 import io.qent.sona.core.permissions.FilePermissionManager
-import io.qent.sona.core.permissions.FileDependenciesInfo
-import io.qent.sona.core.permissions.FileStructureInfo
+import io.qent.sona.core.data.FileDependenciesInfo
+import io.qent.sona.core.data.FileStructureInfo
 import java.nio.file.Paths
 
 import io.qent.sona.core.chat.ChatStateFlow
@@ -71,6 +71,9 @@ class ToolsInfoDecorator(
     }
 
     override fun switchRole(name: String) = internalTools.switchRole(name)
+
+    @Tool("Search the project using a free-text query. You can search by class/type name, plain text, file name, path/glob fragment, or a regex-like pattern in file contents or paths. Returns matching files (with structure info) and the set of matched line numbers per file.")
+    override fun search(searchRequest: String) = internalTools.search(searchRequest)
 
     @Tool("Execute a command in the IDE terminal")
     override fun sendTerminalCommand(command: String): String = externalTools.sendTerminalCommand(command)

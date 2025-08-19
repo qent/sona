@@ -1,4 +1,4 @@
-package io.qent.sona.core.permissions
+package io.qent.sona.core.data
 
 /** Information about dependencies of a file. */
 data class FileDependenciesInfo(

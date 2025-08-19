@@ -1,8 +1,8 @@
 package io.qent.sona.core.tools
 
-import io.qent.sona.core.permissions.DirectoryListing
-import io.qent.sona.core.permissions.FileDependenciesInfo
-import io.qent.sona.core.permissions.FileStructureInfo
+import io.qent.sona.core.data.DirectoryListing
+import io.qent.sona.core.data.FileDependenciesInfo
+import io.qent.sona.core.data.FileStructureInfo
 
 interface Tools : InternalTools {
     fun getFocusedFileInfo(): FileStructureInfo
