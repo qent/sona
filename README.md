@@ -38,8 +38,9 @@ under the message input. The text of the active role is sent as a system message
 with every request but is not stored in the chat history. Every request is also
 prefixed with a system message summarizing
 the current environment (OS, IDE, Java, Python, Node.js versions, project root path, file extension
-statistics and build systems). On startup the plugin also reads any `.md` files in
-`src/main/resources/prompts` and appends their text as additional system messages.
+statistics and build systems). The plugin also reads any `.md` files in `src/main/resources/prompts`.
+Projects can provide their own prompts under `.sona/prompts` (for all roles) and `.sona/prompts/{role}`
+matching the active role name in lowercase; these files are appended as additional system messages.
 A user-specific system prompt can be edited from the toolbar and is included with every request when set.
 
 Models can also switch roles themselves using a tool that selects a role by name.
