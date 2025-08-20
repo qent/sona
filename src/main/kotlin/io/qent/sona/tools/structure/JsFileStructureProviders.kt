@@ -34,21 +34,21 @@ abstract class AbstractJsFileStructureProvider : FileStructureProvider {
                 val name = elem.javaClass.getMethod("getName").invoke(elem) as? String ?: return@forEach
                 val start = document.getLineNumber(elem.textRange.startOffset) + 1
                 val end = document.getLineNumber(elem.textRange.endOffset) + 1
-                elements.add(FileElement(name, FileElementType.CLASS, isPublic(elem), start to end))
+                elements.add(FileElement(name, FileElementType.CLASS, isPublic(elem), listOf(start, end)))
             }
 
             PsiTreeUtil.collectElementsOfType(psiFile, jsFunctionClass).forEach { elem ->
                 val name = elem.javaClass.getMethod("getName").invoke(elem) as? String ?: return@forEach
                 val start = document.getLineNumber(elem.textRange.startOffset) + 1
                 val end = document.getLineNumber(elem.textRange.endOffset) + 1
-                elements.add(FileElement(name, FileElementType.METHOD, isPublic(elem), start to end))
+                elements.add(FileElement(name, FileElementType.METHOD, isPublic(elem), listOf(start, end)))
             }
 
             PsiTreeUtil.collectElementsOfType(psiFile, jsFieldClass).forEach { elem ->
                 val name = elem.javaClass.getMethod("getName").invoke(elem) as? String ?: return@forEach
                 val start = document.getLineNumber(elem.textRange.startOffset) + 1
                 val end = document.getLineNumber(elem.textRange.endOffset) + 1
-                elements.add(FileElement(name, FileElementType.FIELD, isPublic(elem), start to end))
+                elements.add(FileElement(name, FileElementType.FIELD, isPublic(elem), listOf(start, end)))
             }
 
             elements

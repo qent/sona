@@ -20,30 +20,20 @@ Tools:
 
 Output: only JSON representing `List<SearchResult>` (top-level raw JSON array). No other text, comments, or Markdown (no code fences). Each `SearchResult` object is
 Example (for illustration only; DO NOT include code fences in your output):
-{
-  "files": [
-    {
-      "path": "/abs/path",
-      "elements": [
-        {"name": "MyClass", "type": "CLASS|INTERFACE|OBJECT|ENUM|METHOD|FIELD", "public": true, "lines": [1,10]}
-      ],
-      "lineCount": 123
-    }
-  ],
-  "matchedLines": {"/abs/path": [3,7]}
-}
-{
-  "files": [
-    {
-      "path": "/abs/path",
-      "elements": [
-        {"name": "MyClass", "type": "CLASS|INTERFACE|OBJECT|ENUM|METHOD|FIELD", "public": true, "lines": [1,10]}
-      ],
-      "lineCount": 123
-    }
-  ],
-  "matchedLines": {"/abs/path": [3,7]}
-}
+[
+  {
+    "files": [
+      {
+        "path": "/abs/path",
+        "elements": [
+          {"name": "MyClass", "type": "CLASS|INTERFACE|OBJECT|ENUM|METHOD|FIELD", "public": true, "lines": [1,10]}
+        ],
+        "lineCount": 123
+      }
+    ],
+    "matchedLines": {"/abs/path": [3,7]}
+  }
+]
 
 Output: JSON Schema
 JsonSchema { 
@@ -83,27 +73,11 @@ JsonSchema {
                                         public = JsonBooleanSchema {
                                             description = "Whether the element is public"
                                         }
-                                        lines = JsonObjectSchema {
+                                        lines = JsonArraySchema {
                                             description = "Start and end line numbers (1-based)"
-                                            properties = {
-                                                first = JsonObjectSchema {
-                                                    description = null
-                                                    properties = {}
-                                                    required = []
-                                                    additionalProperties = null
-                                                    definitions = {}
-                                                }
-                                                second = JsonObjectSchema {
-                                                    description = null
-                                                    properties = {}
-                                                    required = []
-                                                    additionalProperties = null
-                                                    definitions = {}
-                                                }
+                                            items = JsonIntegerSchema {
+                                                description = null
                                             }
-                                            required = []
-                                            additionalProperties = null
-                                            definitions = {}
                                         }
                                     }
                                     required = []

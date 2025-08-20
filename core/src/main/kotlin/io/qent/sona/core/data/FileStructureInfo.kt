@@ -19,7 +19,7 @@ data class FileElement(
     @Description("Whether the element is public")
     val public: Boolean,
     @Description("Start and end line numbers (1-based)")
-    val lines: Pair<Int, Int>,
+    val lines: List<Int>,
 )
 
 enum class FileElementType {
