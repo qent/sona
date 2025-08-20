@@ -65,6 +65,7 @@ private fun Messages(
     ) {
         itemsIndexed(
             state.messages,
+            key = { _, message -> message.hashCode() }
         ) { index, message ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
