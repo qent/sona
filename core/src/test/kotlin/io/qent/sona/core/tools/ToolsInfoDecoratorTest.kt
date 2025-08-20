@@ -6,6 +6,7 @@ import io.qent.sona.core.data.FileElementType
 import io.qent.sona.core.data.FileLines
 import io.qent.sona.core.permissions.FilePermissionManager
 import io.qent.sona.core.permissions.FilePermissionsRepository
+import io.qent.sona.core.data.SearchResult
 import io.qent.sona.core.data.FileDependenciesInfo
 import io.qent.sona.core.data.FileStructureInfo
 import io.qent.sona.core.chat.Chat
@@ -36,11 +37,15 @@ private class FakeExternalTools(
     override fun sendTerminalCommand(command: String) = ""
     override fun readTerminalOutput() = ""
     override fun getFileDependencies(path: String): FileDependenciesInfo? = null
+    override fun findFilesByNames(pattern: String, offset: Int, limit: Int) = emptyList<String>()
+    override fun findClasses(pattern: String, offset: Int, limit: Int) = emptyList<FileStructureInfo>()
+    override fun findText(pattern: String, offset: Int, limit: Int) = emptyMap<String, Map<Int, String>>()
 }
 
 private class FakeInternalTools : InternalTools {
     var last: String? = null
     override fun switchRole(name: String): String { last = name; return name }
+    override fun search(searchRequest: String) = emptyList<SearchResult>()
 }
 
 private fun testChatStateFlow(): ChatStateFlow {

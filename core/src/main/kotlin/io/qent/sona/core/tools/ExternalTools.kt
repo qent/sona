@@ -13,7 +13,7 @@ interface ExternalTools {
     // for search agent
     fun listPath(path: String): DirectoryListing?
     fun getFocusedFileInfo(): FileStructureInfo?
-    fun getFileLines(path: String, fromLine: Int, toLine: Int): String?
+    fun getFileLines(path: String, fromLine: Int, toLine: Int): FileLines?
     fun getFileDependencies(path: String): FileDependenciesInfo?
 
     fun findFilesByNames(pattern: String, offset: Int = 0, limit: Int = 3): List<String>

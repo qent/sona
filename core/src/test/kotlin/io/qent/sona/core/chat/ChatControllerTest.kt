@@ -18,6 +18,7 @@ import io.qent.sona.core.settings.SettingsRepository
 import io.qent.sona.core.data.DirectoryListing
 import io.qent.sona.core.data.FileStructureInfo
 import io.qent.sona.core.data.FileDependenciesInfo
+import io.qent.sona.core.data.SearchResult
 import io.qent.sona.core.tools.Tools
 import io.qent.sona.core.tokens.TokenCounter
 import kotlinx.coroutines.*
@@ -59,13 +60,14 @@ private class FakeChatRepository : ChatRepository {
 
 private class FakeTools : Tools {
     override fun getFocusedFileInfo() = FileStructureInfo("", emptyList(), 0)
-    override fun getFileLines(path: String, fromLine: Int, toLine: Int) = ""
+        override fun getFileLines(path: String, fromLine: Int, toLine: Int) = ""
     override fun applyPatch(patch: String) = ""
     override fun switchRole(name: String) = ""
     override fun listPath(path: String) = DirectoryListing(emptyList(), emptyMap())
     override fun getFileDependencies(path: String) = FileDependenciesInfo(path, emptyList())
     override fun sendTerminalCommand(command: String) = ""
     override fun readTerminalOutput() = ""
+    override fun search(searchRequest: String) = emptyList<SearchResult>()
 }
 
 private class FakeSettingsRepository : SettingsRepository {
