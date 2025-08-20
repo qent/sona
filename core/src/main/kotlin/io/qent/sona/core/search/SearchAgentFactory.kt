@@ -2,19 +2,30 @@ package io.qent.sona.core.search
 
 import com.google.gson.Gson
 import dev.langchain4j.agent.tool.ToolSpecification
-import dev.langchain4j.model.chat.StreamingChatModel
+import dev.langchain4j.internal.JsonSchemaElementUtils
+import dev.langchain4j.model.chat.ChatModel
+import dev.langchain4j.model.chat.request.ChatRequestParameters
+import dev.langchain4j.model.chat.request.DefaultChatRequestParameters
+import dev.langchain4j.model.chat.request.ResponseFormat
+import dev.langchain4j.model.chat.request.ResponseFormatType
 import dev.langchain4j.model.chat.request.json.JsonObjectSchema
+import dev.langchain4j.model.chat.request.json.JsonSchema
+import dev.langchain4j.data.message.AiMessage
+import dev.langchain4j.data.message.ChatMessage
+import dev.langchain4j.data.message.ToolExecutionResultMessage
 import dev.langchain4j.service.AiServices
 import dev.langchain4j.service.tool.ToolExecutor
+import io.qent.sona.core.data.SearchResult
 import io.qent.sona.core.model.SearchAiService
 import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.tools.ExternalTools
 import java.nio.file.Files
 
 class SearchAgentFactory(
-    private val modelFactory: (Preset) -> StreamingChatModel,
+    private val modelFactory: (Preset) -> ChatModel,
     private val preset: Preset,
     private val externalTools: ExternalTools,
+    private val onMessage: (ChatMessage) -> Unit = {},
 ) {
 
     private val gson = Gson()
@@ -49,8 +60,11 @@ class SearchAgentFactory(
                 .parameters(schema)
                 .build()
             toolsMap[spec] = ToolExecutor { request, _ ->
+                onMessage(AiMessage.from(request))
                 val args = gson.fromJson(request.arguments(), Map::class.java) as Map<String, Any?>
-                gson.toJson(executor(args))
+                val result = gson.toJson(executor(args))
+                onMessage(ToolExecutionResultMessage.from(request, result))
+                result
             }
         }
 
@@ -140,8 +154,31 @@ class SearchAgentFactory(
 
     suspend fun create(): SearchAiService {
 
+        val model = modelFactory(preset)
+        val responseFormat = ResponseFormat.builder()
+            .type(ResponseFormatType.JSON)
+            .jsonSchema(
+                JsonSchema.builder()
+                    .name("SearchResults")
+                    .rootElement(
+                        JsonSchemaElementUtils.jsonSchemaElementFrom(
+                            Array<SearchResult>::class.java
+                        )
+                    )
+                    .build()
+            )
+            .build()
+        val requestParams = DefaultChatRequestParameters.builder()
+            .responseFormat(responseFormat)
+            .build()
+        val modelWithFormat = object : ChatModel by model {
+            override fun defaultRequestParameters(): ChatRequestParameters {
+                return model.defaultRequestParameters().overrideWith(requestParams)
+            }
+        }
+
         return AiServices.builder(SearchAiService::class.java)
-            .streamingChatModel(modelFactory(preset))
+            .chatModel(modelWithFormat)
             .systemMessageProvider { systemRolePrompt }
             .tools(toolsMap)
             .build()
