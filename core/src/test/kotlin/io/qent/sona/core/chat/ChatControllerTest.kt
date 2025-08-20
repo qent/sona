@@ -21,6 +21,7 @@ import io.qent.sona.core.data.FileDependenciesInfo
 import io.qent.sona.core.data.SearchResult
 import io.qent.sona.core.tools.Tools
 import io.qent.sona.core.tokens.TokenCounter
+import dev.langchain4j.data.message.ChatMessage
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.junit.Assert.assertEquals
@@ -106,7 +107,7 @@ private fun buildChatController(repo: FakeChatRepository): ChatDeps {
     val permissioned = PermissionedToolExecutor(stateFlow, repo)
     val toolsMapFactory = ToolsMapFactory(stateFlow, tools, mcpManager, permissioned, rolesRepo, presetsRepo, settingsRepo)
     val agentFactory = ChatAgentFactory({ throw UnsupportedOperationException() }, { emptyList() }, toolsMapFactory, presetsRepo, rolesRepo, repo, "error")
-    val tokenCounter = object : TokenCounter { override suspend fun count(text: String, preset: Preset) = 0 }
+    val tokenCounter = object : TokenCounter { override suspend fun count(message: ChatMessage, preset: Preset) = 0 }
     val controller = ChatController(presetsRepo, repo, settingsRepo, stateFlow, agentFactory, scope, tokenCounter, { "" })
     return ChatDeps(controller, stateFlow, permissioned, scope, mcpManager)
 }

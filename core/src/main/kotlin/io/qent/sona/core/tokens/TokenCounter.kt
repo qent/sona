@@ -1,9 +1,10 @@
 package io.qent.sona.core.tokens
 
+import dev.langchain4j.data.message.ChatMessage
 import io.qent.sona.core.presets.Preset
 
-/** Counts tokens in text for a given model preset. */
+/** Counts tokens in messages for a given model preset. */
 interface TokenCounter {
-    /** Return number of tokens contained in [text] for [preset]. */
-    suspend fun count(text: String, preset: Preset): Int
+    /** Return number of tokens contained in [message] for [preset]. */
+    suspend fun count(message: ChatMessage, preset: Preset): Int
 }

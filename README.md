@@ -206,8 +206,9 @@ spent for the entire conversation. Every message stored in the chat
 do not expose cache statistics simply report zero cached tokens.
 Removing messages does not affect the total usage stored for the chat.
 Token counts are obtained via a pluggable `TokenCounter` interface that
-can use provider specific implementations such as the official
-Anthropic token counting API.
+computes tokens for individual messages using provider specific implementations
+such as the official Anthropic token counting API or langchain4j estimators for
+OpenAI and Gemini models.
 
 Repositories for settings and chat history are declared as interfaces in
 `core` so that the UI module can provide IDE specific implementations.
