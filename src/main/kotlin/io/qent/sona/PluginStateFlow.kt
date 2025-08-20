@@ -7,8 +7,11 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.http.client.jdk.JdkHttpClient
+import dev.langchain4j.model.anthropic.AnthropicChatModel
 import dev.langchain4j.model.anthropic.AnthropicStreamingChatModel
+import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel
 import dev.langchain4j.model.googleai.GoogleAiGeminiStreamingChatModel
+import dev.langchain4j.model.openai.OpenAiChatModel
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel
 import io.qent.sona.core.model.TokenUsageInfo
 import io.qent.sona.core.presets.Presets
@@ -88,7 +91,7 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
             chatRepository,
             rolesRepository,
             userPromptRepository,
-            modelFactory = { preset ->
+            streamingModelFactory = { preset ->
                 when (preset.provider.name) {
                     "Anthropic" -> {
                         val builder = AnthropicStreamingChatModel.builder()
@@ -157,6 +160,88 @@ class PluginStateFlow(private val project: Project) : Flow<State>, Disposable {
 
                     "Gemini" -> {
                         val builder = GoogleAiGeminiStreamingChatModel.builder()
+                            .apiKey(preset.apiKey)
+                            .baseUrl(preset.apiEndpoint)
+                            .modelName(preset.model)
+                        if (settingsRepository.state.ignoreHttpsErrors) {
+                            builder.httpClientBuilder(
+                                JdkHttpClient.builder().httpClientBuilder(ignoreHttpsClientBuilder())
+                            )
+                        }
+                        builder.build()
+                    }
+                    else -> throw IllegalArgumentException("Unknown provider ${preset.provider.name}")
+                }
+            },
+            chatModelFactory = { preset ->
+                when (preset.provider.name) {
+                    "Anthropic" -> {
+                        val builder = AnthropicChatModel.builder()
+                            .apiKey(preset.apiKey)
+                            .baseUrl(preset.apiEndpoint)
+                            .modelName(preset.model)
+                            .maxTokens(8000)
+                        if (settingsRepository.state.ignoreHttpsErrors) {
+                            builder.httpClientBuilder(
+                                JdkHttpClient.builder().httpClientBuilder(ignoreHttpsClientBuilder())
+                            )
+                        }
+                        if (settingsRepository.state.cacheSystemPrompts) {
+                            builder.cacheSystemMessages(true)
+                        }
+                        if (settingsRepository.state.cacheToolDescriptions) {
+                            builder.cacheTools(true)
+                        }
+                        if (settingsRepository.state.cacheSystemPrompts || settingsRepository.state.cacheToolDescriptions) {
+                            builder.beta("prompt-caching-2024-07-31")
+                        }
+                        builder.build()
+                    }
+
+                    "OpenAI" -> {
+                        val builder = OpenAiChatModel.builder()
+                            .apiKey(preset.apiKey)
+                            .baseUrl(preset.apiEndpoint)
+                            .modelName(preset.model)
+                        if (settingsRepository.state.ignoreHttpsErrors) {
+                            builder.httpClientBuilder(
+                                JdkHttpClient.builder().httpClientBuilder(ignoreHttpsClientBuilder())
+                            )
+                        }
+                        builder.build()
+                    }
+
+                    "OpenAI-like API" -> {
+                        val httpClientBuilder = if (settingsRepository.state.ignoreHttpsErrors) {
+                            ignoreHttpsClientBuilder()
+                        } else {
+                            HttpClient.newBuilder()
+                        }.version(HttpClient.Version.HTTP_1_1)
+
+                        val builder = OpenAiChatModel.builder()
+                            .apiKey("none")
+                            .baseUrl(preset.apiEndpoint)
+                            .modelName(preset.model)
+                            .timeout(ofSeconds(60))
+                            .httpClientBuilder(JdkHttpClient.builder().httpClientBuilder(httpClientBuilder))
+                        builder.build()
+                    }
+
+                    "Deepseek" -> {
+                        val builder = OpenAiChatModel.builder()
+                            .apiKey(preset.apiKey)
+                            .baseUrl(preset.apiEndpoint)
+                            .modelName(preset.model)
+                        if (settingsRepository.state.ignoreHttpsErrors) {
+                            builder.httpClientBuilder(
+                                JdkHttpClient.builder().httpClientBuilder(ignoreHttpsClientBuilder())
+                            )
+                        }
+                        builder.build()
+                    }
+
+                    "Gemini" -> {
+                        val builder = GoogleAiGeminiChatModel.builder()
                             .apiKey(preset.apiKey)
                             .baseUrl(preset.apiEndpoint)
                             .modelName(preset.model)

@@ -1,6 +1,7 @@
 package io.qent.sona.core.state
 
 import dev.langchain4j.data.message.SystemMessage
+import dev.langchain4j.model.chat.ChatModel
 import dev.langchain4j.model.chat.StreamingChatModel
 import io.qent.sona.core.chat.Chat
 import io.qent.sona.core.chat.ChatAgentFactory
@@ -44,9 +45,7 @@ import io.qent.sona.core.Logger
 import io.qent.sona.core.data.SearchResult
 import io.qent.sona.core.search.SearchAgentFactory
 import io.qent.sona.core.tokens.DefaultTokenCounter
-import dev.langchain4j.data.message.AiMessage
-import dev.langchain4j.data.message.ToolExecutionResultMessage
-import dev.langchain4j.service.tool.ToolExecution
+import dev.langchain4j.service.output.ServiceOutputParser
 import io.qent.sona.core.chat.ChatRepositoryMessage
 
 class StateProvider(
@@ -54,7 +53,8 @@ class StateProvider(
     chatRepository: ChatRepository,
     rolesRepository: RolesRepository,
     private val userPromptRepository: UserPromptRepository,
-    modelFactory: (Preset) -> StreamingChatModel,
+    streamingModelFactory: (Preset) -> StreamingChatModel,
+    chatModelFactory: (Preset) -> ChatModel,
     externalTools: ExternalTools,
     filePermissionRepository: FilePermissionsRepository,
     mcpServersRepository: McpServersRepository,
@@ -78,49 +78,22 @@ class StateProvider(
         override fun search(searchRequest: String): List<SearchResult> = runBlocking {
             val preset = presetsRepository.load().let { presets -> presets.presets[presets.active] }
             val chatId = chatStateFlow.currentState.chatId
-            val baseMessages = chatStateFlow.currentState.messages.toMutableList()
-            val placeholder = ChatRepositoryMessage(chatId, AiMessage.from(""), preset.model)
-            baseMessages += placeholder
-            chatStateFlow.emit(chatStateFlow.currentState.copy(messages = baseMessages, isStreaming = true))
-            var aiIndex = baseMessages.lastIndex
-            val builder = StringBuilder()
-            val future = java.util.concurrent.CompletableFuture<String>()
-            SearchAgentFactory(modelFactory, preset, externalTools)
+            chatStateFlow.emit(chatStateFlow.currentState.copy(isStreaming = true))
+            val response = SearchAgentFactory(
+                chatModelFactory,
+                preset,
+                externalTools
+            ) { message ->
+                val current = chatStateFlow.currentState
+                val msgs = current.messages + ChatRepositoryMessage(chatId, message, preset.model)
+                chatStateFlow.emit(current.copy(messages = msgs, isStreaming = true))
+            }
                 .create()
                 .chat(searchRequest)
-                .onPartialResponse { token ->
-                    builder.append(token)
-                    val msgs = chatStateFlow.currentState.messages.toMutableList()
-                    if (aiIndex in msgs.indices) {
-                        msgs[aiIndex] = msgs[aiIndex].copy(message = AiMessage.from(builder.toString()))
-                        chatStateFlow.emit(chatStateFlow.currentState.copy(messages = msgs, isStreaming = true))
-                    }
-                }
-                .onToolExecuted { exec: ToolExecution ->
-                    val msgs = chatStateFlow.currentState.messages.toMutableList()
-                    val toolMsg = ChatRepositoryMessage(
-                        chatId,
-                        ToolExecutionResultMessage(exec.request().id(), exec.request().name(), exec.result()),
-                        preset.model
-                    )
-                    msgs += toolMsg
-                    val nextPlaceholder = ChatRepositoryMessage(chatId, AiMessage.from(""), preset.model)
-                    msgs += nextPlaceholder
-                    aiIndex = msgs.lastIndex
-                    builder.setLength(0)
-                    chatStateFlow.emit(chatStateFlow.currentState.copy(messages = msgs, isStreaming = true))
-                }
-                .onCompleteResponse { resp ->
-                    val msgs = chatStateFlow.currentState.messages.toMutableList()
-                    if (aiIndex in msgs.indices) {
-                        msgs[aiIndex] = msgs[aiIndex].copy(message = resp.aiMessage())
-                        chatStateFlow.emit(chatStateFlow.currentState.copy(messages = msgs, isStreaming = false))
-                    }
-                    future.complete(resp.aiMessage().text())
-                }
-                .onError { t -> future.completeExceptionally(t) }
-            val json = future.get()
-            com.google.gson.Gson().fromJson(json, Array<SearchResult>::class.java)?.toList() ?: emptyList()
+            chatStateFlow.emit(chatStateFlow.currentState.copy(isStreaming = false))
+            val array = ServiceOutputParser()
+                .parse(response, Array<SearchResult>::class.java) as Array<SearchResult>
+            array.toList()
         }
     }
     private val tools: Tools = ToolsInfoDecorator(chatStateFlow, internalTools, externalTools, filePermissionManager)
@@ -143,7 +116,7 @@ class StateProvider(
         settingsRepository
     )
     private val chatAgentFactory = ChatAgentFactory(
-        modelFactory,
+        streamingModelFactory,
         systemMessages,
         toolsMapFactory,
         presetsRepository,
