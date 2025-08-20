@@ -41,7 +41,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 import io.qent.sona.core.Logger
+import io.qent.sona.core.data.SearchResult
+import io.qent.sona.core.search.SearchAgentFactory
 import io.qent.sona.core.tokens.DefaultTokenCounter
+import dev.langchain4j.data.message.AiMessage
+import dev.langchain4j.data.message.ToolExecutionResultMessage
+import dev.langchain4j.service.tool.ToolExecution
+import io.qent.sona.core.chat.ChatRepositoryMessage
 
 class StateProvider(
     presetsRepository: PresetsRepository,
@@ -60,6 +66,7 @@ class StateProvider(
     logger: Logger = Logger.NoOp,
 ) {
     private val filePermissionManager = FilePermissionManager(filePermissionRepository)
+    val chatStateFlow = ChatStateFlow(chatRepository)
     private val internalTools = object : InternalTools {
         override fun switchRole(name: String): String {
             scope.launch {
@@ -67,8 +74,55 @@ class StateProvider(
             }
             return "$name role active"
         }
+
+        override fun search(searchRequest: String): List<SearchResult> = runBlocking {
+            val preset = presetsRepository.load().let { presets -> presets.presets[presets.active] }
+            val chatId = chatStateFlow.currentState.chatId
+            val baseMessages = chatStateFlow.currentState.messages.toMutableList()
+            val placeholder = ChatRepositoryMessage(chatId, AiMessage.from(""), preset.model)
+            baseMessages += placeholder
+            chatStateFlow.emit(chatStateFlow.currentState.copy(messages = baseMessages, isStreaming = true))
+            var aiIndex = baseMessages.lastIndex
+            val builder = StringBuilder()
+            val future = java.util.concurrent.CompletableFuture<String>()
+            SearchAgentFactory(modelFactory, preset, externalTools)
+                .create()
+                .chat(searchRequest)
+                .onPartialResponse { token ->
+                    builder.append(token)
+                    val msgs = chatStateFlow.currentState.messages.toMutableList()
+                    if (aiIndex in msgs.indices) {
+                        msgs[aiIndex] = msgs[aiIndex].copy(message = AiMessage.from(builder.toString()))
+                        chatStateFlow.emit(chatStateFlow.currentState.copy(messages = msgs, isStreaming = true))
+                    }
+                }
+                .onToolExecuted { exec: ToolExecution ->
+                    val msgs = chatStateFlow.currentState.messages.toMutableList()
+                    val toolMsg = ChatRepositoryMessage(
+                        chatId,
+                        ToolExecutionResultMessage(exec.request().id(), exec.request().name(), exec.result()),
+                        preset.model
+                    )
+                    msgs += toolMsg
+                    val nextPlaceholder = ChatRepositoryMessage(chatId, AiMessage.from(""), preset.model)
+                    msgs += nextPlaceholder
+                    aiIndex = msgs.lastIndex
+                    builder.setLength(0)
+                    chatStateFlow.emit(chatStateFlow.currentState.copy(messages = msgs, isStreaming = true))
+                }
+                .onCompleteResponse { resp ->
+                    val msgs = chatStateFlow.currentState.messages.toMutableList()
+                    if (aiIndex in msgs.indices) {
+                        msgs[aiIndex] = msgs[aiIndex].copy(message = resp.aiMessage())
+                        chatStateFlow.emit(chatStateFlow.currentState.copy(messages = msgs, isStreaming = false))
+                    }
+                    future.complete(resp.aiMessage().text())
+                }
+                .onError { t -> future.completeExceptionally(t) }
+            val json = future.get()
+            com.google.gson.Gson().fromJson(json, Array<SearchResult>::class.java)?.toList() ?: emptyList()
+        }
     }
-    val chatStateFlow = ChatStateFlow(chatRepository)
     private val tools: Tools = ToolsInfoDecorator(chatStateFlow, internalTools, externalTools, filePermissionManager)
     private val log = object : Logger {
         override fun log(message: String) {
@@ -85,7 +139,8 @@ class StateProvider(
         mcpManager,
         permissionedToolExecutor,
         rolesRepository,
-        presetsRepository
+        presetsRepository,
+        settingsRepository
     )
     private val chatAgentFactory = ChatAgentFactory(
         modelFactory,

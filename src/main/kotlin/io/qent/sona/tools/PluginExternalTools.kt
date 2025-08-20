@@ -13,17 +13,15 @@ import com.intellij.psi.PsiManager
 import com.intellij.terminal.JBTerminalWidget
 import com.intellij.terminal.ui.TerminalWidget
 import io.qent.sona.Strings
-import io.qent.sona.core.permissions.DirectoryListing
-import io.qent.sona.core.permissions.FileDependenciesInfo
-import io.qent.sona.core.permissions.FileInfo
-import io.qent.sona.core.permissions.FileStructureInfo
+import io.qent.sona.core.data.DirectoryListing
+import io.qent.sona.core.data.FileDependenciesInfo
+import io.qent.sona.core.data.FileLines
+import io.qent.sona.core.data.FileStructureInfo
 import io.qent.sona.core.tools.ExternalTools
 import io.qent.sona.services.PatchService
 import io.qent.sona.tools.dependencies.JavaFileDependenciesProvider
 import io.qent.sona.tools.dependencies.KotlinFileDependenciesProvider
 import io.qent.sona.tools.structure.*
-import kotlinx.coroutines.flow.lastOrNull
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.plugins.terminal.TerminalToolWindowManager
 import java.nio.file.Files
@@ -61,14 +59,14 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
         }
     }
 
-    override fun getFileLines(path: String, fromLine: Int, toLine: Int): FileInfo? {
+    override fun getFileLines(path: String, fromLine: Int, toLine: Int): FileLines? {
         return try {
             val p = Paths.get(path)
             val lines = Files.readAllLines(p)
             val start = fromLine.coerceAtLeast(1) - 1
             val end = toLine.coerceAtMost(lines.size)
             val content = if (start < end) lines.subList(start, end).joinToString("\n") else ""
-            FileInfo(p.toAbsolutePath().toString(), content)
+            FileLines(path, content)
         } catch (_: Exception) {
             null
         }
@@ -125,6 +123,90 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
             val deps = provider.collect(psiFile)
             FileDependenciesInfo(path, deps)
         }
+    }
+
+    override fun findFilesByNames(pattern: String, offset: Int, limit: Int): List<String> {
+        val base = project.basePath ?: return emptyList()
+        val regex = try {
+            Regex(pattern, RegexOption.IGNORE_CASE)
+        } catch (_: Exception) {
+            return emptyList()
+        }
+        val results = mutableListOf<String>()
+        Files.walk(Paths.get(base)).use { stream ->
+            stream.filter { Files.isRegularFile(it) }.forEach { p ->
+                if (regex.containsMatchIn(p.fileName.toString())) {
+                    results.add(p.toString())
+                }
+            }
+        }
+        return results.drop(offset).take(limit)
+    }
+
+    override fun findClasses(pattern: String, offset: Int, limit: Int): List<FileStructureInfo> {
+        return runReadAction {
+            val regex = try {
+                Regex(pattern, RegexOption.IGNORE_CASE)
+            } catch (_: Exception) {
+                return@runReadAction emptyList()
+            }
+            val cache = com.intellij.psi.search.PsiShortNamesCache.getInstance(project)
+            val scope = com.intellij.psi.search.GlobalSearchScope.projectScope(project)
+            val names = cache.allClassNames.filter { regex.containsMatchIn(it) }
+            val infos = mutableListOf<FileStructureInfo>()
+            for (name in names) {
+                val classes = cache.getClassesByName(name, scope)
+                for (cls in classes) {
+                    val psiFile = cls.containingFile ?: continue
+                    val vFile = psiFile.virtualFile ?: continue
+                    val document = com.intellij.psi.PsiDocumentManager.getInstance(project).getDocument(psiFile) ?: continue
+                    val provider = when (psiFile) {
+                        is KtFile -> kotlinProvider
+                        else -> when (psiFile.language.id.lowercase()) {
+                            "java" -> javaProvider
+                            "python" -> pythonProvider
+                            "typescript" -> tsProvider
+                            "javascript" -> jsProvider
+                            else -> null
+                        }
+                    }
+                    val elements = provider?.collect(psiFile, document).orEmpty()
+                    infos.add(FileStructureInfo(vFile.path, elements, document.lineCount))
+                }
+            }
+            infos.drop(offset).take(limit)
+        }
+    }
+
+    override fun findText(pattern: String, offset: Int, limit: Int): Map<String, Map<Int, String>> {
+        val base = project.basePath ?: return emptyMap()
+        val regex = try {
+            Regex(pattern, RegexOption.IGNORE_CASE)
+        } catch (_: Exception) {
+            return emptyMap()
+        }
+        val result = linkedMapOf<String, MutableMap<Int, String>>()
+        var count = 0
+        Files.walk(Paths.get(base)).use { stream ->
+            stream.filter { Files.isRegularFile(it) }.forEach { p ->
+                if (count - offset >= limit) return@forEach
+                val lines = try {
+                    Files.readAllLines(p)
+                } catch (_: Exception) {
+                    emptyList<String>()
+                }
+                for ((idx, line) in lines.withIndex()) {
+                    if (regex.containsMatchIn(line)) {
+                        if (count >= offset) {
+                            result.getOrPut(p.toString()) { linkedMapOf() }[idx + 1] = line
+                        }
+                        count++
+                        if (count - offset >= limit) break
+                    }
+                }
+            }
+        }
+        return result
     }
 
     private fun getTerminal(): TerminalWidget {

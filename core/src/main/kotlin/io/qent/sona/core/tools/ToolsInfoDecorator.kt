@@ -1,10 +1,10 @@
 package io.qent.sona.core.tools
 
 import dev.langchain4j.agent.tool.Tool
-import io.qent.sona.core.permissions.DirectoryListing
+import io.qent.sona.core.data.DirectoryListing
 import io.qent.sona.core.permissions.FilePermissionManager
-import io.qent.sona.core.permissions.FileDependenciesInfo
-import io.qent.sona.core.permissions.FileStructureInfo
+import io.qent.sona.core.data.FileDependenciesInfo
+import io.qent.sona.core.data.FileStructureInfo
 import java.nio.file.Paths
 
 import io.qent.sona.core.chat.ChatStateFlow
@@ -71,6 +71,27 @@ class ToolsInfoDecorator(
     }
 
     override fun switchRole(name: String) = internalTools.switchRole(name)
+
+    @Tool("Search the project using a free-text query. You can search by class/type name, plain text, file name, path/glob fragment, or a regex-like pattern in file contents or paths. Returns matching files (with structure info) and the set of matched line numbers per file.")
+    override fun search(searchRequest: String) = internalTools.search(searchRequest)
+
+    @Tool("Find file paths whose names match the pattern")
+    override fun findFilesByNames(pattern: String, offset: Int, limit: Int): List<String> {
+        return externalTools.findFilesByNames(pattern, offset, limit)
+            .filter { filePermissionManager.isFileAllowed(it) }
+    }
+
+    @Tool("Find classes matching the pattern and return their structure")
+    override fun findClasses(pattern: String, offset: Int, limit: Int): List<FileStructureInfo> {
+        return externalTools.findClasses(pattern, offset, limit)
+            .filter { filePermissionManager.isFileAllowed(it.path) }
+    }
+
+    @Tool("Find text occurrences matching the pattern")
+    override fun findText(pattern: String, offset: Int, limit: Int): Map<String, Map<Int, String>> {
+        return externalTools.findText(pattern, offset, limit)
+            .filter { (path, _) -> filePermissionManager.isFileAllowed(path) }
+    }
 
     @Tool("Execute a command in the IDE terminal")
     override fun sendTerminalCommand(command: String): String = externalTools.sendTerminalCommand(command)

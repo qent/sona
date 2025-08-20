@@ -2,7 +2,7 @@ package io.qent.sona.tools.dependencies
 
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiJavaFile
-import io.qent.sona.core.permissions.FileDependency
+import io.qent.sona.core.data.FileDependency
 
 class JavaFileDependenciesProvider : FileDependenciesProvider {
     override fun collect(psiFile: PsiFile): List<FileDependency> {

@@ -1,21 +1,20 @@
 package io.qent.sona.core.tools
 
-import io.qent.sona.core.permissions.DirectoryListing
-import io.qent.sona.core.permissions.FileElement
-import io.qent.sona.core.permissions.FileElementType
-import io.qent.sona.core.permissions.FileInfo
+import io.qent.sona.core.data.DirectoryListing
+import io.qent.sona.core.data.FileElement
+import io.qent.sona.core.data.FileElementType
+import io.qent.sona.core.data.FileLines
 import io.qent.sona.core.permissions.FilePermissionManager
 import io.qent.sona.core.permissions.FilePermissionsRepository
-import io.qent.sona.core.permissions.FileDependenciesInfo
-import io.qent.sona.core.permissions.FileStructureInfo
+import io.qent.sona.core.data.SearchResult
+import io.qent.sona.core.data.FileDependenciesInfo
+import io.qent.sona.core.data.FileStructureInfo
 import io.qent.sona.core.chat.Chat
 import io.qent.sona.core.chat.ChatRepository
 import io.qent.sona.core.chat.ChatRepositoryMessage
 import io.qent.sona.core.chat.ChatSummary
 import io.qent.sona.core.chat.ChatStateFlow
 import io.qent.sona.core.model.TokenUsageInfo
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import dev.langchain4j.data.message.ChatMessage
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -28,21 +27,25 @@ private class StubRepository(
 
 private class FakeExternalTools(
     private val focused: FileStructureInfo?,
-    private val files: Map<String, FileInfo?>,
+    private val files: Map<String, FileLines?>,
     private val dirs: Map<String, DirectoryListing?> = emptyMap()
 ) : ExternalTools {
     override fun getFocusedFileInfo(): FileStructureInfo? = focused
-    override fun getFileLines(path: String, fromLine: Int, toLine: Int): FileInfo? = files[path]
+    override fun getFileLines(path: String, fromLine: Int, toLine: Int): FileLines? = files[path]
     override fun applyPatch(chatId: String, patch: String) = ""
     override fun listPath(path: String): DirectoryListing? = dirs[path]
     override fun sendTerminalCommand(command: String) = ""
     override fun readTerminalOutput() = ""
     override fun getFileDependencies(path: String): FileDependenciesInfo? = null
+    override fun findFilesByNames(pattern: String, offset: Int, limit: Int) = emptyList<String>()
+    override fun findClasses(pattern: String, offset: Int, limit: Int) = emptyList<FileStructureInfo>()
+    override fun findText(pattern: String, offset: Int, limit: Int) = emptyMap<String, Map<Int, String>>()
 }
 
 private class FakeInternalTools : InternalTools {
     var last: String? = null
     override fun switchRole(name: String): String { last = name; return name }
+    override fun search(searchRequest: String) = emptyList<SearchResult>()
 }
 
 private fun testChatStateFlow(): ChatStateFlow {
@@ -78,7 +81,7 @@ class ToolsInfoDecoratorTest {
     fun `getFileLines denies access when not whitelisted`() {
         val repo = StubRepository(emptyList(), emptyList())
         val manager = FilePermissionManager(repo)
-        val info = FileInfo("/secret", "pw")
+        val info = FileLines("/secret", "pw")
         val decorator = ToolsInfoDecorator(testChatStateFlow(), FakeInternalTools(), FakeExternalTools(null, mapOf("/secret" to info)), manager)
         assertEquals("Access to /secret denied", decorator.getFileLines("/secret", 1, 2))
     }

@@ -4,8 +4,8 @@ import com.intellij.openapi.editor.Document
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
-import io.qent.sona.core.permissions.FileElement
-import io.qent.sona.core.permissions.FileElementType
+import io.qent.sona.core.data.FileElement
+import io.qent.sona.core.data.FileElementType
 
 abstract class AbstractJsFileStructureProvider : FileStructureProvider {
     override fun collect(psiFile: PsiFile, document: Document): List<FileElement> {
