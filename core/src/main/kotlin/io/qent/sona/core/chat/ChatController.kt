@@ -58,7 +58,7 @@ class ChatController(
             if (baseMessages.isEmpty()) {
                 val sysText = systemMessageText()
                 val sysMsg = SystemMessage.from(sysText)
-                val sysTokens = tokenCounter.count(sysText, preset)
+                val sysTokens = tokenCounter.count(sysMsg, preset)
                 val sysUsage = TokenUsageInfo(inputTokens = sysTokens)
                 log.log("save system message to repo")
                 chatRepository.addMessage(chatId, sysMsg, preset.model, sysUsage)
@@ -68,7 +68,7 @@ class ChatController(
             }
 
             val userMsg = UserMessage.from(text)
-            val userTokens = tokenCounter.count(text, preset)
+            val userTokens = tokenCounter.count(userMsg, preset)
             val userUsage = TokenUsageInfo(inputTokens = userTokens)
             log.log("save user message to repo")
             chatRepository.addMessage(chatId, userMsg, preset.model, userUsage)
@@ -127,7 +127,7 @@ class ChatController(
                             exec.request().name(),
                             exec.result()
                         )
-                        val toolTokens = runBlocking { tokenCounter.count(exec.result(), preset) }
+                        val toolTokens = runBlocking { tokenCounter.count(toolResultMessage, preset) }
                         val toolUsage = TokenUsageInfo(inputTokens = toolTokens)
                         runBlocking {
                             log.log("add tool result to repo")
