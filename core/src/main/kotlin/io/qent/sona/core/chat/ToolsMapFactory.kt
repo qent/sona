@@ -9,6 +9,7 @@ import io.qent.sona.core.mcp.McpConnectionManager
 import io.qent.sona.core.presets.PresetsRepository
 import io.qent.sona.core.roles.RolesRepository
 import io.qent.sona.core.tools.Tools
+import io.qent.sona.core.settings.SettingsRepository
 import kotlinx.coroutines.runBlocking
 
 class ToolsMapFactory(
@@ -18,14 +19,23 @@ class ToolsMapFactory(
     private val permissionedToolExecutor: PermissionedToolExecutor,
     private val rolesRepository: RolesRepository,
     private val presetsRepository: PresetsRepository,
+    private val settingsRepository: SettingsRepository,
 ) {
 
     private val gson = Gson()
 
     suspend fun create(): Map<ToolSpecification, ToolExecutor> {
         val preset = presetsRepository.load().let { it.presets[it.active] }
-        val specifications = ToolSpecifications.toolSpecificationsFrom(tools).toMutableList().apply {
+        val baseSpecs = ToolSpecifications.toolSpecificationsFrom(tools).toMutableList().apply {
             add(createSwitchRolesToolSpecification())
+        }
+        val useSearchAgent = settingsRepository.load().useSearchAgent
+        val specifications = baseSpecs.filter { spec ->
+            if (useSearchAgent) {
+                spec.name() !in setOf("findFilesByNames", "findClasses", "findText")
+            } else {
+                spec.name() != "search"
+            }
         } + mcpManager.listTools()
 
         return specifications.associateWith { spec: ToolSpecification ->
@@ -56,6 +66,27 @@ class ToolsMapFactory(
                         val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
                         val query = args["arg0"]?.toString() ?: return@create "Empty search request"
                         gson.toJson(tools.search(query))
+                    }
+                    "findFilesByNames" -> {
+                        val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
+                        val pattern = args["arg0"]?.toString() ?: return@create "Empty pattern"
+                        val offset = (args["arg1"] as? Number)?.toInt() ?: 0
+                        val limit = (args["arg2"] as? Number)?.toInt() ?: 3
+                        gson.toJson(tools.findFilesByNames(pattern, offset, limit))
+                    }
+                    "findClasses" -> {
+                        val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
+                        val pattern = args["arg0"]?.toString() ?: return@create "Empty pattern"
+                        val offset = (args["arg1"] as? Number)?.toInt() ?: 0
+                        val limit = (args["arg2"] as? Number)?.toInt() ?: 3
+                        gson.toJson(tools.findClasses(pattern, offset, limit))
+                    }
+                    "findText" -> {
+                        val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
+                        val pattern = args["arg0"]?.toString() ?: return@create "Empty pattern"
+                        val offset = (args["arg1"] as? Number)?.toInt() ?: 0
+                        val limit = (args["arg2"] as? Number)?.toInt() ?: 3
+                        gson.toJson(tools.findText(pattern, offset, limit))
                     }
 
                     "sendTerminalCommand" -> {

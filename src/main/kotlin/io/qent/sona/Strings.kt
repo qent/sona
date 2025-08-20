@@ -54,6 +54,7 @@ object Strings {
     val ignoreHttpsErrors: String get() = bundle.getString("ignoreHttpsErrors")
     val answerInEnglish: String get() = bundle.getString("answerInEnglish")
     val enablePluginLogging: String get() = bundle.getString("enablePluginLogging")
+    val useSearchAgent: String get() = bundle.getString("useSearchAgent")
     val anthropicSettings: String get() = bundle.getString("anthropicSettings")
     val cacheSystemPrompts: String get() = bundle.getString("cacheSystemPrompts")
     val cacheToolDescriptions: String get() = bundle.getString("cacheToolDescriptions")
