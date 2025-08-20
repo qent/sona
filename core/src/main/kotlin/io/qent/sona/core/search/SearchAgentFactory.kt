@@ -155,30 +155,9 @@ class SearchAgentFactory(
     suspend fun create(): SearchAiService {
 
         val model = modelFactory(preset)
-        val responseFormat = ResponseFormat.builder()
-            .type(ResponseFormatType.JSON)
-            .jsonSchema(
-                JsonSchema.builder()
-                    .name("SearchResults")
-                    .rootElement(
-                        JsonSchemaElementUtils.jsonSchemaElementFrom(
-                            Array<SearchResult>::class.java
-                        )
-                    )
-                    .build()
-            )
-            .build()
-        val requestParams = DefaultChatRequestParameters.builder()
-            .responseFormat(responseFormat)
-            .build()
-        val modelWithFormat = object : ChatModel by model {
-            override fun defaultRequestParameters(): ChatRequestParameters {
-                return model.defaultRequestParameters().overrideWith(requestParams)
-            }
-        }
 
         return AiServices.builder(SearchAiService::class.java)
-            .chatModel(modelWithFormat)
+            .chatModel(model)
             .systemMessageProvider { systemRolePrompt }
             .tools(toolsMap)
             .build()

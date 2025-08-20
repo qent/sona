@@ -25,6 +25,98 @@ Output: only JSON representing `List<SearchResult>`. Each `SearchResult` object 
   "matchedLines": {"/abs/path": [3,7]}
 }
 ```
+
+Output: JSON Schema
+```
+JsonSchema { 
+    name = "SearchResults", 
+    rootElement = JsonArraySchema {
+        description = null
+        items = JsonObjectSchema {
+            description = null
+            properties = {
+                files = JsonArraySchema {
+                    description = "List of files matching the search query"
+                    items = JsonObjectSchema {
+                        description = null
+                        properties = {
+                            path = JsonStringSchema {
+                                description = "Absolute file path"
+                            }
+                            elements = JsonArraySchema {
+                                description = "List of top-level elements in the file"
+                                items = JsonObjectSchema {
+                                    description = null
+                                    properties = {
+                                        name = JsonStringSchema {
+                                            description = "Element name"
+                                        }
+                                        type = JsonEnumSchema {
+                                            description = "Element type"
+                                            enumValues = [
+                                                CLASS, 
+                                                INTERFACE, 
+                                                OBJECT, 
+                                                ENUM, 
+                                                METHOD, 
+                                                FIELD
+                                            ]
+                                        }
+                                        public = JsonBooleanSchema {
+                                            description = "Whether the element is public"
+                                        }
+                                        lines = JsonObjectSchema {
+                                            description = "Start and end line numbers (1-based)"
+                                            properties = {
+                                                first = JsonObjectSchema {
+                                                    description = null
+                                                    properties = {}
+                                                    required = []
+                                                    additionalProperties = null
+                                                    definitions = {}
+                                                }
+                                                second = JsonObjectSchema {
+                                                    description = null
+                                                    properties = {}
+                                                    required = []
+                                                    additionalProperties = null
+                                                    definitions = {}
+                                                }
+                                            }
+                                            required = []
+                                            additionalProperties = null
+                                            definitions = {}
+                                        }
+                                    }
+                                    required = []
+                                    additionalProperties = null
+                                    definitions = {}
+                                }
+                            }
+                            lineCount = JsonIntegerSchema {
+                                description = "Total number of lines in the file"
+                            }
+                        }
+                        required = []
+                        additionalProperties = null
+                        definitions = {}
+                    }
+                }
+                matchedLines = JsonObjectSchema {
+                    description = "Map of file paths to line numbers where matches were found"
+                    properties = {}
+                    required = []
+                    additionalProperties = null
+                    definitions = {}
+                }
+            }
+            required = []
+            additionalProperties = null
+            definitions = {}
+        }
+    }
+}
+```
 Return an array of such objects and nothing else.
 
 Plan:
