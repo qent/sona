@@ -12,4 +12,7 @@ interface Tools : InternalTools {
     fun sendTerminalCommand(command: String): String
     fun readTerminalOutput(): String
     fun getFileDependencies(path: String): FileDependenciesInfo
+    fun findFilesByNames(pattern: String, offset: Int = 0, limit: Int = 3): List<String>
+    fun findClasses(pattern: String, offset: Int = 0, limit: Int = 3): List<FileStructureInfo>
+    fun findText(pattern: String, offset: Int = 0, limit: Int = 3): Map<String, Map<Int, String>>
 }

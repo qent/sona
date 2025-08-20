@@ -19,6 +19,7 @@ class PluginSettingsRepository :
         var cacheToolDescriptions: Boolean = true,
         var apiRetries: Int = 0,
         var answerInEnglish: Boolean = true,
+        var useSearchAgent: Boolean = false,
     )
 
     private var pluginSettingsState = PluginSettingsState()
@@ -36,5 +37,6 @@ class PluginSettingsRepository :
         pluginSettingsState.apiRetries,
         pluginSettingsState.enablePluginLogging,
         pluginSettingsState.answerInEnglish,
+        pluginSettingsState.useSearchAgent,
     )
 }

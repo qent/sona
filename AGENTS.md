@@ -20,8 +20,8 @@
   added without modifying the code. A `Custom OpenAI` provider is registered in code for manual model entry and
   always reports zero token cost.
 - Plugin settings contain "Answer in English", "Ignore HTTPS errors" and "Enable plugin logging" flags
-  and an "Anthropic Settings" section to cache system prompts and tool descriptions
-  in requests.
+  a "Use search agent" toggle and an "Anthropic Settings" section to cache system prompts and
+  tool descriptions in requests.
 - Plugin settings also provide a global "LLM API retries" field controlling how
   many times failed requests are retried with exponential backoff.
 - Each chat tracks tools approved by the user so that previously allowed tools run without asking again.
@@ -37,8 +37,10 @@
 - A tool returns class and object dependencies for a specified file, including paths to files
   defining those dependencies.
 - A dedicated search agent can query the project using tools that find files by name,
-  locate classes or search for text patterns. The agent's intermediate messages are shown in
-  the chat but are not stored; only the final results are returned.
+  locate classes or search for text patterns. It is enabled by the "Use search agent" setting;
+  when disabled, the model can instead call `findFilesByNames`, `findClasses` and `findText`
+  directly via IntelliJ APIs. The agent's intermediate messages are shown in the chat but are
+  not stored; only the final results are returned.
 - The UI passes a list of additional `SystemMessage` values to the core. The first message describes the current
   environment (OS, IDE, Java, Python, Node.js, project root path, file extension statistics, build systems) and is prepended to every LLM request.
   - Any `.md` files in `src/main/resources/prompts` are bundled. Projects may provide `.md` files in `.sona/prompts` that apply to all roles and in `.sona/prompts/{role}` for role-specific messages; all are appended as additional system messages.

@@ -139,7 +139,8 @@ class StateProvider(
         mcpManager,
         permissionedToolExecutor,
         rolesRepository,
-        presetsRepository
+        presetsRepository,
+        settingsRepository
     )
     private val chatAgentFactory = ChatAgentFactory(
         modelFactory,

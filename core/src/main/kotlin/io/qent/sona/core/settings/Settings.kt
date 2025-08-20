@@ -7,4 +7,5 @@ data class Settings(
     val apiRetries: Int,
     val enablePluginLogging: Boolean,
     val answerInEnglish: Boolean,
+    val useSearchAgent: Boolean,
 )

@@ -68,10 +68,13 @@ private class FakeTools : Tools {
     override fun sendTerminalCommand(command: String) = ""
     override fun readTerminalOutput() = ""
     override fun search(searchRequest: String) = emptyList<SearchResult>()
+    override fun findFilesByNames(pattern: String, offset: Int, limit: Int) = emptyList<String>()
+    override fun findClasses(pattern: String, offset: Int, limit: Int) = emptyList<FileStructureInfo>()
+    override fun findText(pattern: String, offset: Int, limit: Int) = emptyMap<String, Map<Int, String>>()
 }
 
 private class FakeSettingsRepository : SettingsRepository {
-    override suspend fun load() = Settings(false, false, false, 0, false, true)
+    override suspend fun load() = Settings(false, false, false, 0, false, true, false)
 }
 
 private class EmptyMcpRepository : McpServersRepository {
@@ -101,7 +104,7 @@ private fun buildChatController(repo: FakeChatRepository): ChatDeps {
     val settingsRepo = FakeSettingsRepository()
     val stateFlow = ChatStateFlow(repo)
     val permissioned = PermissionedToolExecutor(stateFlow, repo)
-    val toolsMapFactory = ToolsMapFactory(stateFlow, tools, mcpManager, permissioned, rolesRepo, presetsRepo)
+    val toolsMapFactory = ToolsMapFactory(stateFlow, tools, mcpManager, permissioned, rolesRepo, presetsRepo, settingsRepo)
     val agentFactory = ChatAgentFactory({ throw UnsupportedOperationException() }, { emptyList() }, toolsMapFactory, presetsRepo, rolesRepo, repo, "error")
     val tokenCounter = object : TokenCounter { override suspend fun count(text: String, preset: Preset) = 0 }
     val controller = ChatController(presetsRepo, repo, settingsRepo, stateFlow, agentFactory, scope, tokenCounter, { "" })
