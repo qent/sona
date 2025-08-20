@@ -71,7 +71,7 @@ class ToolsInfoDecoratorTest {
     fun `focused file info passes through permission check`() {
         val repo = StubRepository(listOf(".*"), emptyList())
         val manager = FilePermissionManager(repo)
-        val elem = FileElement("C", FileElementType.CLASS, true, 1 to 2)
+        val elem = FileElement("C", FileElementType.CLASS, true, listOf(1, 2))
         val info = FileStructureInfo("/a", listOf(elem), 10)
         val decorator = ToolsInfoDecorator(testChatStateFlow(), FakeInternalTools(), FakeExternalTools(info, emptyMap()), manager)
         assertEquals(info, decorator.getFocusedFileInfo())

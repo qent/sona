@@ -23,7 +23,7 @@ class PythonFileStructureProvider : FileStructureProvider {
                 val start = document.getLineNumber(elem.textRange.startOffset) + 1
                 val end = document.getLineNumber(elem.textRange.endOffset) + 1
                 val public = !name.startsWith("_")
-                elements.add(FileElement(name, FileElementType.CLASS, public, start to end))
+                elements.add(FileElement(name, FileElementType.CLASS, public, listOf(start, end)))
             }
 
             PsiTreeUtil.collectElementsOfType(psiFile, pyFunctionClass).forEach { elem ->
@@ -31,7 +31,7 @@ class PythonFileStructureProvider : FileStructureProvider {
                 val start = document.getLineNumber(elem.textRange.startOffset) + 1
                 val end = document.getLineNumber(elem.textRange.endOffset) + 1
                 val public = !name.startsWith("_")
-                elements.add(FileElement(name, FileElementType.METHOD, public, start to end))
+                elements.add(FileElement(name, FileElementType.METHOD, public, listOf(start, end)))
             }
 
             PsiTreeUtil.collectElementsOfType(psiFile, pyTargetClass).forEach { elem ->
@@ -39,7 +39,7 @@ class PythonFileStructureProvider : FileStructureProvider {
                 val start = document.getLineNumber(elem.textRange.startOffset) + 1
                 val end = document.getLineNumber(elem.textRange.endOffset) + 1
                 val public = !name.startsWith("_")
-                elements.add(FileElement(name, FileElementType.FIELD, public, start to end))
+                elements.add(FileElement(name, FileElementType.FIELD, public, listOf(start, end)))
             }
 
             elements

@@ -40,20 +40,20 @@ class JavaFileStructureProvider : FileStructureProvider {
         val start = document.getLineNumber(aClass.textRange.startOffset) + 1
         val end = document.getLineNumber(aClass.textRange.endOffset) + 1
         val public = aClass.hasModifierProperty(PsiModifier.PUBLIC)
-        elements.add(FileElement(name, type, public, start to end))
+        elements.add(FileElement(name, type, public, listOf(start, end)))
     }
 
     private fun addMethod(method: PsiMethod, document: Document, elements: MutableList<FileElement>) {
         val start = document.getLineNumber(method.textRange.startOffset) + 1
         val end = document.getLineNumber(method.textRange.endOffset) + 1
         val public = method.hasModifierProperty(PsiModifier.PUBLIC)
-        elements.add(FileElement(method.name, FileElementType.METHOD, public, start to end))
+        elements.add(FileElement(method.name, FileElementType.METHOD, public, listOf(start, end)))
     }
 
     private fun addField(field: PsiField, document: Document, elements: MutableList<FileElement>) {
         val start = document.getLineNumber(field.textRange.startOffset) + 1
         val end = document.getLineNumber(field.textRange.endOffset) + 1
         val public = field.hasModifierProperty(PsiModifier.PUBLIC)
-        elements.add(FileElement(field.name, FileElementType.FIELD, public, start to end))
+        elements.add(FileElement(field.name, FileElementType.FIELD, public, listOf(start, end)))
     }
 }

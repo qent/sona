@@ -35,7 +35,7 @@ class KotlinFileStructureProvider : FileStructureProvider {
             !(modifiers?.hasModifier(KtTokens.PRIVATE_KEYWORD) == true ||
                     modifiers?.hasModifier(KtTokens.PROTECTED_KEYWORD) == true ||
                     modifiers?.hasModifier(KtTokens.INTERNAL_KEYWORD) == true)
-        elements.add(FileElement(name, type, public, start to end))
+        elements.add(FileElement(name, type, public, listOf(start, end)))
         if (decl is KtClassOrObject) {
             decl.declarations.forEach { collectKt(it, document, elements) }
         }
