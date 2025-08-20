@@ -25,13 +25,14 @@ class ChatStateFlow(
 
     suspend fun loadChat(chatId: String) {
         val messages = chatRepository.loadMessages(chatId)
-        val usage = chatRepository.loadTokenUsage(chatId)
+        val usage = messages.fold(TokenUsageInfo()) { acc, m -> acc + m.tokenUsage }
         emit(Chat(chatId, usage, messages))
     }
 
     fun emit(chat: Chat) {
-        currentState = chat
-        mutableSharedState.tryEmit(chat)
+        val usage = chat.messages.fold(TokenUsageInfo()) { acc, m -> acc + m.tokenUsage }
+        currentState = chat.copy(tokenUsage = usage)
+        mutableSharedState.tryEmit(currentState)
     }
 
     override suspend fun collect(collector: FlowCollector<Chat>) {
