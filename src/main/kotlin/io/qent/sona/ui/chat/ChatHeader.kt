@@ -32,7 +32,7 @@ fun ChatHeader(state: ChatState) {
     val model = preset?.provider?.models?.find { it.name == preset.model }
     val totalCost = state.totalTokenUsage.cost(model)
     val lastCost = state.lastTokenUsage.cost(model)
-    val contextTokens = state.lastTokenUsage.outputTokens + state.lastTokenUsage.inputTokens
+    val contextTokens = state.totalTokenUsage.outputTokens + state.totalTokenUsage.inputTokens
     val maxContext = model?.maxContextTokens ?: 0
     val rawProgress = if (maxContext > 0) (contextTokens.toFloat() / maxContext.toFloat()).coerceIn(0f, 1f) else 0f
     val progress by animateFloatAsState(targetValue = rawProgress, animationSpec = tween(350), label = "contextProgress")

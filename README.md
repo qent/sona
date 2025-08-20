@@ -63,7 +63,8 @@ available for manual model entry and is defined directly in code.
 
 The chat header shows token usage together with the estimated cost for the last
 message and for the entire conversation. It also displays how much of the
-model's context window is currently filled based on the active preset.
+model's context window is currently filled by summing tokens across all chat
+messages based on the active preset.
 
 The settings screen is split into two sections. **Plugin Settings** contains an **Answer in English** toggle that forces the
 model to respond in English, the original **Ignore HTTPS errors** option, an **Enable plugin logging** flag that writes
@@ -204,8 +205,9 @@ data class Chat(
 spent for the entire conversation. Every message stored in the chat
 (system, user, tool and AI) records its own token usage. Providers that
 do not expose cache statistics simply report zero cached tokens.
-Removing messages does not affect the total usage stored for the chat.
-Token counts are obtained via a pluggable `TokenCounter` interface that
+Token counts are recomputed from the stored messages, so deleting messages
+adjusts the total usage for the chat. Token counts are obtained via a
+pluggable `TokenCounter` interface that
 computes tokens for individual messages using provider specific implementations
 such as the official Anthropic token counting API or langchain4j estimators for
 OpenAI and Gemini models.

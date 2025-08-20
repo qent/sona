@@ -53,8 +53,6 @@ class ChatController(
 
         try {
             val baseMessages = currentState.messages.toMutableList()
-            var totalUsage = currentState.tokenUsage
-
             if (baseMessages.isEmpty()) {
                 val sysText = systemMessageText()
                 val sysMsg = SystemMessage.from(sysText)
@@ -64,7 +62,6 @@ class ChatController(
                 chatRepository.addMessage(chatId, sysMsg, preset.model, sysUsage)
                 val sysRepoMsg = ChatRepositoryMessage(chatId, sysMsg, preset.model, sysUsage)
                 baseMessages += sysRepoMsg
-                totalUsage += sysUsage
             }
 
             val userMsg = UserMessage.from(text)
@@ -74,9 +71,8 @@ class ChatController(
             chatRepository.addMessage(chatId, userMsg, preset.model, userUsage)
             val userRepoMsg = ChatRepositoryMessage(chatId, userMsg, preset.model, userUsage)
             baseMessages += userRepoMsg
-            totalUsage += userUsage
             log.log("emit: user message")
-            chatStateFlow.emit(currentState.copy(messages = baseMessages, tokenUsage = totalUsage))
+            chatStateFlow.emit(currentState.copy(messages = baseMessages))
 
             val placeholder = ChatRepositoryMessage(chatId, AiMessage.from(""), preset.model)
             log.log("emit: ai placeholder message")
@@ -84,7 +80,6 @@ class ChatController(
                 currentState.copy(
                     requestInProgress = true,
                     messages = baseMessages + placeholder,
-                    tokenUsage = totalUsage,
                     isStreaming = true
                 )
             )
@@ -152,7 +147,6 @@ class ChatController(
                         chatStateFlow.emit(
                             currentState.copy(
                                 messages = messages + placeholderAfter,
-                                tokenUsage = currentState.tokenUsage + toolUsage,
                                 requestInProgress = true,
                                 isStreaming = true
                             )
@@ -184,7 +178,6 @@ class ChatController(
                         chatStateFlow.emit(
                             currentState.copy(
                                 messages = msgs,
-                                tokenUsage = currentState.tokenUsage + aiUsage,
                                 requestInProgress = false,
                                 isStreaming = false
                             )
