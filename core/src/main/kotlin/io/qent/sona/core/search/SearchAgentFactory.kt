@@ -9,6 +9,7 @@ import dev.langchain4j.service.tool.ToolExecutor
 import io.qent.sona.core.model.SearchAiService
 import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.tools.ExternalTools
+import java.nio.file.Files
 
 class SearchAgentFactory(
     private val modelFactory: (Preset) -> StreamingChatModel,
@@ -17,10 +18,23 @@ class SearchAgentFactory(
 ) {
 
     private val gson = Gson()
-    private val systemRolePrompt = runCatching {
-        java.nio.file.Files.readString(java.nio.file.Paths.get("prompts/agents/search.md"))
-    }.getOrDefault("")
+    private val systemRolePrompt = loadResourceText("prompts/agents/search.md")
     private val toolsMap = mutableMapOf<ToolSpecification, ToolExecutor>()
+
+    private fun loadResourceText(path: String): String {
+        val cl = SearchAgentFactory::class.java.classLoader
+        return try {
+            cl.getResourceAsStream(path)
+                ?.bufferedReader(Charsets.UTF_8)
+                ?.use { it.readText() }
+                ?: ""
+        } catch (_: Throwable) {
+            // Fallback for local dev/tests where resources might not be on the classpath
+            runCatching {
+                Files.readString(java.nio.file.Paths.get(path))
+            }.getOrDefault("")
+        }
+    }
 
     init {
         fun addTool(
