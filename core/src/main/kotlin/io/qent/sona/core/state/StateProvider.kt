@@ -1,5 +1,6 @@
 package io.qent.sona.core.state
 
+import com.google.gson.Gson
 import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.model.chat.ChatModel
 import dev.langchain4j.model.chat.StreamingChatModel
@@ -45,7 +46,6 @@ import io.qent.sona.core.Logger
 import io.qent.sona.core.data.SearchResult
 import io.qent.sona.core.search.SearchAgentFactory
 import io.qent.sona.core.tokens.DefaultTokenCounter
-import dev.langchain4j.service.output.ServiceOutputParser
 import io.qent.sona.core.chat.ChatRepositoryMessage
 
 class StateProvider(
@@ -91,9 +91,7 @@ class StateProvider(
                 .create()
                 .chat(searchRequest)
             chatStateFlow.emit(chatStateFlow.currentState.copy(isStreaming = false))
-            val array = ServiceOutputParser()
-                .parse(response, Array<SearchResult>::class.java) as Array<SearchResult>
-            array.toList()
+            Gson().fromJson(response, Array<SearchResult>::class.java).toList()
         }
     }
     private val tools: Tools = ToolsInfoDecorator(chatStateFlow, internalTools, externalTools, filePermissionManager)
