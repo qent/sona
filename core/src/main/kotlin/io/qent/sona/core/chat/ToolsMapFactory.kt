@@ -52,6 +52,12 @@ class ToolsMapFactory(
                         gson.toJson(tools.getFileDependencies(path))
                     }
 
+                    "search" -> {
+                        val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
+                        val query = args["arg0"]?.toString() ?: return@create "Empty search request"
+                        gson.toJson(tools.search(query))
+                    }
+
                     "sendTerminalCommand" -> {
                         val args = gson.fromJson(req.arguments(), Map::class.java) as Map<*, *>
                         val command = args["arg0"]?.toString() ?: return@create "Empty terminal command"
