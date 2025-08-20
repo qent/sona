@@ -66,6 +66,7 @@ class PluginChatRepository : ChatRepository, PersistentStateComponent<PluginChat
                 cacheCreationInputTokens = cachedOutputTokens,
                 cacheReadInputTokens = cachedInputTokens,
             ),
+            timestamp = timestamp,
         )
     }
 

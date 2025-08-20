@@ -9,11 +9,18 @@ import io.qent.sona.core.mcp.McpServerStatus
 
 sealed interface UiMessage {
     val text: String
+    val timestamp: Long
 
-    data class User(override val text: String) : UiMessage
-    data class Ai(override val text: String, val toolRequests: List<ToolExecutionRequest>) : UiMessage
+    data class User(override val text: String, override val timestamp: Long) : UiMessage
+    data class Ai(
+        override val text: String,
+        override val timestamp: Long,
+        val toolRequests: List<ToolExecutionRequest>,
+    ) : UiMessage
+
     data class AiMessageWithTools(
         override val text: String,
+        override val timestamp: Long,
         val toolRequests: List<ToolExecutionRequest>,
         val toolResponse: List<String>,
     ) : UiMessage

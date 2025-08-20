@@ -48,6 +48,7 @@ data class ChatRepositoryMessage(
     val message: ChatMessage,
     val model: String,
     val tokenUsage: TokenUsageInfo = TokenUsageInfo(),
+    val timestamp: Long = System.currentTimeMillis(),
 )
 
 data class ChatSummary(

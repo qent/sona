@@ -43,16 +43,17 @@ class StateFactory {
 
         chat.messages.forEachIndexed { index, message ->
             val m = message.message
+            val ts = if (message.timestamp != 0L) message.timestamp else index.toLong()
 
             val lastUiMessage = uiMessages.lastOrNull()
             val lastUiMessageIndex = uiMessages.size - 1
 
             when (m) {
                 is AiMessage -> {
-                    uiMessages.add(UiMessage.Ai(m.text().orEmpty(), m.toolExecutionRequests()))
+                    uiMessages.add(UiMessage.Ai(m.text().orEmpty(), ts, m.toolExecutionRequests()))
                 }
                 is UserMessage -> {
-                    uiMessages.add(UiMessage.User(m.singleText().trim()))
+                    uiMessages.add(UiMessage.User(m.singleText().trim(), ts))
                 }
                 is ToolExecutionResultMessage -> {
                     when (lastUiMessage) {
@@ -65,12 +66,18 @@ class StateFactory {
                         }
                         is UiMessage.Ai -> {
                             uiMessages[lastUiMessageIndex] = UiMessage.AiMessageWithTools(
-                                lastUiMessage.text, lastUiMessage.toolRequests, listOf(m.text())
+                                lastUiMessage.text,
+                                lastUiMessage.timestamp,
+                                lastUiMessage.toolRequests,
+                                listOf(m.text())
                             )
                         }
                         else -> {
                             uiMessages += UiMessage.AiMessageWithTools(
-                                "", emptyList(), listOf(m.text())
+                                "",
+                                ts,
+                                emptyList(),
+                                listOf(m.text())
                             )
                         }
                     }
