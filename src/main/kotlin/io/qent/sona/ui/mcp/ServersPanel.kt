@@ -132,32 +132,38 @@ fun ServersPanel(state: State.ServersState) {
                         }
                         is McpServerStatus.Status.CONNECTED -> {
                             if (expanded.value) {
-                                for (tool in server.tools) {
-                                    key(tool.name()) {
-                                        val disabled = server.disabledTools.contains(tool.name())
-                                        Row(
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .padding(top = 12.dp),
-                                            verticalAlignment = Alignment.Top
-                                        ) {
-                                            val color = if (disabled) Color.Gray else Color(0xFF4CAF50)
-                                            Box(
-                                                Modifier
-                                                    .clickable { state.onToggleTool(server.name, tool.name()) }
-                                                    .padding(top = 5.dp, end = 8.dp)
-                                                    .size(8.dp)
-                                                    .clip(CircleShape)
-                                                    .background(color)
-                                            )
-                                            Text(tool.name(), Modifier.width(200.dp), fontWeight = FontWeight.Bold)
-                                            Text(
-                                                tool.description().trimIndent(),
-                                                color = SonaTheme.colors.BackgroundText
-                                            )
-                                        }
-                                    }
-                                }
+                                  for (tool in server.tools) {
+                                      val disabled = server.disabledTools.contains(tool.name())
+                                      key(tool.name(), disabled) {
+                                          Row(
+                                              Modifier
+                                                  .fillMaxWidth()
+                                                  .padding(top = 12.dp),
+                                              verticalAlignment = Alignment.Top
+                                          ) {
+                                              val color = if (disabled) Color.Gray else Color(0xFF4CAF50)
+                                              Box(
+                                                  Modifier
+                                                      .clickable { state.onToggleTool(server.name, tool.name()) }
+                                                      .padding(top = 5.dp, end = 8.dp)
+                                                      .size(8.dp)
+                                                      .clip(CircleShape)
+                                                      .background(color)
+                                              )
+                                              Text(
+                                                  tool.name(),
+                                                  Modifier
+                                                      .width(200.dp)
+                                                      .clickable { state.onToggleTool(server.name, tool.name()) },
+                                                  fontWeight = FontWeight.Bold
+                                              )
+                                              Text(
+                                                  tool.description().trimIndent(),
+                                                  color = SonaTheme.colors.BackgroundText
+                                              )
+                                          }
+                                      }
+                                  }
                             }
                         }
                         else -> Unit
