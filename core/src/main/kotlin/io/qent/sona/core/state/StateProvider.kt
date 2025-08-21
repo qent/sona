@@ -31,6 +31,7 @@ import io.qent.sona.core.state.interactors.PresetsListStateInteractor
 import io.qent.sona.core.state.interactors.RolesListStateInteractor
 import io.qent.sona.core.state.interactors.ServersController
 import io.qent.sona.core.state.interactors.ServersStateInteractor
+import io.qent.sona.core.mcp.McpServerStatus
 import io.qent.sona.core.tools.ExternalTools
 import io.qent.sona.core.tools.InternalTools
 import io.qent.sona.core.tools.Tools
@@ -404,10 +405,9 @@ class StateProvider(
         _state.emit(state)
     }
 
-    private suspend fun showServers() {
-        chatScreenJob?.cancel()
+    private suspend fun emitServersState(servers: List<McpServerStatus>) {
         val state = factory.createServersState(
-            servers = serversInteractor.servers,
+            servers = servers,
             onToggleServer = { name -> serversInteractor.toggle(name) },
             onToggleTool = { server, tool -> serversInteractor.toggleTool(server, tool) },
             onReload = { scope.launch { serversInteractor.reload() } },
@@ -424,6 +424,13 @@ class StateProvider(
             onOpenUserPrompt = { scope.launch { showUserPrompt() } },
         )
         _state.emit(state)
+    }
+
+    private suspend fun showServers() {
+        chatScreenJob?.cancel()
+        chatScreenJob = serversInteractor.servers.onEach { servers ->
+            emitServersState(servers)
+        }.launchIn(scope)
     }
 }
 

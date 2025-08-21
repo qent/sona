@@ -12,7 +12,6 @@ import io.qent.sona.core.presets.Presets
 import io.qent.sona.core.roles.Role
 import io.qent.sona.core.roles.Roles
 import io.qent.sona.core.mcp.McpServerStatus
-import kotlinx.coroutines.flow.StateFlow
 
 class StateFactory {
     fun createChatState(
@@ -225,7 +224,7 @@ class StateFactory {
     )
 
     fun createServersState(
-        servers: StateFlow<List<McpServerStatus>>,
+        servers: List<McpServerStatus>,
         onToggleServer: (String) -> Unit,
         onToggleTool: (String, String) -> Unit,
         onReload: () -> Unit,

@@ -1,7 +1,6 @@
 package io.qent.sona.core.state
 
 import dev.langchain4j.agent.tool.ToolExecutionRequest
-import kotlinx.coroutines.flow.StateFlow
 import io.qent.sona.core.model.TokenUsageInfo
 import io.qent.sona.core.presets.Presets
 import io.qent.sona.core.presets.Preset
@@ -141,7 +140,7 @@ sealed class State {
     }
 
     data class ServersState(
-        val servers: StateFlow<List<McpServerStatus>>,
+        val servers: List<McpServerStatus>,
         val onToggleServer: (String) -> Unit,
         val onToggleTool: (String, String) -> Unit,
         val onReload: () -> Unit,
