@@ -126,21 +126,26 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
     }
 
     override fun findFilesByNames(pattern: String, offset: Int, limit: Int): List<String> {
-        val base = project.basePath ?: return emptyList()
         val regex = try {
             Regex(pattern, RegexOption.IGNORE_CASE)
         } catch (_: Exception) {
             return emptyList()
         }
-        val results = mutableListOf<String>()
-        Files.walk(Paths.get(base)).use { stream ->
-            stream.filter { Files.isRegularFile(it) }.forEach { p ->
-                if (regex.containsMatchIn(p.fileName.toString())) {
-                    results.add(p.toString())
+        return runReadAction {
+            val scope = com.intellij.psi.search.GlobalSearchScope.projectScope(project)
+            val names = com.intellij.psi.search.FilenameIndex.getAllFilenames(project)
+            val result = mutableListOf<String>()
+            for (name in names) {
+                if (!regex.containsMatchIn(name)) continue
+                val files = com.intellij.psi.search.FilenameIndex.getVirtualFilesByName(project, name, scope)
+                for (file in files) {
+                    result.add(file.path)
+                    if (result.size >= offset + limit) break
                 }
+                if (result.size >= offset + limit) break
             }
+            result.drop(offset).take(limit)
         }
-        return results.drop(offset).take(limit)
     }
 
     override fun findClasses(pattern: String, offset: Int, limit: Int): List<FileStructureInfo> {
@@ -179,34 +184,42 @@ class PluginExternalTools(private val project: Project) : ExternalTools {
     }
 
     override fun findText(pattern: String, offset: Int, limit: Int): Map<String, Map<Int, String>> {
-        val base = project.basePath ?: return emptyMap()
         val regex = try {
             Regex(pattern, RegexOption.IGNORE_CASE)
         } catch (_: Exception) {
             return emptyMap()
         }
-        val result = linkedMapOf<String, MutableMap<Int, String>>()
-        var count = 0
-        Files.walk(Paths.get(base)).use { stream ->
-            stream.filter { Files.isRegularFile(it) }.forEach { p ->
-                if (count - offset >= limit) return@forEach
-                val lines = try {
-                    Files.readAllLines(p)
+        return runReadAction {
+            val scope = com.intellij.psi.search.GlobalSearchScope.projectScope(project)
+            val service = com.intellij.find.TextSearchService.getInstance()
+            val candidates = mutableListOf<com.intellij.openapi.vfs.VirtualFile>()
+            service.processFilesWithText(pattern, com.intellij.util.Processor { file ->
+                candidates.add(file)
+                true
+            }, scope)
+            val result = linkedMapOf<String, MutableMap<Int, String>>()
+            var count = 0
+            for (file in candidates) {
+                if (count - offset >= limit) break
+                if (file.fileType.isBinary) continue
+                val text = try {
+                    com.intellij.openapi.vfs.VfsUtilCore.loadText(file)
                 } catch (_: Exception) {
-                    emptyList<String>()
+                    continue
                 }
-                for ((idx, line) in lines.withIndex()) {
+                val lines = text.lines()
+                for ((index, line) in lines.withIndex()) {
                     if (regex.containsMatchIn(line)) {
                         if (count >= offset) {
-                            result.getOrPut(p.toString()) { linkedMapOf() }[idx + 1] = line
+                            result.getOrPut(file.path) { linkedMapOf() }[index + 1] = line
                         }
                         count++
                         if (count - offset >= limit) break
                     }
                 }
             }
+            result
         }
-        return result
     }
 
     private fun getTerminal(): TerminalWidget {
