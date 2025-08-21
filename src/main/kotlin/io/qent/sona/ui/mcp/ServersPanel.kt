@@ -17,8 +17,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.key
@@ -40,7 +38,7 @@ import java.net.URI
 
 @Composable
 fun ServersPanel(state: State.ServersState) {
-    val servers by state.servers.collectAsState(emptyList())
+    val servers = state.servers
     val listState = rememberLazyListState()
     Box(
         Modifier
