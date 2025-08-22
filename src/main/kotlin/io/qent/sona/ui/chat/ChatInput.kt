@@ -153,6 +153,7 @@ fun ChatInput(state: ChatState, text: MutableState<TextFieldValue>, focusRequest
                 when (it) {
                     DefaultRoles.ARCHITECTOR.displayName -> "\uD83D\uDC77  $it"
                     DefaultRoles.CODER.displayName -> "\uD83D\uDC68\u200D\uD83D\uDCBB  $it"
+                    DefaultRoles.MANAGER.displayName -> "\uD83D\uDCBC  $it"
                     else -> it
                 }
             },

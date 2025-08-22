@@ -8,6 +8,7 @@ import dev.langchain4j.service.tool.ToolExecutor
 import io.qent.sona.core.mcp.McpConnectionManager
 import io.qent.sona.core.presets.PresetsRepository
 import io.qent.sona.core.roles.RolesRepository
+import io.qent.sona.core.roles.DefaultRoles
 import io.qent.sona.core.tools.Tools
 import io.qent.sona.core.settings.SettingsRepository
 import kotlinx.coroutines.runBlocking
@@ -26,17 +27,28 @@ class ToolsMapFactory(
 
     suspend fun create(): Map<ToolSpecification, ToolExecutor> {
         val preset = presetsRepository.load().let { it.presets[it.active] }
+        val currentRole = rolesRepository.load().let { it.roles[it.active].name }
         val baseSpecs = ToolSpecifications.toolSpecificationsFrom(tools).toMutableList().apply {
             add(createSwitchRolesToolSpecification())
         }
+        val roleFiltered = if (currentRole == DefaultRoles.MANAGER.displayName) {
+            baseSpecs.filter { it.name() in setOf("getFocusedFileInfo", "switchRole") }
+        } else {
+            baseSpecs
+        }
         val useSearchAgent = settingsRepository.load().useSearchAgent
-        val specifications = baseSpecs.filter { spec ->
+        val filtered = roleFiltered.filter { spec ->
             if (useSearchAgent) {
                 spec.name() !in setOf("findFilesByNames", "findClasses", "findText")
             } else {
                 spec.name() != "search"
             }
-        } + mcpManager.listTools()
+        }
+        val specifications = if (currentRole == DefaultRoles.MANAGER.displayName) {
+            filtered
+        } else {
+            filtered + mcpManager.listTools()
+        }
 
         return specifications.associateWith { spec: ToolSpecification ->
             permissionedToolExecutor.create(chatStateFlow.currentState.chatId, preset.model) { req ->
