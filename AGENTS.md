@@ -41,7 +41,8 @@
   when disabled, the model can instead call `findFilesByNames`, `findClasses` and `findText`
   directly via IntelliJ APIs. The search agent runs synchronously and adds tool
   requests together with their responses to the chat while skipping the final
-  structured reply.
+  structured reply. Permission prompts from the search agent display the same
+  tool request panel and respect user callbacks.
 - The UI passes a list of additional `SystemMessage` values to the core. The first message describes the current
   environment (OS, IDE, Java, Python, Node.js, project root path, file extension statistics, build systems) and is prepended to every LLM request.
   - Any `.md` files in `src/main/resources/prompts` are bundled. Projects may provide `.md` files in `.sona/prompts` that apply to all roles and in `.sona/prompts/{role}` for role-specific messages; all are appended as additional system messages.
