@@ -11,8 +11,8 @@
   - Code blocks display Copy and Apply Patch icons. The latter opens a diff view to review and apply the patch.
   - System prompts (roles) are stored in `RolesRepository` and can be managed from
     the Roles screen. Each role has a name, a short description for tool usage,
-    and a detailed system prompt. The default Architect and Code roles cannot be
-    deleted.
+    and a detailed system prompt. The default Architect, Code and Manager roles cannot be
+    deleted. The Manager role only has access to reading the currently focused file.
 - LLM connection details are organised as presets via `PresetsRepository`. API keys are stored via the IDE password
   store and never written to `presets.xml`. At least one preset must exist for the chat
   to work and they are managed from the Presets screen.

@@ -31,6 +31,11 @@ class PluginRolesRepository : RolesRepository, PersistentStateComponent<PluginRo
                 DefaultRoles.CODER.displayName,
                 "Implements solutions in code.",
                 "You are Sona, a highly skilled software engineer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices."
+            ),
+            StoredRole(
+                DefaultRoles.MANAGER.displayName,
+                "Manages other roles.",
+                "You are Sona, a pragmatic manager overseeing other agents. Focus on coordinating roles and reviewing the currently focused file when needed."
             )
         )
     )

@@ -32,7 +32,7 @@ branch during the previous day. The resulting archive is uploaded as a workflow 
 The plugin supports multiple system roles. Open the roles screen from the tool
 window actions to switch between roles or create new ones. Each role provides a
 short description for tools and a detailed system prompt. Roles can be added,
-selected and removed, but the default Architect and Code roles cannot be deleted.
+selected and removed, but the default Architect, Code and Manager roles cannot be deleted.
 The active role can also be changed directly from the chat via the selector
 under the message input. The text of the active role is sent as a system message
 with every request but is not stored in the chat history. Every request is also
@@ -47,9 +47,9 @@ Models can also switch roles themselves using a tool that selects a role by name
 
 When starting a new conversation the message field shows a placeholder tailored
 to the active role. The Architect role suggests planning and design, the Code
-role suggests implementation, and other roles display a generic "Describe your
-task..." prompt. Once messages are present, the placeholder becomes
-"Type a message...".
+role suggests implementation, the Manager role focuses on coordinating roles,
+and other roles display a generic "Describe your task..." prompt. Once messages
+are present, the placeholder becomes "Type a message...".
 
 ## Presets
 
@@ -107,7 +107,7 @@ you switch to a different chat.
 Tool calls referenced by the model are hidden behind a gear icon in the top‑right corner of each AI message. Clicking the icon reveals the list of requested tools. When a tool starts running, the chat shows a dark terminal‑style bubble with animated dots that are replaced by the tool's output once it finishes.
 If the model message contains only a tool request, the chat displays a note like "Sona is calling tool '<tool>'" instead of an empty response.
 
- The available tools let the model read the focused file, read any file by absolute path and line range, list directory contents, run terminal commands from the project root, read terminal output, apply unified diff patches through `applyPatch`, and switch the active role between Architect and Code. When **Use search agent** is enabled, a dedicated agent can also query the project using tools that search for files, classes and text patterns. Otherwise, the model can call `findFilesByNames`, `findClasses` and `findText` directly through IntelliJ APIs. The search agent runs synchronously and shows tool requests together with their responses in the chat while the final structured answer is not added. Permission prompts from the search agent use the same panel and callbacks as other tool requests. Directory listings append "/" to folder names and include the first-level contents of each directory. File access is guarded by a permission system with a whitelist (project root by default) and a blacklist blocking sensitive files such as `.env`. Custom lists can be supplied by creating a `sona.json` file inside `.sona` in the project root or `.sona/agents/{role}` for a specific role:
+ The available tools let the model read the focused file, read any file by absolute path and line range, list directory contents, run terminal commands from the project root, read terminal output, apply unified diff patches through `applyPatch`, and switch the active role between Architect, Code and Manager. The Manager role only exposes the tool that reads the focused file. When **Use search agent** is enabled, a dedicated agent can also query the project using tools that search for files, classes and text patterns. Otherwise, the model can call `findFilesByNames`, `findClasses` and `findText` directly through IntelliJ APIs. The search agent runs synchronously and shows tool requests together with their responses in the chat while the final structured answer is not added. Permission prompts from the search agent use the same panel and callbacks as other tool requests. Directory listings append "/" to folder names and include the first-level contents of each directory. File access is guarded by a permission system with a whitelist (project root by default) and a blacklist blocking sensitive files such as `.env`. Custom lists can be supplied by creating a `sona.json` file inside `.sona` in the project root or `.sona/agents/{role}` for a specific role:
 
 ```
 {
