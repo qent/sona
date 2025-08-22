@@ -406,13 +406,15 @@ internal fun loadMessagesFromPath(path: Path): List<SystemMessage> {
 }
 
 internal fun loadProjectPromptMessages(basePath: String?, role: String): List<SystemMessage> {
-    val promptsDir = basePath?.let { Paths.get(it, ".sona", "prompts") } ?: return emptyList()
-    if (!Files.isDirectory(promptsDir)) return emptyList()
+    if (basePath == null) return emptyList()
 
     val messages = mutableListOf<SystemMessage>()
-    messages += loadMessagesFromPath(promptsDir)
+    val promptsDir = Paths.get(basePath, ".sona", "prompts")
+    if (Files.isDirectory(promptsDir)) {
+        messages += loadMessagesFromPath(promptsDir)
+    }
 
-    val roleDir = promptsDir.resolve(role.lowercase())
+    val roleDir = Paths.get(basePath, ".sona", "agents", role.lowercase(), "prompts")
     if (Files.isDirectory(roleDir)) {
         messages += loadMessagesFromPath(roleDir)
     }
