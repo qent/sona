@@ -45,7 +45,7 @@ fun AiWithToolsMessageBubble(
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.Bottom
         ) {
             SelectionContainer(Modifier.weight(1f).padding(bottom = 12.dp).padding(horizontal = 8.dp)) {
                 val mdState = rememberMarkdownState(messageText, immediate = true)
@@ -61,6 +61,7 @@ fun AiWithToolsMessageBubble(
                 contentDescription = Strings.showToolRequests,
                 colorFilter = ColorFilter.tint(LocalTypography.current.text.color),
                 modifier = Modifier
+                    .padding(bottom = 12.dp)
                     .size(14.dp)
                     .clickable { expanded = !expanded }
             )

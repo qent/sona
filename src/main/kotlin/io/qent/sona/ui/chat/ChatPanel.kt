@@ -25,6 +25,8 @@ import io.qent.sona.ui.common.SonaTheme
 import io.qent.sona.services.PatchService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.collectLatest
 import org.jetbrains.jewel.ui.component.ActionButton
 import org.jetbrains.jewel.ui.component.Text
 
@@ -57,6 +59,32 @@ private fun Messages(
 ) {
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    var stickToBottom by remember { mutableStateOf(true) }
+
+    LaunchedEffect(listState) {
+        snapshotFlow {
+            val info = listState.layoutInfo
+            val total = info.totalItemsCount
+            if (total == 0) {
+                true
+            } else {
+                val lastVisible = info.visibleItemsInfo.lastOrNull()
+                val lastIndex = total - 1
+                if (lastVisible == null) {
+                    false
+                } else {
+                    val lastVisibleBottom = lastVisible.offset + lastVisible.size
+                    val viewportEnd = info.viewportEndOffset
+                    // Consider "at bottom" when the trailing spacer is visible and aligned with the viewport end
+                    (lastVisible.index >= lastIndex) && (lastVisibleBottom >= viewportEnd - 1)
+                }
+            }
+        }
+            .distinctUntilChanged()
+            .collectLatest { atEnd ->
+                stickToBottom = atEnd
+            }
+    }
     LazyColumn(
         state = listState,
         modifier = modifier
@@ -115,16 +143,18 @@ private fun Messages(
                 }
             }
 
-            if (index == state.messages.size - 1) {
-                Spacer(Modifier.height(60.dp))
-            } else {
+            if (index != state.messages.lastIndex) {
                 Spacer(Modifier.height(2.dp))
             }
         }
+        item(key = "bottom-spacer") {
+            Spacer(Modifier.height(60.dp))
+        }
     }
     LaunchedEffect(state.messages.lastOrNull()) {
-        if (state.messages.isNotEmpty()) {
-            listState.scrollToItem(state.messages.lastIndex)
+        if (state.messages.isNotEmpty() && stickToBottom) {
+            // Scroll to the trailing spacer so the end of the last message is visible
+            listState.scrollToItem(state.messages.size)
         }
     }
 }
