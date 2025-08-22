@@ -1,8 +1,9 @@
 package io.qent.sona.repositories
 
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.components.service
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import io.qent.sona.config.SonaConfig
 import io.qent.sona.core.mcp.McpServerConfig
@@ -18,8 +19,12 @@ class PluginMcpServersRepository(private val project: Project) : McpServersRepos
 
     private val root = project.basePath ?: "/"
 
+    private fun role(): String = runBlocking {
+        project.service<PluginRolesRepository>().load().let { it.roles[it.active].name }
+    }
+
     override suspend fun list(): List<McpServerConfig> {
-        val servers = SonaConfig.load(root)?.mcpServers ?: emptyMap()
+        val servers = SonaConfig.load(root, role())?.mcpServers ?: emptyMap()
         val result = servers.map { (name, server) ->
             McpServerConfig(
                 name = name,
@@ -60,12 +65,13 @@ class PluginMcpServersRepository(private val project: Project) : McpServersRepos
     }
 
     override suspend fun loadEnabled(): Set<String> {
-        val servers = SonaConfig.load(root)?.mcpServers ?: emptyMap()
+        val servers = SonaConfig.load(root, role())?.mcpServers ?: emptyMap()
         return servers.filter { it.value.enabled != false }.keys.toSet()
     }
 
     override suspend fun saveEnabled(enabled: Set<String>) {
-        val config = SonaConfig.load(root) ?: SonaConfig()
+        val r = role()
+        val config = SonaConfig.load(root, r) ?: SonaConfig()
         val servers = config.mcpServers?.toMutableMap() ?: mutableMapOf()
         val defaults = list().associateBy { it.name }
 
@@ -86,16 +92,17 @@ class PluginMcpServersRepository(private val project: Project) : McpServersRepos
         }
 
         config.mcpServers = servers
-        SonaConfig.save(root, config)
+        SonaConfig.save(root, config, r)
     }
 
     override suspend fun loadDisabledTools(): Map<String, Set<String>> {
-        val servers = SonaConfig.load(root)?.mcpServers ?: emptyMap()
+        val servers = SonaConfig.load(root, role())?.mcpServers ?: emptyMap()
         return servers.mapValues { it.value.disabledTools?.toSet() ?: emptySet() }
     }
 
     override suspend fun saveDisabledTools(disabled: Map<String, Set<String>>) {
-        val config = SonaConfig.load(root) ?: SonaConfig()
+        val r = role()
+        val config = SonaConfig.load(root, r) ?: SonaConfig()
         val servers = config.mcpServers?.toMutableMap() ?: mutableMapOf()
         val defaults = list().associateBy { it.name }
 
@@ -116,11 +123,12 @@ class PluginMcpServersRepository(private val project: Project) : McpServersRepos
         }
 
         config.mcpServers = servers
-        SonaConfig.save(root, config)
+        SonaConfig.save(root, config, r)
     }
 
     fun openConfig() {
-        val file = File(root, ".sona/sona.json")
+        val r = role()
+        val file = SonaConfig.path(root, r)
         if (!file.exists()) {
             val enabledSet = runBlocking { loadEnabled() }
             val servers = runBlocking { list() }
@@ -144,7 +152,7 @@ class PluginMcpServersRepository(private val project: Project) : McpServersRepos
                     headers = server.headers
                 }
             }.toMutableMap()
-            SonaConfig.save(root, config)
+            SonaConfig.save(root, config, r)
         }
         val vFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file)
         if (vFile != null) {

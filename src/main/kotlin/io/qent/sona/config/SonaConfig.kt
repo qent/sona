@@ -31,15 +31,25 @@ class SonaConfig {
     }
 
     companion object {
-        fun load(root: String): SonaConfig? {
-            val file = File(File(root, ".sona"), "sona.json")
+        private fun file(root: String, role: String? = null): File {
+            return if (role != null) {
+                val agentsDir = File(File(root, ".sona"), "agents")
+                val roleFile = File(File(agentsDir, role.lowercase()), "sona.json")
+                if (roleFile.exists()) roleFile else File(File(root, ".sona"), "sona.json")
+            } else {
+                File(File(root, ".sona"), "sona.json")
+            }
+        }
+
+        fun load(root: String, role: String? = null): SonaConfig? {
+            val file = file(root, role)
             return runCatching {
                 if (file.exists()) file.reader().use { Gson().fromJson(it, SonaConfig::class.java) } else null
             }.getOrNull()
         }
 
-        fun save(root: String, config: SonaConfig) {
-            val file = File(File(root, ".sona"), "sona.json")
+        fun save(root: String, config: SonaConfig, role: String? = null) {
+            val file = file(root, role)
             file.parentFile?.mkdirs()
             val gson: Gson = GsonBuilder().setPrettyPrinting().create()
 
@@ -55,6 +65,8 @@ class SonaConfig {
 
             file.writer().use { gson.toJson(merged, it) }
         }
+
+        fun path(root: String, role: String? = null): File = file(root, role)
 
         private fun JsonObject.deepMerge(other: JsonObject): JsonObject {
             other.entrySet().forEach { (key, value) ->

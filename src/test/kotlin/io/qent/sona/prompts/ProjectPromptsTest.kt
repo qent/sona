@@ -25,7 +25,7 @@ class ProjectPromptsTest {
         val promptsDir = dir.resolve(".sona").resolve("prompts")
         Files.createDirectories(promptsDir)
         Files.writeString(promptsDir.resolve("a.md"), "one")
-        val roleDir = promptsDir.resolve("architect")
+        val roleDir = dir.resolve(".sona").resolve("agents").resolve("architect").resolve("prompts")
         Files.createDirectories(roleDir)
         Files.writeString(roleDir.resolve("b.md"), "two")
 

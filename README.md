@@ -39,7 +39,7 @@ with every request but is not stored in the chat history. Every request is also
 prefixed with a system message summarizing
 the current environment (OS, IDE, Java, Python, Node.js versions, project root path, file extension
 statistics and build systems). The plugin also reads any `.md` files in `src/main/resources/prompts`.
-Projects can provide their own prompts under `.sona/prompts` (for all roles) and `.sona/prompts/{role}`
+Projects can provide their own prompts under `.sona/prompts` (for all roles) and `.sona/agents/{role}/prompts`
 matching the active role name in lowercase; these files are appended as additional system messages.
 A user-specific system prompt can be edited from the toolbar and is included with every request when set.
 
@@ -107,7 +107,7 @@ you switch to a different chat.
 Tool calls referenced by the model are hidden behind a gear icon in the top‑right corner of each AI message. Clicking the icon reveals the list of requested tools. When a tool starts running, the chat shows a dark terminal‑style bubble with animated dots that are replaced by the tool's output once it finishes.
 If the model message contains only a tool request, the chat displays a note like "Sona is calling tool '<tool>'" instead of an empty response.
 
- The available tools let the model read the focused file, read any file by absolute path and line range, list directory contents, run terminal commands from the project root, read terminal output, apply unified diff patches through `applyPatch`, and switch the active role between Architect and Code. When **Use search agent** is enabled, a dedicated agent can also query the project using tools that search for files, classes and text patterns. Otherwise, the model can call `findFilesByNames`, `findClasses` and `findText` directly through IntelliJ APIs. The search agent runs synchronously and shows tool requests together with their responses in the chat while the final structured answer is not added. Permission prompts from the search agent use the same panel and callbacks as other tool requests. Directory listings append "/" to folder names and include the first-level contents of each directory. File access is guarded by a permission system with a whitelist (project root by default) and a blacklist blocking sensitive files such as `.env`. Custom lists can be supplied by creating a `sona.json` file inside `.sona` in the project root:
+ The available tools let the model read the focused file, read any file by absolute path and line range, list directory contents, run terminal commands from the project root, read terminal output, apply unified diff patches through `applyPatch`, and switch the active role between Architect and Code. When **Use search agent** is enabled, a dedicated agent can also query the project using tools that search for files, classes and text patterns. Otherwise, the model can call `findFilesByNames`, `findClasses` and `findText` directly through IntelliJ APIs. The search agent runs synchronously and shows tool requests together with their responses in the chat while the final structured answer is not added. Permission prompts from the search agent use the same panel and callbacks as other tool requests. Directory listings append "/" to folder names and include the first-level contents of each directory. File access is guarded by a permission system with a whitelist (project root by default) and a blacklist blocking sensitive files such as `.env`. Custom lists can be supplied by creating a `sona.json` file inside `.sona` in the project root or `.sona/agents/{role}` for a specific role:
 
 ```
 {
@@ -120,7 +120,7 @@ If the model message contains only a tool request, the chat displays a note like
 }
 ```
 
-Sona merges updates into this file to preserve any custom entries the user may have added.
+Sona merges updates into this file to preserve any custom entries the user may have added. Role-specific configuration overrides the main file when present.
 
 The same configuration file can also include an `mcpServers` object keyed by server name specifying Model
 Context Protocol servers. Each entry supports `enabled`, `command`, `args`, `env`, `transport`, `url`, `cwd`
@@ -138,12 +138,12 @@ system messages sent with each request.
 The tool window includes a **Servers** action listing all configured MCP servers. Each server is shown as a card
 with a coloured status indicator – grey for disabled, red when a connection fails, yellow while connecting and
 green once connected and exposing tools. Clicking a card toggles the server on or off. A refresh button above
-the list reloads `.sona/sona.json` and reconnects previously enabled servers. A pinned **Редактировать конфигурацию**
-button at the bottom opens `.sona/sona.json`, creating it with the current server configuration and file permission
-lists when missing. Server enablement is stored in `.sona/sona.json` so only servers marked as enabled start
+the list reloads `.sona/sona.json` or `.sona/agents/{role}/sona.json` depending on the active role and reconnects previously enabled servers. A pinned **Редактировать конфигурацию**
+button at the bottom opens the same file, creating it with the current server configuration and file permission
+lists when missing. Server enablement is stored in this configuration file so only servers marked as enabled start
 automatically after restarting the IDE. Connected servers expand to show their tools with a green indicator next
 to each one. Clicking the indicator disables the tool, turning it grey and excluding it from future LLM requests.
-Disabled tool names persist in `.sona/sona.json` under the server's `disabledTools` array.
+Disabled tool names persist in the same configuration file under the server's `disabledTools` array.
 
 ```json
 {
