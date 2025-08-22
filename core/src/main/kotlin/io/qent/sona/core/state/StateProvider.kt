@@ -36,6 +36,7 @@ import io.qent.sona.core.tools.ExternalTools
 import io.qent.sona.core.tools.InternalTools
 import io.qent.sona.core.tools.Tools
 import io.qent.sona.core.tools.ToolsInfoDecorator
+import dev.langchain4j.data.message.ToolExecutionResultMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -83,10 +84,26 @@ class StateProvider(
             val response = SearchAgentFactory(
                 chatModelFactory,
                 preset,
-                externalTools
+                externalTools,
+                permissionedToolExecutor,
+                chatId
             ) { message ->
                 val current = chatStateFlow.currentState
-                val msgs = current.messages + ChatRepositoryMessage(chatId, message, preset.model)
+                val msgs = current.messages.toMutableList()
+                val repoMsg = ChatRepositoryMessage(chatId, message, preset.model)
+                if (message is ToolExecutionResultMessage) {
+                    val idx = msgs.indexOfLast {
+                        val m = it.message
+                        m is ToolExecutionResultMessage && m.id() == message.id()
+                    }
+                    if (idx >= 0) {
+                        msgs[idx] = repoMsg
+                    } else {
+                        msgs += repoMsg
+                    }
+                } else {
+                    msgs += repoMsg
+                }
                 chatStateFlow.emit(current.copy(messages = msgs, isStreaming = true))
             }
                 .create()

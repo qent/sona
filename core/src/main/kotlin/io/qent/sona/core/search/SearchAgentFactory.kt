@@ -1,6 +1,7 @@
 package io.qent.sona.core.search
 
 import com.google.gson.Gson
+import dev.langchain4j.agent.tool.ToolExecutionRequest
 import dev.langchain4j.agent.tool.ToolSpecification
 import dev.langchain4j.internal.JsonSchemaElementUtils
 import dev.langchain4j.model.chat.ChatModel
@@ -16,6 +17,7 @@ import dev.langchain4j.data.message.ToolExecutionResultMessage
 import dev.langchain4j.service.AiServices
 import dev.langchain4j.service.tool.ToolExecutor
 import io.qent.sona.core.data.SearchResult
+import io.qent.sona.core.chat.PermissionedToolExecutor
 import io.qent.sona.core.model.SearchAiService
 import io.qent.sona.core.presets.Preset
 import io.qent.sona.core.tools.ExternalTools
@@ -25,6 +27,8 @@ class SearchAgentFactory(
     private val modelFactory: (Preset) -> ChatModel,
     private val preset: Preset,
     private val externalTools: ExternalTools,
+    private val permissionedToolExecutor: PermissionedToolExecutor,
+    private val chatId: String,
     private val onMessage: (ChatMessage) -> Unit = {},
 ) {
 
@@ -59,12 +63,14 @@ class SearchAgentFactory(
                 .description(description)
                 .parameters(schema)
                 .build()
-            toolsMap[spec] = ToolExecutor { request, _ ->
+            toolsMap[spec] = ToolExecutor { request: ToolExecutionRequest, memory ->
                 onMessage(AiMessage.from(request))
-                val args = gson.fromJson(request.arguments(), Map::class.java) as Map<String, Any?>
-                val result = gson.toJson(executor(args))
-                onMessage(ToolExecutionResultMessage.from(request, result))
-                result
+                permissionedToolExecutor.create(chatId, preset.model) { req ->
+                    val args = gson.fromJson(req.arguments(), Map::class.java) as Map<String, Any?>
+                    val result = gson.toJson(executor(args))
+                    onMessage(ToolExecutionResultMessage.from(req, result))
+                    result
+                }.execute(request, memory)
             }
         }
 
