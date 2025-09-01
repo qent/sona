@@ -69,8 +69,9 @@ messages based on the active preset.
 The settings screen is split into two sections. **Plugin Settings** contains an **Answer in English** toggle that forces the
 model to respond in English, the original **Ignore HTTPS errors** option, an **Enable plugin logging** flag that writes
 debug messages to the IDE log, a **Use search agent** checkbox that delegates project search to a dedicated agent,
-and a field for **LLM API retries** that controls how many times failed requests are
-retried with exponential backoff. The new **Anthropic Settings** section adds
+fields for **LLM API retries**, which controls how many times failed requests are
+retried with exponential backoff, and **MCP tool execution timeout** (default 120 seconds) that limits how long tools may run.
+The new **Anthropic Settings** section adds
 checkboxes to cache system prompts and tool descriptions when sending requests
 to Anthropic models.
 

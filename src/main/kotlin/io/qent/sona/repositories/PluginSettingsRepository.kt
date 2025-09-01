@@ -20,6 +20,7 @@ class PluginSettingsRepository :
         var apiRetries: Int = 0,
         var answerInEnglish: Boolean = true,
         var useSearchAgent: Boolean = false,
+        var toolExecutionTimeout: Int = 120,
     )
 
     private var pluginSettingsState = PluginSettingsState()
@@ -38,5 +39,6 @@ class PluginSettingsRepository :
         pluginSettingsState.enablePluginLogging,
         pluginSettingsState.answerInEnglish,
         pluginSettingsState.useSearchAgent,
+        pluginSettingsState.toolExecutionTimeout,
     )
 }

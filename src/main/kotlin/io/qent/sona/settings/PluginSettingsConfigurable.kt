@@ -26,6 +26,7 @@ class PluginSettingsConfigurable : Configurable {
     private var currentCacheToolDescriptions = repo.state.cacheToolDescriptions
     private var currentApiRetries = repo.state.apiRetries
     private var currentUseSearchAgent = repo.state.useSearchAgent
+    private var currentToolExecutionTimeout = repo.state.toolExecutionTimeout
 
     override fun createComponent() = JewelComposePanel {
         val themeService = service<ThemeService>()
@@ -36,6 +37,7 @@ class PluginSettingsConfigurable : Configurable {
         var cacheSystemPrompts by remember { mutableStateOf(currentCacheSystemPrompts) }
         var cacheToolDescriptions by remember { mutableStateOf(currentCacheToolDescriptions) }
         var useSearchAgent by remember { mutableStateOf(currentUseSearchAgent) }
+        val toolTimeoutState = rememberTextFieldState(currentToolExecutionTimeout.toString())
         val apiRetriesState = rememberTextFieldState(currentApiRetries.toString())
         LaunchedEffect(answerInEnglish) { currentAnswerInEnglish = answerInEnglish }
         LaunchedEffect(ignoreHttps) { currentIgnoreHttpsErrors = ignoreHttps }
@@ -43,6 +45,9 @@ class PluginSettingsConfigurable : Configurable {
         LaunchedEffect(cacheSystemPrompts) { currentCacheSystemPrompts = cacheSystemPrompts }
         LaunchedEffect(cacheToolDescriptions) { currentCacheToolDescriptions = cacheToolDescriptions }
         LaunchedEffect(useSearchAgent) { currentUseSearchAgent = useSearchAgent }
+        LaunchedEffect(toolTimeoutState.text) {
+            currentToolExecutionTimeout = toolTimeoutState.text.toString().toIntOrNull() ?: 0
+        }
         LaunchedEffect(apiRetriesState.text) {
             currentApiRetries = apiRetriesState.text.toString().toIntOrNull() ?: 0
         }
@@ -79,6 +84,12 @@ class PluginSettingsConfigurable : Configurable {
                     Spacer(Modifier.width(8.dp))
                       Text(Strings.apiRetries)
                 }
+                Spacer(Modifier.height(8.dp))
+                Row {
+                    TextField(toolTimeoutState, Modifier.width(60.dp))
+                    Spacer(Modifier.width(8.dp))
+                      Text(Strings.mcpToolExecutionTimeout)
+                }
                 Spacer(Modifier.height(16.dp))
                 Text(Strings.anthropicSettings)
                 Spacer(Modifier.height(8.dp))
@@ -105,7 +116,8 @@ class PluginSettingsConfigurable : Configurable {
             currentCacheSystemPrompts != saved.cacheSystemPrompts ||
             currentCacheToolDescriptions != saved.cacheToolDescriptions ||
             currentApiRetries != saved.apiRetries ||
-            currentUseSearchAgent != saved.useSearchAgent
+            currentUseSearchAgent != saved.useSearchAgent ||
+            currentToolExecutionTimeout != saved.toolExecutionTimeout
     }
 
     override fun apply() {
@@ -118,6 +130,7 @@ class PluginSettingsConfigurable : Configurable {
                 currentApiRetries,
                 currentAnswerInEnglish,
                 currentUseSearchAgent,
+                currentToolExecutionTimeout,
             )
         )
     }
