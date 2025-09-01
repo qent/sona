@@ -5,16 +5,19 @@ import dev.langchain4j.mcp.client.McpClient
 import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport
 import dev.langchain4j.mcp.client.transport.stdio.StdioMcpTransport
 import io.qent.sona.core.Logger
+import io.qent.sona.core.settings.SettingsRepository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
+import java.time.Duration
 import dev.langchain4j.agent.tool.ToolExecutionRequest as AgentToolExecutionRequest
 
 class McpConnectionManager(
     private val repository: McpServersRepository,
     scope: CoroutineScope,
+    private val settingsRepository: SettingsRepository,
     private val log: Logger = Logger.NoOp
 ) {
     private val scope = scope + SupervisorJob() + Dispatchers.IO
@@ -67,8 +70,9 @@ class McpConnectionManager(
             )
         )
         scope.launch {
+            val timeout = settingsRepository.load().mcpToolExecutionTimeout
             runCatching {
-                val client = createClient(config) ?: throw Exception("Invalid config")
+                val client = createClient(config, timeout) ?: throw Exception("Invalid config")
                 val specs = client.listTools()
                 val disabledTools = disabled[config.name] ?: mutableSetOf()
                 synchronized(this@McpConnectionManager) {
@@ -189,7 +193,7 @@ class McpConnectionManager(
     }
 
 
-    private fun createClient(config: McpServerConfig): DefaultMcpClient? {
+    private fun createClient(config: McpServerConfig, toolTimeout: Int): DefaultMcpClient? {
         log.log("Create mcp client for $config")
         config.env?.get("MEMORY_FILE_PATH")?.let { path ->
             runCatching {
@@ -230,6 +234,7 @@ class McpConnectionManager(
         return DefaultMcpClient.Builder()
             .key(config.name)
             .transport(transport)
+            .toolExecutionTimeout(Duration.ofSeconds(toolTimeout.toLong()))
             .build()
     }
 

@@ -120,7 +120,7 @@ class StateProvider(
             }
         }
     }
-    private val mcpManager = McpConnectionManager(mcpServersRepository, scope, log)
+    private val mcpManager = McpConnectionManager(mcpServersRepository, scope, settingsRepository, log)
     private val permissionedToolExecutor = PermissionedToolExecutor(chatStateFlow, chatRepository, log)
     private val toolsMapFactory = ToolsMapFactory(
         chatStateFlow,

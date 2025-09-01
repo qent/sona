@@ -75,7 +75,7 @@ private class FakeTools : Tools {
 }
 
 private class FakeSettingsRepository : SettingsRepository {
-    override suspend fun load() = Settings(false, false, false, 0, false, true, false)
+    override suspend fun load() = Settings(false, false, false, 0, false, true, false, 120)
 }
 
 private class EmptyMcpRepository : McpServersRepository {
@@ -101,8 +101,8 @@ private fun buildChatController(repo: FakeChatRepository): ChatDeps {
     val rolesRepo = FakeRolesRepository()
     val tools = FakeTools()
     val scope = CoroutineScope(Dispatchers.Unconfined)
-    val mcpManager = McpConnectionManager(EmptyMcpRepository(), scope)
     val settingsRepo = FakeSettingsRepository()
+    val mcpManager = McpConnectionManager(EmptyMcpRepository(), scope, settingsRepo)
     val stateFlow = ChatStateFlow(repo)
     val permissioned = PermissionedToolExecutor(stateFlow, repo)
     val toolsMapFactory = ToolsMapFactory(stateFlow, tools, mcpManager, permissioned, rolesRepo, presetsRepo, settingsRepo)

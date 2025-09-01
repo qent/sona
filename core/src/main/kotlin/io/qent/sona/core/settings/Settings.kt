@@ -8,4 +8,5 @@ data class Settings(
     val enablePluginLogging: Boolean,
     val answerInEnglish: Boolean,
     val useSearchAgent: Boolean,
+    val mcpToolExecutionTimeout: Int,
 )

@@ -19,11 +19,11 @@
 - Supported LLM providers and models are defined in `core/src/main/resources/providers.json` so new options can be
   added without modifying the code. A `Custom OpenAI` provider is registered in code for manual model entry and
   always reports zero token cost.
-- Plugin settings contain "Answer in English", "Ignore HTTPS errors" and "Enable plugin logging" flags
-  a "Use search agent" toggle and an "Anthropic Settings" section to cache system prompts and
-  tool descriptions in requests.
+- Plugin settings contain "Answer in English", "Ignore HTTPS errors" and "Enable plugin logging" flags,
+    a "Use search agent" toggle, an "MCP tool execution timeout" field and an "Anthropic Settings" section to cache system prompts and
+    tool descriptions in requests.
 - Plugin settings also provide a global "LLM API retries" field controlling how
-  many times failed requests are retried with exponential backoff.
+    many times failed requests are retried with exponential backoff.
 - Each chat tracks tools approved by the user so that previously allowed tools run without asking again.
 - A 🤘 button next to the send action can temporarily auto-approve all tool
   requests in the current chat. The setting resets when switching chats and is
