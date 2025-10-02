@@ -41,7 +41,7 @@ jobs:
       # Setup Gradle
       - name: Setup Gradle
         if: steps.changes.outputs.changed == 'true'
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       # Build the plugin archive
       - name: Build Plugin
