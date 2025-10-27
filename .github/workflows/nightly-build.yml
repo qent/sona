@@ -57,7 +57,7 @@ jobs:
       # Upload the built plugin as an artifact
       - name: Upload plugin artifact
         if: steps.changes.outputs.changed == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: plugin-nightly-${{ steps.date.outputs.date }}
           path: build/distributions/*.zip
