@@ -33,7 +33,7 @@ jobs:
       # Set up Java for running Gradle tasks
       - name: Setup Java
         if: steps.changes.outputs.changed == 'true'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: zulu
           java-version: 21
